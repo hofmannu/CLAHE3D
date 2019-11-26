@@ -27,15 +27,16 @@ int main(){
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[nX * nY * nZ];
 	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
-		inputVol[iIdx] = ((float) (iIdx % 200)) * 0.1;
+		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
+		// this should generate a random number between 0 and 1
 
-	float clipLimit = 0.5;
+	float clipLimit = 0.1;
 	uint64_t binSize = 50;
 
 	uint64_t* subVolSize = new uint64_t[3];
-	subVolSize[0] = 25;
-	subVolSize[1] = 25;
-	subVolSize[2] = 25;
+	subVolSize[0] = 30;
+	subVolSize[1] = 30;
+	subVolSize[2] = 30;
 
 	interpGrid histGrid;
 	histGrid.setGridSpacing(subVolSize);
@@ -70,11 +71,7 @@ int main(){
 				currValue = inputVol[position[0] + position[1] * nZ + position[2] * nZ * nX];
 				histGrid.getNeighbours(position, neighbours, ratio);
 				
-				printf("%f ", inputVol[position[0] + position[1] * nZ + position[2] * nZ * nX]);
-				for (unsigned char iPos = 0; iPos < 6; iPos++)
-					printf("%ld, ", neighbours[iPos]);
-				
-						
+				// assign new value based on trilinear interpolation
 				inputVol[position[0] + position[1] * nZ + position[2] * nZ * nX] =
 				// first two opposing z corners
 				((histHandler.get_icdf(neighbours[0], neighbours[2], neighbours[4], currValue) * (1 - ratio[0]) + 
@@ -92,8 +89,6 @@ int main(){
 				(histHandler.get_icdf(neighbours[0], neighbours[2], neighbours[5], currValue) * (1 - ratio[0]) +
 				histHandler.get_icdf(neighbours[1], neighbours[2], neighbours[5], currValue) * ratio[0])
 					* ratio[1]) * ratio[2];
-				
-				printf("%f\n", inputVol[position[0] + position[1] * nZ + position[2] * nZ * nX]);
 			}
 		}
 	}

@@ -15,7 +15,8 @@ class histeq{
 		// structure: iBin + iZ * nBins + iX * nBins * nZ + iY * nBins * nZ * nX 
 		float* icdf; // inverted version of cummulative distribution function
 		float* maxVal; // maximum value occuring in each bin [iZ, iX, iY]
-		
+		float overallMax = 0;
+
 		// private functions
 		void calculate_nsubvols();
 		void getCDF(
@@ -24,6 +25,7 @@ class histeq{
 			const uint64_t yStart, const uint64_t yEnd, 
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY);
 		void invertCDF(uint64_t iZ, uint64_t iX, uint64_t iY);
+		void getOverallMax();
 
 	public:
 		void calculate();
