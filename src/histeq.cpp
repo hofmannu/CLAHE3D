@@ -1,44 +1,74 @@
 #include "histeq.h"
 
-void histeq::getOverallMax(){
-	
+// class constructor
+histeq::histeq()
+{
+
+}
+
+histeq::~histeq()
+{
+	if (isCdfAlloc)
+		delete[] cdf;
+
+	if (isMaxValBinAlloc)
+		delete[] maxValBin;
+}
+
+// finds the maximum value in the whole matrix
+void histeq::getOverallMax()
+{
 	overallMax = dataMatrix[0];
-	for(uint64_t idx = 1; idx < (volSize[0] * volSize[1] * volSize[2]); idx++){
+	for(uint64_t idx = 1; idx < nElements; idx++){
 		if(dataMatrix[idx] > overallMax)
 			overallMax = dataMatrix[idx];
 	}
-	
 	return;
 }
 
-void histeq::calculate(){
+void histeq::calculate()
+{
 	calculate_nsubvols();
 	getOverallMax();
 	
 	// allocate memory for transfer function
+	if (isCdfAlloc)
+		delete[] cdf;
 	cdf = new float[nBins * nSubVols[0] * nSubVols[1] * nSubVols[2]];
+	isCdfAlloc = 1;
 
-	uint64_t idxEnd[3];
-	uint64_t idxRun[3];
+	if (isMaxValBinAlloc)
+		delete[] maxValBin;
+	maxValBin = new float[nSubVols[0] * nSubVols[1] * nSubVols[2]];
+	isMaxValBinAlloc = 1;
+
+	uint64_t idxSub[3]; // index of current subvolume
+	uint64_t idxStart[3]; // start index of current subvolume
+	uint64_t idxEnd[3]; // end index of current subvolume
+
 	// calculate histogram for each individual block
-	for(idxRun[2] = 0; idxRun[2] < nSubVols[2]; idxRun[2]++){
-		for(idxRun[1] = 0; idxRun[1] < nSubVols[1]; idxRun[1]++){
-			for (idxRun[0] = 0; idxRun[0] < nSubVols[0]; idxRun[0]++){
-				
+	for(idxSub[2] = 0; idxSub[2] < nSubVols[2]; idxSub[2]++) // for each z subvolume
+	{
+		for(idxSub[1] = 0; idxSub[1] < nSubVols[1]; idxSub[1]++) // for each y subvolume
+		{
+			for (idxSub[0] = 0; idxSub[0] < nSubVols[0]; idxSub[0]++) // for each x subvolume
+			{
 				// get stopping index
-				for(unsigned char iDim = 0; iDim < 3; iDim++){
-					idxEnd[iDim] = (idxRun[iDim] + 1) * sizeSubVols[iDim] - 1;
+				for(unsigned char iDim = 0; iDim < 3; iDim++)
+				{
+					idxStart[iDim] = idxSub[iDim] *  sizeSubVols[iDim];
+					idxEnd[iDim] = idxStart[iDim] + sizeSubVols[iDim] - 1;
 					// for last volumes it might occur that we are crossing array
 					// boundaries --> reduce
 					if (idxEnd[iDim] >= volSize[iDim]){
 						idxEnd[iDim] = volSize[iDim] - 1;
 					}
 				}
-				
-				getCDF(idxRun[0] * sizeSubVols[0], idxEnd[0],
-					idxRun[1] * sizeSubVols[1], idxEnd[1],
-					idxRun[2] * sizeSubVols[2], idxEnd[2],
-					idxRun[0], idxRun[1], idxRun[2]);
+					
+				getCDF(idxStart[0], idxEnd[0],
+					idxStart[0], idxEnd[1],
+					idxStart[0], idxEnd[2],
+					idxSub[0], idxSub[1], idxSub[2]);
 				// invertCDF(idxRun[0], idxRun[1], idxRun[2]);
 			}
 		}
@@ -49,31 +79,57 @@ void histeq::getCDF(
 	const uint64_t zStart, const uint64_t zEnd, // z start & stop idx
 	const uint64_t xStart, const uint64_t xEnd, // x start & stop idx
 	const uint64_t yStart, const uint64_t yEnd, // y start & stop idx
-	const uint64_t iZ, const uint64_t iX, uint64_t iY){
+	const uint64_t iZ, const uint64_t iX, const uint64_t iY) // bin index
+{
 
-	uint64_t subVolOffset = iZ + iX * nSubVols[0] + iY * nSubVols[0] * nSubVols[1];
+	const uint64_t idxSubVol = iZ + iX * nSubVols[0] + iY * nSubVols[0] * nSubVols[1];
 	float* hist = new float[nBins]; // histogram of subvolume, only temporarily requried
 
 	// volume is indexed as iz + ix * nz + iy * nx * nz
 	// cdf is indexed as [iBin, iZSub, iXSub, iYSub]
 	uint64_t yOffset, xOffset;
 
-	// calculate size of each bin
-	float binRange = (overallMax - noiseLevel) / ((float) nBins);
 
 	// reset bins to zero before summing them up
 	for (uint64_t iBin = 0; iBin < nBins; iBin++)
 		hist[iBin] = 0;
 
+	// calculate local maximum
+	float tempMax = 0; // temporary variable to reduce data access
+	for (uint64_t iY = yStart; iY <= yEnd; iY++)
+	{
+		yOffset = iY * volSize[0] * volSize[1];
+		for(uint64_t iX = xStart; iX <= xEnd; iX++)
+		{
+			xOffset = iX * volSize[0];
+			for(uint64_t iZ = zStart; iZ <= zEnd; iZ++)
+			{
+				const float currVal = dataMatrix[iZ + xOffset + yOffset];
+				if (currVal > tempMax)
+				{
+					tempMax = currVal;
+				}
+			}
+		}
+	}
+	maxValBin[idxSubVol] = tempMax;
+
+	// calculate size of each bin
+	const float binRange = (tempMax - noiseLevel) / ((float) nBins);
+
 	uint64_t validVoxelCounter = 0;
 	// sort values into bins which are above clipLimit
-	for (uint64_t iY = yStart; iY <= yEnd; iY++){
+	for (uint64_t iY = yStart; iY <= yEnd; iY++)
+	{
 		yOffset = iY * volSize[0] * volSize[1];
-		for(uint64_t iX = xStart; iX <= xEnd; iX++){
+		for(uint64_t iX = xStart; iX <= xEnd; iX++)
+		{
 			xOffset = iX * volSize[0];
-			for(uint64_t iZ = zStart; iZ <= zEnd; iZ++){
+			for(uint64_t iZ = zStart; iZ <= zEnd; iZ++)
+			{
 				// only add to histogram if above clip limit
-				if (dataMatrix[iZ + xOffset + yOffset] >= noiseLevel){
+				if (dataMatrix[iZ + xOffset + yOffset] >= noiseLevel)
+				{
 					uint64_t iBin = (dataMatrix[iZ + xOffset + yOffset] - noiseLevel) / binRange;
 
 					// special case for maximum values in subvolume (they gonna end up
@@ -94,8 +150,9 @@ void histeq::getCDF(
 	
 	// calculate cummulative sum and scale along y
 	float cdfTemp = 0;
-	uint64_t binOffset = nBins * subVolOffset;
-	for (uint64_t iBin = 0; iBin < nBins; iBin++){
+	uint64_t binOffset = nBins * idxSubVol;
+	for (uint64_t iBin = 0; iBin < nBins; iBin++)
+	{
 		cdfTemp += hist[iBin];
 		cdf[binOffset + iBin] = cdfTemp;
 	}
@@ -109,28 +166,29 @@ float histeq::get_icdf(
 	const uint64_t iZ, // subvolume index in z 
 	const uint64_t iX, // subvolume index in x
 	const uint64_t iY, // subvolume index in y
-	const float value){ // value to extract
-	
-	// get index describes the 3d index of the subvolume
-	uint64_t subVolOffset = iZ + nSubVols[0] * iX + nSubVols[0] * nSubVols[1] * iY;
-	// convert value to somethinng which ranges from 0 to 1
-	float vInterp = (value - noiseLevel) / overallMax; // should now span 0 to 1 
-	
-	if (vInterp < 0){ // if we are already below noiseLevel send back a 0
-		vInterp = 0;
-	}else{
+	const float value) // value to extract
+{
+	// if we are below noise level, directy return
+	if (value < noiseLevel)
+	{
+		return 0;
+	}
+	else
+	{
+		// get index describes the 3d index of the subvolume
+		const uint64_t subVolIdx = iZ + nSubVols[0] * iX + nSubVols[0] * nSubVols[1] * iY;
+		const uint64_t subVolOffset = nBins * subVolIdx;
+		const float vInterp = (value - noiseLevel) / maxValBin[subVolIdx]; // should now span 0 to 1 
+		
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
-		if (vInterp > 1)
-			vInterp = 1;
+		const uint64_t binOffset = (vInterp > 1) ? 
+			nBins - 1 + subVolOffset
+			: (vInterp * ((float) nBins - 1.0) + 0.5) + subVolOffset;
 
-		// convert range 0 ... 1 to index in icdf
-		vInterp = vInterp * (float) nBins + 0.5;
-		uint64_t binOffset = (uint64_t) vInterp + nBins * subVolOffset;
-		vInterp = cdf[binOffset];
+		return cdf[binOffset];
 	}
 	
-	return vInterp;
 }
 
 void histeq::calculate_nsubvols(){
@@ -144,11 +202,13 @@ void histeq::calculate_nsubvols(){
 	return;
 }
 
+// define number of bins during eq
 void histeq::setNBins(const uint64_t _nBins){
 	nBins = _nBins;
 	return;
 }
 
+// define noiselevel of dataset as minimum occuring value
 void histeq::setNoiseLevel(const float _noiseLevel){
 	noiseLevel = _noiseLevel;
 	return;
@@ -159,6 +219,7 @@ void histeq::setVolSize(const uint64_t* _volSize){
 	for(unsigned char iDim = 0; iDim < 3; iDim++)
 		volSize[iDim] = _volSize[iDim];
 
+	nElements = volSize[0] * volSize[1] * volSize[2];
 	return;
 }
 

@@ -1,5 +1,15 @@
+/*
+	File: histeq.h
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+*/
+
+#ifndef HISTEQ_H
+#define HISTEQ_H
+
 #include <fstream>
 #include <cstdint>
+#include <cmath>
 
 class histeq{
 
@@ -7,15 +17,23 @@ class histeq{
 		// private variables
 		uint64_t nBins; // number of histogram bins
 		float noiseLevel; // noise level threshold (clipLimit)
-		uint64_t volSize[3]; // size of full three dimensional volume
+
+		uint64_t volSize[3]; // size of full three dimensional volume [z, x, y]
+		uint64_t nElements; // number of elements 
+
 		float* dataMatrix; // 3d matrix containing all values
 		uint64_t nSubVols[3]; // number of subvolumes in zxy
 		uint64_t sizeSubVols[3]; // size of each subvolume in zxy
+		
 		float* cdf; // contains cummulative distribution function for each subol
+		bool isCdfAlloc = 0;
 		// structure: iBin + iZ * nBins + iX * nBins * nZ + iY * nBins * nZ * nX 
+		
 		float* icdf; // inverted version of cummulative distribution function
-		float* maxVal; // maximum value occuring in each bin [iZ, iX, iY]
-		float overallMax = 0;
+		
+		float* maxValBin; // maximum value occuring in each subvolume [iZ, iX, iY]
+		bool isMaxValBinAlloc = 0;
+		float overallMax = 0; // maximum value in entire data matrix
 
 		// private functions
 		void calculate_nsubvols();
@@ -24,10 +42,14 @@ class histeq{
 			const uint64_t xStart, const uint64_t xEnd,
 			const uint64_t yStart, const uint64_t yEnd, 
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY);
-		void invertCDF(uint64_t iZ, uint64_t iX, uint64_t iY);
+		// void invertCDF(const uint64_t iZ, uint64_t iX, uint64_t iY);
 		void getOverallMax();
 
 	public:
+		// class constructor and destructor
+		histeq();
+		~histeq();
+
 		void calculate();
 		float get_icdf(
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY, const float value);
@@ -39,3 +61,6 @@ class histeq{
 		void setSizeSubVols(const uint64_t* _subVolSize);
 
 };
+
+
+#endif

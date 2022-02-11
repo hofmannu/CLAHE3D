@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/main_exp.dir/src/main.cpp.o -o main_exp  src/libHisteq.a src/libInterpgrid.a 

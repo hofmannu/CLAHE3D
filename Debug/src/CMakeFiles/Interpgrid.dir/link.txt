@@ -1,0 +1,2 @@
+/usr/bin/ar qc libInterpgrid.a CMakeFiles/Interpgrid.dir/interpGrid.cpp.o
+/usr/bin/ranlib libInterpgrid.a
