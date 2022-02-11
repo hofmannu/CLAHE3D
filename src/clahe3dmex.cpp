@@ -1,3 +1,10 @@
+/*
+	File: clahe3dmex.cpp
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 11.02.2022
+*/
+
 #include <fstream>
 #include "interpGrid.h"
 #include "histeq.h"
@@ -6,7 +13,6 @@
 using namespace std;
 
 // clahe3dmex(interpVol, subVolSize, spacingSubVols, clipLimit, binSize);
-
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	
 	float* inputVol = (float *) mxGetData(prhs[0]); // input volume
@@ -17,9 +23,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	uint64_t * subVolSpacing = (uint64_t*) mxGetData(prhs[2]); // size of bins [z, x, y]
 	float* clipLimit = (float *) mxGetData(prhs[3]);
 	uint64_t* binSize = (uint64_t*) mxGetData(prhs[4]);
-
 	uint64_t volumeSize[3] = {nZ, nX, nY};
-	
 
 	printf("[clahe3d] initializing histogram handler\n");
 	histeq histHandler;

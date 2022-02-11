@@ -32,9 +32,9 @@ int main(){
 
 	// initialize some parameters
 	const float clipLimit = 0.1;
-	const uint64_t binSize = 50;
+	const uint64_t binSize = 250;
 	const uint64_t subVolSize[3] = {31, 31, 31};
-	const uint64_t subVolSpacing[3] = {10, 10, 10};
+	const uint64_t subVolSpacing[3] = {20, 20, 20};
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;

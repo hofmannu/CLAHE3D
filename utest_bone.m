@@ -27,8 +27,6 @@ if (nIFin > 0)
 	error("Function returned invalid values");
 end
 
-% vtkwrite('/media/hofmannu/hofmannu/clahed.vtk', 'structured_points', 'clahed', saftedVol, 'spacing', Settings.z(2) - Settings.z(1), Settings.dX, Settings.dY, 'BINARY');
-
 newSlice = interpVol(100, :, :);
 newSlice = reshape(newSlice, [nx, ny]);
 
