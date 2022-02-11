@@ -31,14 +31,18 @@ void histeq::getOverallMax()
 
 uint64_t histeq::getStartIdxSubVol(const uint64_t iSub, const uint8_t iDim)
 {
-	const uint64_t startIdx = iSub * spacingSubVols[iDim] - (sizeSubVols[iDim] - 1) / 2; 
-	return (startIdx < 0) ? 0 : startIdx;
+	const int64_t centerPos = (int64_t) iSub * spacingSubVols[iDim];
+	int64_t startIdx = centerPos - ((int) sizeSubVols[iDim] - 1) / 2; 
+	startIdx = (startIdx < 0) ? 0 : startIdx;
+	return (uint64_t) startIdx;
 }
 
 uint64_t histeq::getStopIdxSubVol(const uint64_t iSub, const uint8_t iDim)
 {
-	const uint64_t stopIdx = iSub * spacingSubVols[iDim] + (sizeSubVols[iDim] - 1) / 2; 
-	return (stopIdx >= volSize[iDim]) ? (volSize[iDim] - 1) : stopIdx;
+	const int64_t centerPos = (int64_t) iSub * spacingSubVols[iDim];
+	int64_t stopIdx = centerPos + ((int) sizeSubVols[iDim] - 1) / 2; 
+	stopIdx = (stopIdx >= volSize[iDim]) ? (volSize[iDim] - 1) : stopIdx;
+	return (uint64_t) stopIdx;
 }
 
 void histeq::calculate()
@@ -319,7 +323,7 @@ void histeq::setVolSize(const uint64_t* _volSize){
 
 	nElements = volSize[0] * volSize[1] * volSize[2];
 	histGrid.setVolumeSize(_volSize);
-	
+
 	return;
 }
 

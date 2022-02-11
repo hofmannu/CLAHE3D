@@ -9,11 +9,11 @@ load ct.mat
 
 [nz, nx, ny] = size(interpVol); 
 
-subVolSize = uint64([51, 51, 51]);
+subVolSize = uint64([21, 21, 21]);
 spacingSubVols = uint64([5, 5, 5]);
 
 clipLimit = single(1);
-binSize = uint64(1000);
+binSize = uint64(100);
 % vtkwrite('/media/hofmannu/hofmannu/unclahed.vtk', 'structured_points', 'unclahed', saftedVol, 'spacing', Settings.z(2) - Settings.z(1), Settings.dX, Settings.dY, 'BINARY');
 
 % test code
@@ -34,13 +34,11 @@ figure()
 subplot(1, 2, 1)
 imagesc(oldSlice);
 axis image;
-colorbar
 title("Before");
 
 subplot(1, 2, 2)
 imagesc(newSlice);
 axis image;
-colorbar
 title("After");
 
 colormap(bone)

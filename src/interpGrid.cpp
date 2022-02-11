@@ -68,7 +68,8 @@ void interpGrid::getNeighbours(
 }
 
 // calculates the number of bins in each direction
-void interpGrid::calcSubVols(){
+void interpGrid::calcSubVols()
+{
 	uint64_t volumeLength;
 	for (unsigned char iDim = 0; iDim < 3; iDim++){
 		volumeLength = volumeSize[iDim] - 1; // length of full volume in units
@@ -85,7 +86,8 @@ void interpGrid::calcSubVols(){
 }
 
 // sets the required spacing of grid
-void interpGrid::setGridSpacing(const uint64_t* _gridSpacing){
+void interpGrid::setGridSpacing(const uint64_t* _gridSpacing)
+{
 	for(uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		gridSpacing[iDim] = _gridSpacing[iDim];
@@ -98,7 +100,8 @@ void interpGrid::setGridSpacing(const uint64_t* _gridSpacing){
 }
 
 // defines the origin of the grid
-void interpGrid::setGridOrigin(const float* _gridOrigin){
+void interpGrid::setGridOrigin(const float* _gridOrigin)
+{
 	for (unsigned char i=0; i<3; i++)
 		gridOrigin[i] = _gridOrigin[i];
 

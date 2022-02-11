@@ -208,7 +208,8 @@ src/CMakeFiles/Histeq.dir/histeq.cpp.o: ../src/histeq.cpp \
   /usr/include/c++/11.1.0/tr1/modified_bessel_func.tcc \
   /usr/include/c++/11.1.0/tr1/poly_hermite.tcc \
   /usr/include/c++/11.1.0/tr1/poly_laguerre.tcc \
-  /usr/include/c++/11.1.0/tr1/riemann_zeta.tcc
+  /usr/include/c++/11.1.0/tr1/riemann_zeta.tcc \
+  ../src/interpGrid.h
 
 
 /usr/include/c++/11.1.0/tr1/poly_laguerre.tcc:
@@ -448,6 +449,8 @@ src/CMakeFiles/Histeq.dir/histeq.cpp.o: ../src/histeq.cpp \
 /usr/include/c++/11.1.0/ios:
 
 /usr/include/bits/long-double.h:
+
+../src/interpGrid.h:
 
 /usr/include/c++/11.1.0/pstl/pstl_config.h:
 
