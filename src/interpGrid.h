@@ -9,7 +9,7 @@
 class interpGrid{
 
 	private:
-		uint64_t gridSize[3]; // size of subvolume grid
+		uint64_t gridSize[3]; // size of subvolume grid [z, x, y]
 		uint64_t volumeSize[3]; // dimensions of input volume in [z, x, y]
 		uint64_t gridSpacing[3]; // spacing of grid in [z, x, y]
 		float gridOrigin[3]; // position of first grid points in [z, x, y]
