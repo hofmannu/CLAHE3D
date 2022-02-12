@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/opt/cuda/include -I/home/hofmannu/Code/CLAHE3D/include
 
 CXX_FLAGS = -g -std=gnu++17
 

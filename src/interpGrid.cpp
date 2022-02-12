@@ -12,7 +12,8 @@ void interpGrid::getNeighbours(
 	float leftDistance = 0; // distance from left neighbour
 	float neighbourSpacing = 0; // spacing between two neighbours
 
-	for(unsigned char iDim = 0; iDim < 3; iDim++)
+	#pragma unroll
+	for(uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		if (((float) position[iDim]) <= gridOrigin[iDim])
 		{
@@ -51,18 +52,6 @@ void interpGrid::getNeighbours(
 			ratio[iDim] = leftDistance / neighbourSpacing;
 		}
 
-		// for debugging and error checking
-		if (ratio[iDim] > 1)
-		{
-			printf("ratio above 1 should not exist\n");
-			throw "InvalidResult";
-		}
-
-		if (ratio[iDim] < 0)
-		{
-			printf("ratios below 0 should not exist\n");
-			throw "InvalidResult";
-		}
 	}
 	return;
 }

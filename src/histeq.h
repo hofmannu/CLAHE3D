@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <cmath>
 #include "interpGrid.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 class histeq{
 
@@ -49,8 +51,11 @@ class histeq{
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY);
 		// void invertCDF(const uint64_t iZ, uint64_t iX, uint64_t iY);
 		void getOverallMax();
-		uint64_t getStartIdxSubVol(const uint64_t iSub, const uint8_t iDim);
-		uint64_t getStopIdxSubVol(const uint64_t iSub, const uint8_t iDim);
+		inline uint64_t getStartIdxSubVol(const uint64_t iSub, const uint8_t iDim);
+		inline uint64_t getStopIdxSubVol(const uint64_t iSub, const uint8_t iDim);
+		
+		// function to handle cuda errors
+		void checkCudaErr(cudaError_t err, const char* msgErr);
 
 
 	public:
@@ -59,10 +64,14 @@ class histeq{
 		~histeq();
 
 		void calculate();
+		void calculate_gpu();
 		void equalize();
 
 		float get_icdf(
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY, const float value);
+
+		// returns a single value of our cdf array
+		float get_cdf(const uint64_t _iBIn, const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub);
 
 		void setNBins(const uint64_t _nBins);
 		void setNoiseLevel(const float _noiseLevel);

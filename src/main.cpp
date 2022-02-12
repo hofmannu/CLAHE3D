@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdint>
 #include <fstream>
+#include <chrono>
 
 using namespace std;
 
@@ -45,12 +46,43 @@ int main(){
 	histHandler.setSpacingSubVols(subVolSpacing);
 	histHandler.setData(inputVol);
 	
-	printf("[clahe3d] calculating histograms for subvolumes\n");
+	// histogram calculation on GPU
+	auto startGpu = chrono::high_resolution_clock::now();
+	histHandler.calculate_gpu();
+	auto stopGpu = chrono::high_resolution_clock::now();
+	auto durationGpu = chrono::duration_cast<chrono::milliseconds>(stopGpu - startGpu);
+	const float testValGpu = histHandler.get_cdf(100, 5, 5, 5);
+
+	// histogram calculation of CPU
+	auto startCpu = chrono::high_resolution_clock::now();
 	histHandler.calculate();
+	auto stopCpu = chrono::high_resolution_clock::now();
+	auto durationCpu = chrono::duration_cast<chrono::milliseconds>(stopCpu - startCpu);
+	const float testValCpu = histHandler.get_cdf(100, 5, 5, 5);
+
+	// compare if results are the same
+	if (testValGpu != testValCpu)
+	{
+		printf("CPU value: %f, GPU value: %f\n", testValCpu, testValGpu);
+		throw "InvalidResult";
+	}
+	else
+	{
+		printf("GPU and CPU deliver the same result for CDF!\n");
+		printf("Time GPU: %d ms, Time CPU: %d ms\n", (int) durationGpu.count(), (int) durationCpu.count());
+	}
 
 	// loop over full volume
 	printf("[clahe3d] running histogram equilization for each voxel\n");
+
+	startCpu = chrono::high_resolution_clock::now();
 	histHandler.equalize();
+	stopCpu = chrono::high_resolution_clock::now();
+	durationCpu = chrono::duration_cast<chrono::milliseconds>(stopCpu - startCpu);
+	printf("Equilization took %d ms on CPU\n", durationCpu.count());
+
+	// histHandler.equalize_gpu();
+
 	
 	delete[] inputVol;
 		

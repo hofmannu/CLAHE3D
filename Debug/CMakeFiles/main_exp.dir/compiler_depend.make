@@ -210,10 +210,71 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
   /usr/include/c++/11.1.0/tr1/poly_laguerre.tcc \
   /usr/include/c++/11.1.0/tr1/riemann_zeta.tcc \
   ../src/interpGrid.h \
-  /usr/include/c++/11.1.0/iostream
+  /opt/cuda/include/cuda.h \
+  /usr/include/c++/11.1.0/stdlib.h \
+  /opt/cuda/include/cuda_runtime.h \
+  /opt/cuda/include/crt/host_config.h \
+  /opt/cuda/include/builtin_types.h \
+  /opt/cuda/include/device_types.h \
+  /opt/cuda/include/crt/host_defines.h \
+  /opt/cuda/include/driver_types.h \
+  /opt/cuda/include/vector_types.h \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/limits.h \
+  /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/syslimits.h \
+  /usr/include/limits.h \
+  /usr/include/bits/posix1_lim.h \
+  /usr/include/bits/local_lim.h \
+  /usr/include/linux/limits.h \
+  /usr/include/bits/posix2_lim.h \
+  /usr/include/bits/xopen_lim.h \
+  /usr/include/bits/uio_lim.h \
+  /opt/cuda/include/surface_types.h \
+  /opt/cuda/include/texture_types.h \
+  /opt/cuda/include/library_types.h \
+  /opt/cuda/include/channel_descriptor.h \
+  /opt/cuda/include/cuda_runtime_api.h \
+  /opt/cuda/include/cuda_device_runtime_api.h \
+  /opt/cuda/include/driver_functions.h \
+  /opt/cuda/include/vector_functions.h \
+  /opt/cuda/include/vector_functions.hpp \
+  /usr/include/c++/11.1.0/iostream \
+  /usr/include/c++/11.1.0/chrono \
+  /usr/include/c++/11.1.0/ratio \
+  /usr/include/c++/11.1.0/ctime \
+  /usr/include/c++/11.1.0/bits/parse_numbers.h
 
+
+/opt/cuda/include/vector_functions.hpp:
+
+/opt/cuda/include/vector_functions.h:
+
+/usr/include/c++/11.1.0/ctime:
+
+/opt/cuda/include/cuda_runtime_api.h:
+
+/opt/cuda/include/library_types.h:
+
+/opt/cuda/include/surface_types.h:
+
+/usr/include/bits/uio_lim.h:
+
+/usr/include/bits/xopen_lim.h:
+
+/usr/include/bits/posix2_lim.h:
+
+/usr/include/limits.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/limits.h:
+
+/opt/cuda/include/vector_types.h:
+
+/usr/include/c++/11.1.0/stdlib.h:
+
+/opt/cuda/include/cuda.h:
 
 /usr/include/c++/11.1.0/tr1/poly_laguerre.tcc:
+
+/usr/include/c++/11.1.0/bits/parse_numbers.h:
 
 /usr/include/c++/11.1.0/tr1/hypergeometric.tcc:
 
@@ -226,6 +287,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/bits/fp-fast.h:
 
 /usr/include/bits/libm-simd-decl-stubs.h:
+
+/opt/cuda/include/cuda_runtime.h:
 
 /usr/include/math.h:
 
@@ -266,6 +329,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11.1.0/bits/streambuf_iterator.h:
 
 /usr/include/c++/11.1.0/cstdio:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include-fixed/syslimits.h:
 
 /usr/include/c++/11.1.0/bits/std_abs.h:
 
@@ -379,6 +444,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/bits/types/__locale_t.h:
 
+/opt/cuda/include/cuda_device_runtime_api.h:
+
 /usr/include/sched.h:
 
 /usr/include/c++/11.1.0/bits/cpp_type_traits.h:
@@ -387,9 +454,13 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/bits/types/FILE.h:
 
+/opt/cuda/include/crt/host_defines.h:
+
 /usr/include/c++/11.1.0/cctype:
 
 /usr/include/c++/11.1.0/bits/alloc_traits.h:
+
+/opt/cuda/include/channel_descriptor.h:
 
 /usr/include/c++/11.1.0/type_traits:
 
@@ -447,6 +518,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11.1.0/ios:
 
+/opt/cuda/include/builtin_types.h:
+
 /usr/include/c++/11.1.0/tr1/special_function_util.h:
 
 ../src/main.cpp:
@@ -475,6 +548,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11.1.0/typeinfo:
 
+/usr/include/c++/11.1.0/chrono:
+
 /usr/include/c++/11.1.0/bits/locale_classes.tcc:
 
 /usr/include/bits/libc-header-start.h:
@@ -497,6 +572,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/bits/types/struct_tm.h:
 
+/usr/include/c++/11.1.0/ratio:
+
 /usr/include/bits/types/__FILE.h:
 
 /usr/include/c++/11.1.0/iosfwd:
@@ -507,9 +584,15 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/bits/types.h:
 
+/opt/cuda/include/device_types.h:
+
 /usr/lib/gcc/x86_64-pc-linux-gnu/11.1.0/include/stdint.h:
 
+/opt/cuda/include/driver_functions.h:
+
 /usr/include/bits/stdint-intn.h:
+
+/usr/include/linux/limits.h:
 
 /usr/include/stdint.h:
 
@@ -531,6 +614,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/bits/sched.h:
 
+/opt/cuda/include/crt/host_config.h:
+
 /usr/include/c++/11.1.0/bits/ranges_base.h:
 
 /usr/include/c++/11.1.0/bits/localefwd.h:
@@ -539,13 +624,19 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 
 /usr/include/c++/11.1.0/x86_64-pc-linux-gnu/bits/c++locale.h:
 
+/opt/cuda/include/texture_types.h:
+
 /usr/include/c++/11.1.0/bits/predefined_ops.h:
 
 /usr/include/bits/locale.h:
 
+/usr/include/bits/posix1_lim.h:
+
 /usr/include/c++/11.1.0/bits/basic_string.tcc:
 
 /usr/include/c++/11.1.0/bits/basic_string.h:
+
+/opt/cuda/include/driver_types.h:
 
 /usr/include/c++/11.1.0/bits/cxxabi_forced.h:
 
@@ -614,6 +705,8 @@ CMakeFiles/main_exp.dir/src/main.cpp.o: ../src/main.cpp \
 /usr/include/c++/11.1.0/bits/stl_function.h:
 
 /usr/include/c++/11.1.0/backward/binders.h:
+
+/usr/include/bits/local_lim.h:
 
 /usr/include/c++/11.1.0/bits/range_access.h:
 

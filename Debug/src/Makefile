@@ -189,29 +189,29 @@ Interpgrid/fast:
 	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Interpgrid.dir/build.make src/CMakeFiles/Interpgrid.dir/build
 .PHONY : Interpgrid/fast
 
-histeq.o: histeq.cpp.o
+histeq.o: histeq.cu.o
 .PHONY : histeq.o
 
 # target to build an object file
-histeq.cpp.o:
-	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cpp.o
-.PHONY : histeq.cpp.o
+histeq.cu.o:
+	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cu.o
+.PHONY : histeq.cu.o
 
-histeq.i: histeq.cpp.i
+histeq.i: histeq.cu.i
 .PHONY : histeq.i
 
 # target to preprocess a source file
-histeq.cpp.i:
-	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cpp.i
-.PHONY : histeq.cpp.i
+histeq.cu.i:
+	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cu.i
+.PHONY : histeq.cu.i
 
-histeq.s: histeq.cpp.s
+histeq.s: histeq.cu.s
 .PHONY : histeq.s
 
 # target to generate assembly for a file
-histeq.cpp.s:
-	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cpp.s
-.PHONY : histeq.cpp.s
+histeq.cu.s:
+	cd /home/hofmannu/Code/CLAHE3D/Debug && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/Histeq.dir/build.make src/CMakeFiles/Histeq.dir/histeq.cu.s
+.PHONY : histeq.cu.s
 
 interpGrid.o: interpGrid.cpp.o
 .PHONY : interpGrid.o

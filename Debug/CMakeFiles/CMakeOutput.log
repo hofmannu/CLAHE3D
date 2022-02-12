@@ -733,3 +733,31 @@ Parsed CUDA implicit link information from above output:
   implicit fwks: []
 
 
+Determining if the include file pthread.h exists passed with the following output:
+Change Dir: /home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/local/MATLAB/R2019b/bin/glnxa64/gmake -f Makefile cmTC_8f279/fast && /usr/local/MATLAB/R2019b/bin/glnxa64/gmake  -f CMakeFiles/cmTC_8f279.dir/build.make CMakeFiles/cmTC_8f279.dir/build
+gmake[1]: Entering directory `/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_8f279.dir/CheckIncludeFile.cxx.o
+/usr/bin/c++    -o CMakeFiles/cmTC_8f279.dir/CheckIncludeFile.cxx.o -c /home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp/CheckIncludeFile.cxx
+Linking CXX executable cmTC_8f279
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8f279.dir/link.txt --verbose=1
+/usr/bin/c++ CMakeFiles/cmTC_8f279.dir/CheckIncludeFile.cxx.o -o cmTC_8f279 
+gmake[1]: Leaving directory `/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp'
+
+
+
+Determining if the function pthread_create exists in the pthread passed with the following output:
+Change Dir: /home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp
+
+Run Build Command(s):/usr/local/MATLAB/R2019b/bin/glnxa64/gmake -f Makefile cmTC_caf6a/fast && /usr/local/MATLAB/R2019b/bin/glnxa64/gmake  -f CMakeFiles/cmTC_caf6a.dir/build.make CMakeFiles/cmTC_caf6a.dir/build
+gmake[1]: Entering directory `/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_caf6a.dir/CheckFunctionExists.cxx.o
+/usr/bin/c++   -DCHECK_FUNCTION_EXISTS=pthread_create -o CMakeFiles/cmTC_caf6a.dir/CheckFunctionExists.cxx.o -c /home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CheckLibraryExists/CheckFunctionExists.cxx
+Linking CXX executable cmTC_caf6a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_caf6a.dir/link.txt --verbose=1
+/usr/bin/c++  -DCHECK_FUNCTION_EXISTS=pthread_create CMakeFiles/cmTC_caf6a.dir/CheckFunctionExists.cxx.o -o cmTC_caf6a  -lpthread 
+gmake[1]: Leaving directory `/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles/CMakeTmp'
+
+
+

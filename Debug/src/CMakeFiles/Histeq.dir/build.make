@@ -69,28 +69,29 @@ include src/CMakeFiles/Histeq.dir/progress.make
 # Include the compile flags for this target's objects.
 include src/CMakeFiles/Histeq.dir/flags.make
 
-src/CMakeFiles/Histeq.dir/histeq.cpp.o: src/CMakeFiles/Histeq.dir/flags.make
-src/CMakeFiles/Histeq.dir/histeq.cpp.o: ../src/histeq.cpp
-src/CMakeFiles/Histeq.dir/histeq.cpp.o: src/CMakeFiles/Histeq.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/Histeq.dir/histeq.cpp.o"
-	cd /home/hofmannu/Code/CLAHE3D/Debug/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/Histeq.dir/histeq.cpp.o -MF CMakeFiles/Histeq.dir/histeq.cpp.o.d -o CMakeFiles/Histeq.dir/histeq.cpp.o -c /home/hofmannu/Code/CLAHE3D/src/histeq.cpp
+src/CMakeFiles/Histeq.dir/histeq.cu.o: src/CMakeFiles/Histeq.dir/flags.make
+src/CMakeFiles/Histeq.dir/histeq.cu.o: ../src/histeq.cu
+src/CMakeFiles/Histeq.dir/histeq.cu.o: src/CMakeFiles/Histeq.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CUDA object src/CMakeFiles/Histeq.dir/histeq.cu.o"
+	cd /home/hofmannu/Code/CLAHE3D/Debug/src && /opt/cuda-10.1/bin/nvcc  $(CUDA_DEFINES) $(CUDA_INCLUDES) $(CUDA_FLAGS) -x cu -dc /home/hofmannu/Code/CLAHE3D/src/histeq.cu -o CMakeFiles/Histeq.dir/histeq.cu.o
+	cd /home/hofmannu/Code/CLAHE3D/Debug/src && /opt/cuda-10.1/bin/nvcc  $(CUDA_DEFINES) $(CUDA_INCLUDES) $(CUDA_FLAGS) -x cu -M /home/hofmannu/Code/CLAHE3D/src/histeq.cu -MT CMakeFiles/Histeq.dir/histeq.cu.o -o CMakeFiles/Histeq.dir/histeq.cu.o.d
 
-src/CMakeFiles/Histeq.dir/histeq.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Histeq.dir/histeq.cpp.i"
-	cd /home/hofmannu/Code/CLAHE3D/Debug/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/hofmannu/Code/CLAHE3D/src/histeq.cpp > CMakeFiles/Histeq.dir/histeq.cpp.i
+src/CMakeFiles/Histeq.dir/histeq.cu.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CUDA source to CMakeFiles/Histeq.dir/histeq.cu.i"
+	$(CMAKE_COMMAND) -E cmake_unimplemented_variable CMAKE_CUDA_CREATE_PREPROCESSED_SOURCE
 
-src/CMakeFiles/Histeq.dir/histeq.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Histeq.dir/histeq.cpp.s"
-	cd /home/hofmannu/Code/CLAHE3D/Debug/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/hofmannu/Code/CLAHE3D/src/histeq.cpp -o CMakeFiles/Histeq.dir/histeq.cpp.s
+src/CMakeFiles/Histeq.dir/histeq.cu.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CUDA source to assembly CMakeFiles/Histeq.dir/histeq.cu.s"
+	$(CMAKE_COMMAND) -E cmake_unimplemented_variable CMAKE_CUDA_CREATE_ASSEMBLY_SOURCE
 
 # Object files for target Histeq
 Histeq_OBJECTS = \
-"CMakeFiles/Histeq.dir/histeq.cpp.o"
+"CMakeFiles/Histeq.dir/histeq.cu.o"
 
 # External object files for target Histeq
 Histeq_EXTERNAL_OBJECTS =
 
-src/libHisteq.a: src/CMakeFiles/Histeq.dir/histeq.cpp.o
+src/libHisteq.a: src/CMakeFiles/Histeq.dir/histeq.cu.o
 src/libHisteq.a: src/CMakeFiles/Histeq.dir/build.make
 src/libHisteq.a: src/CMakeFiles/Histeq.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/hofmannu/Code/CLAHE3D/Debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX static library libHisteq.a"

@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/hofmannu/Code/CLAHE3D/src/histeq.cpp" "src/CMakeFiles/Histeq.dir/histeq.cpp.o" "gcc" "src/CMakeFiles/Histeq.dir/histeq.cpp.o.d"
+  "/home/hofmannu/Code/CLAHE3D/src/histeq.cu" "src/CMakeFiles/Histeq.dir/histeq.cu.o" "gcc" "src/CMakeFiles/Histeq.dir/histeq.cu.o.d"
   )
 
 # Targets to which this target links.
