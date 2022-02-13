@@ -19,17 +19,18 @@ Tested using `MATLAB 2019 A` and `MATLAB 2019 B`. The function `utest_bone.m` se
 
 The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device).
 
-To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`
+To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`.
 
 ```bash
 mkdir Debug
 cd Debug 
 cmake ..
 make all
-./main_exp
+ctest
 ```
 
 An example of how to use the main class can be found in `src/main.cpp`.
 
 # Feature request / bug report
+
 Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is going to be a `CUDA` capable parallelized version of the code.
