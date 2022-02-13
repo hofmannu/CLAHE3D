@@ -1,14 +1,11 @@
-// File: test.cpp
-// Function independent from matlab libraries used to debug
-// since MATLAB debugging is a pain inn the ass
-//
-// Author: Urs Hofmann
-// Mail: hofmannu@biomed.ee.ethz.ch
-// Date: 23.11.2019
-// Version: 1.0
+/*
+	unit test used to check if our cdf is producing the same result on cpu and gpu
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 13.02.2022
+*/
 
 #include "histeq.cuh"
-#include "interpGrid.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -16,8 +13,7 @@
 
 using namespace std;
 
-int main()
-{
+int main(){
 
 	// define grid dimensions for testing
 	const uint64_t nZ = 600;
@@ -46,11 +42,32 @@ int main()
 	histHandler.setData(inputVol);
 	
 	// histogram calculation on GPU
+	auto startGpu = chrono::high_resolution_clock::now();
+	histHandler.calculate_gpu();
+	auto stopGpu = chrono::high_resolution_clock::now();
+	auto durationGpu = chrono::duration_cast<chrono::milliseconds>(stopGpu - startGpu);
+	const float testValCdfGpu = histHandler.get_cdf(100, 5, 5, 5);
+
+	// histogram calculation of CPU
+	auto startCpu = chrono::high_resolution_clock::now();
 	histHandler.calculate();
-	// histHandler.calculate_gpu();
+	auto stopCpu = chrono::high_resolution_clock::now();
+	auto durationCpu = chrono::duration_cast<chrono::milliseconds>(stopCpu - startCpu);
+	const float testValCdfCpu = histHandler.get_cdf(100, 5, 5, 5);
+
+	// compare if results are the same
+	if (testValCdfGpu != testValCdfCpu)
+	{
+		printf("CPU value: %f, GPU value: %f\n", testValCdfCpu, testValCdfGpu);
+		throw "InvalidResult";
+	}
+	else
+	{
+		printf("GPU and CPU deliver the same result for CDF!\n");
+		printf("Time GPU: %d ms, Time CPU: %d ms\n", 
+			(int) durationGpu.count(), (int) durationCpu.count());
+	}
 	
-	histHandler.equalize();
-	// histHandler.equalize_gpu();
 	delete[] inputVol;
 		
 	return 0;

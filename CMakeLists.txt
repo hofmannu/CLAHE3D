@@ -36,3 +36,12 @@ set_property(TARGET main_exp PROPERTY CUDA_ARCHITECTURES 50 75)
 target_link_libraries(main_exp PUBLIC Histeq Interpgrid)
 
 install(TARGETS main_exp DESTINATION bin)
+
+add_test(NAME test_proc COMMAND UtestProc)
+add_test(NAME test_proc_gpu COMMAND UtestProcGpu)
+add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)
+add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
+add_test(NAME test_overwrite COMMAND UtestOverwrite)
+add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
+
+enable_testing()

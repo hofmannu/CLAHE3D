@@ -18,3 +18,22 @@ add_library(CudaTools cudaTools.cu)
 # set_property(TARGET CudaTools PROPERTY CUDA_ARCHITECTURES 50 75)
 
 add_library(Interpgrid interpGrid.cpp)
+
+# declaration of unit test executables
+add_executable(UtestProc utest_proc.cpp)
+target_link_libraries(UtestProc PUBLIC Histeq)
+
+add_executable(UtestProcGpu utest_proc_gpu.cpp)
+target_link_libraries(UtestProcGpu PUBLIC Histeq)
+
+add_executable(UtestCdfGpu utest_cdf_gpu.cpp)
+target_link_libraries(UtestCdfGpu PUBLIC Histeq)
+
+add_executable(UtestEqGpu utest_eq_gpu.cpp)
+target_link_libraries(UtestEqGpu PUBLIC Histeq)
+
+add_executable(UtestOverwrite utest_overwrite.cpp)
+target_link_libraries(UtestOverwrite PUBLIC Histeq)
+
+add_executable(UtestNoiseLevel utest_noiseLevel.cpp)
+target_link_libraries(UtestNoiseLevel PUBLIC Histeq)

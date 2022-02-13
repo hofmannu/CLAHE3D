@@ -1,14 +1,11 @@
-// File: test.cpp
-// Function independent from matlab libraries used to debug
-// since MATLAB debugging is a pain inn the ass
-//
-// Author: Urs Hofmann
-// Mail: hofmannu@biomed.ee.ethz.ch
-// Date: 23.11.2019
-// Version: 1.0
+/*
+	overwrite test: checks if the overwrite function is working properly
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 13.02.2022
+*/
 
 #include "histeq.cuh"
-#include "interpGrid.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -16,8 +13,7 @@
 
 using namespace std;
 
-int main()
-{
+int main(){
 
 	// define grid dimensions for testing
 	const uint64_t nZ = 600;
@@ -44,13 +40,28 @@ int main()
 	histHandler.setSizeSubVols(subVolSize);
 	histHandler.setSpacingSubVols(subVolSpacing);
 	histHandler.setData(inputVol);
+	histHandler.setOverwrite(0);
 	
 	// histogram calculation on GPU
 	histHandler.calculate();
-	// histHandler.calculate_gpu();
-	
 	histHandler.equalize();
-	// histHandler.equalize_gpu();
+
+	const float testVal1 = histHandler.get_cdf(120, 15, 2, 5);
+
+	histHandler.equalize();
+
+	const float testVal2 = histHandler.get_cdf(120, 15, 2, 5);
+
+	if (testVal1 != testVal2)
+	{
+		printf("Test values are not identical!\n");
+		throw "InvalidResult";
+	}
+	else
+	{
+		printf("Seems to work as expected!\n");
+	}
+
 	delete[] inputVol;
 		
 	return 0;

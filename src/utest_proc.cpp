@@ -1,11 +1,9 @@
-// File: test.cpp
-// Function independent from matlab libraries used to debug
-// since MATLAB debugging is a pain inn the ass
-//
-// Author: Urs Hofmann
-// Mail: hofmannu@biomed.ee.ethz.ch
-// Date: 23.11.2019
-// Version: 1.0
+/*
+	Simple runtime test to check if any errors occur during execution (no results checked)
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 13.02.2022
+*/
 
 #include "histeq.cuh"
 #include "interpGrid.h"

@@ -2,33 +2,113 @@
 	all kernel functions required go here
 */
 
-
+// const arguments passed to equ kernel 
 #ifndef EQ_ARGUMENTS_H
 #define EQ_ARGUMENTS_H
 
 struct eq_arguments
 {
-	uint64_t volSize[3];
+	uint64_t volSize[3]; // total size of volume
+	float origin[3]; // origin of the subvolume grid
+	float end[3]; // end of the subvolume grid
+	uint64_t nSubVols[3]; // number of subvolumes
+	uint64_t spacingSubVols[3]; // spacing between subvolumes
+	// float noiseLevel;
+	float* minValBin; // minimum value in each bib
+	float* maxValBin; // maximum value in each bin
+	float* cdf; // cummulative distribution function
+	uint64_t nBins;
 };
 
 #endif
 
-__device__ inline void get_neighbours(
+
+// returns the indices of the neighbouring subvolumes for a defined position
+__device__ inline void get_neighbours_gpu(
 	const uint64_t* position,
 	uint64_t* neighbours,
 	float* ratio,
 	const eq_arguments inArgs
 	)
 {
-	
+	#pragma unroll
+	for (uint8_t iDim = 0; iDim < 3; iDim++)
+	{
+		// let see if we hit the lower limit
+		if (((float) position[iDim]) <=  inArgs.origin[iDim])
+		{
+			ratio[iDim] = 0;
+			neighbours[iDim * 2] = 0; // left index along current dimension
+			neighbours[iDim * 2 + 1] = 0; // right index along current dimension
+		}
+		else if (((float) position[iDim]) >=  inArgs.end[iDim])
+		{
+			ratio[iDim] = 0;
+			neighbours[iDim * 2] =  inArgs.nSubVols[iDim] - 1; // left index along curr dimension
+		 	neighbours[iDim * 2 + 1] =   inArgs.nSubVols[iDim] - 1; // right index along curr dimension
+		} 
+		else // we are actually in between!
+		{
+			const float offsetDistance = ((float) position[iDim]) -  inArgs.origin[iDim];
+			neighbours[iDim * 2] = (uint64_t) (offsetDistance / inArgs.spacingSubVols[iDim]);
+			neighbours[iDim * 2 + 1] = neighbours[iDim * 2] + 1;
+			const float leftDistance = offsetDistance - ((float) neighbours[iDim * 2]) * 
+				inArgs.spacingSubVols[iDim];
+			
+			if (neighbours[iDim * 2 + 1] == (inArgs.nSubVols[iDim] - 1))
+			{
+				const float neighbourSpacing = inArgs.spacingSubVols[iDim] + 1 / 2;
+				printf("we should never get here (get_neighbours)");
+				ratio[iDim] = leftDistance / neighbourSpacing;
+			}
+			else
+			{
+				const float neighbourSpacing = inArgs.spacingSubVols[iDim];
+				ratio[iDim] = leftDistance / neighbourSpacing;
+			}
+
+		}
+
+	}
 	return;
 }
 
-__device__ inline float get_icdf(
-	const uint64_t iZ, const uint64_t inArgs)
+__device__ inline float get_icdf_gpu(
+	const uint64_t iZ, // index of subvolume we request along z
+	const uint64_t iX, // index of subvolume we request along x
+	const uint64_t iY, // index of subvolume we request along y
+	const float currValue,
+	const eq_arguments inArgs)
 {
-	return 0.0;	
+	// if we are below noise level, directy return 0
+	const uint64_t subVolIdx = iZ + inArgs.nSubVols[0] * (iX + inArgs.nSubVols[1] * iY);
+	if (currValue < inArgs.minValBin[subVolIdx])
+	{
+		return 0;
+	}
+	else
+	{
+		// get index describes the 3d index of the subvolume
+		const uint64_t subVolOffset = inArgs.nBins * subVolIdx;
+		const float vInterp = (currValue - inArgs.minValBin[subVolIdx]) / 
+			(inArgs.maxValBin[subVolIdx] - inArgs.minValBin[subVolIdx]); // should now span 0 to 1 
+		
+		// it can happen that the voxel value is higher then the max value detected
+		// in the next volume. In this case we crop it to the maximum permittable value
+		const uint64_t binOffset = (vInterp > 1) ? 
+			(inArgs.nBins - 1 + subVolOffset)
+			: (vInterp * ((float) inArgs.nBins - 1.0) + 0.5) + subVolOffset;
+
+		return inArgs.cdf[binOffset];
+	}
 }
+
+// simple interpolation between two neightbouring voxels
+__device__ inline float getInterpVal_gpu(const float valLeft, const float valRight, const float ratio)
+{
+	const float interpVal = valLeft * (1 - ratio) + valRight * ratio;
+	return interpVal;
+} 
 
 __global__ void equalize_kernel(
 	float* dataMatrix,
@@ -55,7 +135,34 @@ __global__ void equalize_kernel(
 		// indices at lower and upper end
 		uint64_t neighbours[6];
 		float ratio[3];
-		get_neighbours(idxVol, neighbours, ratio, inArgs);
+		get_neighbours_gpu(idxVol, neighbours, ratio, inArgs);
+
+		// assign new value based on trilinear interpolation
+		dataMatrix[idxVolLin] =
+		// first two opposing z corners
+		(
+			getInterpVal_gpu(
+				get_icdf_gpu(neighbours[0], neighbours[2], neighbours[4], currValue, inArgs),
+				get_icdf_gpu(neighbours[1], neighbours[2], neighbours[4], currValue, inArgs), ratio[0])
+
+			* (1 - ratio[1]) +
+		// fourth two opposing z corners
+		getInterpVal_gpu(
+			get_icdf_gpu(neighbours[0], neighbours[3], neighbours[5], currValue, inArgs), 
+			get_icdf_gpu(neighbours[1], neighbours[3], neighbours[5], currValue, inArgs), ratio[0])
+			* ratio[1]) * (1 - ratio[2]) +
+		// second two opposing z corners
+		(
+			getInterpVal_gpu(
+				get_icdf_gpu(neighbours[0], neighbours[3], neighbours[4], currValue, inArgs),
+				get_icdf_gpu(neighbours[1], neighbours[3], neighbours[4], currValue, inArgs), ratio[0])
+			* (1 - ratio[1]) +
+		// third two opposing z corners
+		
+			getInterpVal_gpu(
+				get_icdf_gpu(neighbours[0], neighbours[2], neighbours[5], currValue, inArgs),
+				get_icdf_gpu(neighbours[1], neighbours[2], neighbours[5], currValue, inArgs), ratio[0])
+			* ratio[1]) * ratio[2];
 
 	}
 

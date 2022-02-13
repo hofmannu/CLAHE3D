@@ -1,14 +1,12 @@
-// File: test.cpp
-// Function independent from matlab libraries used to debug
-// since MATLAB debugging is a pain inn the ass
-//
-// Author: Urs Hofmann
-// Mail: hofmannu@biomed.ee.ethz.ch
-// Date: 23.11.2019
-// Version: 1.0
+/*
+	checks if the equilization function delivers the same result for CPU and GPU
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 13.02.2022
+*/
+
 
 #include "histeq.cuh"
-#include "interpGrid.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -16,8 +14,7 @@
 
 using namespace std;
 
-int main()
-{
+int main(){
 
 	// define grid dimensions for testing
 	const uint64_t nZ = 600;
@@ -44,13 +41,29 @@ int main()
 	histHandler.setSizeSubVols(subVolSize);
 	histHandler.setSpacingSubVols(subVolSpacing);
 	histHandler.setData(inputVol);
+	histHandler.setOverwrite(0);
 	
 	// histogram calculation on GPU
 	histHandler.calculate();
-	// histHandler.calculate_gpu();
-	
 	histHandler.equalize();
-	// histHandler.equalize_gpu();
+
+	const float testValCpu = histHandler.get_cdf(120, 15, 2, 5);
+
+	histHandler.equalize_gpu();
+
+	const float testValGpu = histHandler.get_cdf(120, 15, 2, 5);
+
+	if (testValCpu != testValGpu)
+	{
+		printf("Test values are not identical, CPU val: %f, GPU val: %f!\n", 
+			testValCpu, testValGpu);
+		throw "InvalidResult";
+	}
+	else
+	{
+		printf("Seems to work as expected!\n");
+	}
+
 	delete[] inputVol;
 		
 	return 0;

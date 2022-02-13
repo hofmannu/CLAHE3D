@@ -313,6 +313,7 @@ void histeq::getCDF(
 	return;
 }
 
+// returns the inverted cummulative distribution function
 float histeq::get_icdf(
 	const uint64_t iZ, // subvolume index in z 
 	const uint64_t iX, // subvolume index in x
@@ -320,7 +321,7 @@ float histeq::get_icdf(
 	const float value) // value to extract
 {
 	// if we are below noise level, directy return
-	const uint64_t subVolIdx = iZ + nSubVols[0] * iX + nSubVols[0] * nSubVols[1] * iY;
+	const uint64_t subVolIdx = iZ + nSubVols[0] * (iX + nSubVols[1] * iY);
 	if (value < minValBin[subVolIdx])
 	{
 		return 0;
@@ -343,23 +344,134 @@ float histeq::get_icdf(
 	
 }
 
+// prepare and launch the kernel responsible for histeq
 void histeq::equalize_gpu()
 {
 
+	const dim3 blockSize(32, 2, 2);
+	const dim3 gridSize(
+		(nSubVols[0] + blockSize.x - 1) / blockSize.x,
+		(nSubVols[1] + blockSize.y - 1) / blockSize.y,
+		(nSubVols[2] + blockSize.z - 1) / blockSize.z);
 
+	// allocate memory on GPU
+	float* dataMatrix_dev;
+	float* cdf_dev;
+	float* minValBin_dev;
+	float* maxValBin_dev;
+	const uint64_t nCdf = nBins * nSubVols[0] * nSubVols[1] * nSubVols[2];
+	const uint64_t nSubs = nSubVols[0] * nSubVols[1] * nSubVols[2];
+
+	cudaError_t cErr;
+
+	// allocate memory for main data array
+	cErr = cudaMalloc((void**)&dataMatrix_dev, nElements * sizeof(float) );
+	checkCudaErr(cErr, "Could not allocate memory for inputData on GPU");
+
+	// allocate memory for cumulative distribution function
+	cErr = cudaMalloc((void**)&cdf_dev, nCdf * sizeof(float));
+	checkCudaErr(cErr, "Could not allocate memory for cdf on GPU");
+
+	// allocate memory for maximum values in bins
+	cErr = cudaMalloc((void**)&maxValBin_dev, nSubs * sizeof(float));
+	checkCudaErr(cErr, "Could not allocate memory for maxValBins on GPU");
+
+	// allocate memory for minimum values in bins
+	cErr = cudaMalloc((void**)&minValBin_dev, nSubs * sizeof(float));
+	checkCudaErr(cErr, "Coult not allocate memory for miNValBins on GPU");
+
+	// copy data matrix over
+	cErr = cudaMemcpy(dataMatrix_dev, dataMatrix, nElements * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(cErr, "Could not copy data array to GPU");
+
+	// copy cdf
+	cErr = cudaMemcpy(cdf_dev, cdf, nCdf * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(cErr, "Could not copy cdf to GPU");
+
+	// copy minValBin
+	cErr = cudaMemcpy(maxValBin_dev, maxValBin, nSubs * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(cErr, "Could not copy max val array to GPU");
+
+	// copy maxValBin
+	cErr = cudaMemcpy(minValBin_dev, minValBin, nSubs * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(cErr, "Could not copy min val array to GPU");
+
+
+	eq_arguments inArgs;
+	#pragma unroll
+	for (uint8_t iDim = 0; iDim < 3; iDim++)
+	{
+		inArgs.volSize[iDim] = volSize[iDim];
+		const float origin = 0.5 * (float) spacingSubVols[iDim];
+		inArgs.origin[iDim] = origin;
+		
+		inArgs.end[iDim] = origin + ((float) nSubVols[iDim]) * ((float) spacingSubVols[iDim]);
+		inArgs.nSubVols[iDim] = nSubVols[iDim];
+		inArgs.spacingSubVols[iDim] = spacingSubVols[iDim];
+	}
+
+	inArgs.minValBin = minValBin_dev;
+	inArgs.maxValBin = maxValBin_dev;
+	inArgs.cdf = cdf_dev;
+	inArgs.nBins = nBins;
+	
+	// launch kernel
+	equalize_kernel<<< gridSize, blockSize>>>(
+		dataMatrix_dev, // pointer to cumulative distribution function 
+		inArgs // struct containing all important constant input arguments
+		);
+
+	// wait for GPU calculation to finish before we copy things back
+	cudaDeviceSynchronize();
+
+	// check if there was any problem during kernel execution
+	cErr = cudaGetLastError();
+	checkCudaErr(cErr, "Error during kernel execution");
+
+	// copy back new data matrix
+	float* ptrOutput = create_ptrOutput();
+	cErr = cudaMemcpy(ptrOutput, dataMatrix_dev, nElements * sizeof(float), cudaMemcpyDeviceToHost);
+	checkCudaErr(cErr, "Problem while copying data matrix back from device");
+
+	cudaFree(dataMatrix_dev);
+	cudaFree(cdf_dev);
+	cudaFree(maxValBin_dev);
+	cudaFree(minValBin_dev);
 
 	return;
 }
 
+// returns interpolated value between two grid positions
 inline float getInterpVal(const float valLeft, const float valRight, const float ratio)
 {
 	const float interpVal = valLeft * (1 - ratio) + valRight * ratio;
 	return interpVal;
 } 
 
+float* histeq::create_ptrOutput()
+{
+	float* ptrOutput;
+	if (flagOverwrite)
+	{
+		ptrOutput = dataMatrix;
+	}
+	else
+	{
+		if (isDataOutputAlloc)
+			delete[] dataOutput;
+
+		dataOutput = new float [nElements];
+		isDataOutputAlloc = 1;
+		ptrOutput = dataOutput;
+	}
+	return ptrOutput;
+}
 
 void histeq::equalize()
 {
+	// if overwrite is disabled we need to allocate memory for new output here
+	float* ptrOutput = create_ptrOutput();
+
 	uint64_t neighbours[6]; // index of next neighbouring elements
 	float ratio[3]; // ratios in z x y
 	for(uint64_t iY = 0; iY < volSize[2]; iY++)
@@ -426,6 +538,18 @@ float histeq::get_cdf(const uint64_t iBin, const uint64_t iZSub, const uint64_t 
 	return cdf[idx];
 }
 
+float* histeq::get_ptrOutput()
+{
+	if (flagOverwrite)
+	{
+		return dataMatrix;
+	}
+	else
+	{
+		return dataOutput;
+	}
+}
+
 // define number of bins during eq
 void histeq::setNBins(const uint64_t _nBins)
 {
@@ -471,7 +595,8 @@ void histeq::setVolSize(const uint64_t* _volSize)
 }
 
 // set pointer to the data matrix
-void histeq::setData(float* _dataMatrix){
+void histeq::setData(float* _dataMatrix)
+{
 	dataMatrix = _dataMatrix;
 	return;
 }
@@ -514,5 +639,12 @@ void histeq::setSpacingSubVols(const uint64_t* _spacingSubVols)
 	
 	histGrid.setGridOrigin(origin);
 
+	return;
+}
+
+
+void histeq::setOverwrite(const bool _flagOverwrite)
+{
+	flagOverwrite = _flagOverwrite;
 	return;
 }
