@@ -10,11 +10,14 @@
 #include <fstream>
 #include <cstdint>
 #include <cmath>
-#include "interpGrid.h"
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-class histeq{
+#include "interpGrid.h"
+#include "cudaTools.cuh"
+
+class histeq : public cudaTools 
+{
 
 	private:
 		interpGrid histGrid;

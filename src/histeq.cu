@@ -1,18 +1,6 @@
 #include "histeq.h"
 #include "histeq_kernel.cu"
 
-// check errors of CUDA
-void histeq::checkCudaErr(cudaError_t err, const char* msgErr)
-{
-	if (err != cudaSuccess)
-	{
-		printf("There was some CUDA error appearing along my way: %s\n",
-			cudaGetErrorString(err));
-		throw "CudaError";
-	}
-	return;
-}
-
 // constant stuff which we need to know during kernel execution
 
 // same as calculate but this time running on the GPU

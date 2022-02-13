@@ -13,8 +13,12 @@ set(CMAKE_CUDA_FLAGS "${CUDA_CUDA_FLAGS} -rdc=true --ptxas-options=-v -O2")
 add_library(Histeq histeq.cu)
 set_property(TARGET Histeq PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 set_property(TARGET Histeq PROPERTY CUDA_ARCHITECTURES 50 75)
-target_link_libraries(Histeq PUBLIC Interpgrid)
+target_link_libraries(Histeq PUBLIC 
+	Interpgrid
+	CudaTools)
 
-
+add_library(CudaTools cudaTools.cu)
+set_property(TARGET Histeq PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+set_property(TARGET Histeq PROPERTY CUDA_ARCHITECTURES 50 75)
 
 add_library(Interpgrid interpGrid.cpp)
