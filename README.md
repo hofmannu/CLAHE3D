@@ -3,7 +3,7 @@
 A three dimensional contrast enhancement code written in `C++`. Works as standalone C++ application or through a MATLAB interface specified as a `*.mex` file. Since I am using it at the moment only through `mex` I did not implement any file import or export functions for the `C++` based version but can do that upon reasonable request. Histograms are calculated for subvolumes and afterwards interpolated to the currently adapted pixel through trilinear interpolation.
 
 # MATLAB
-Change to folder and run `mex -O clahe3dmex.cpp interpGrid.cpp histeq.cpp`. Afterwards you can use the function as:
+Change to folder and run `mex -O clahe3dmex.cpp gridder.cpp histeq.cpp`. Afterwards you can use the function as:
 `clahe3dmex(interpVol, subVolSize, spacingSubVols, clipLimit, binSize);`
 where 
 
