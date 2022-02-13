@@ -5,7 +5,7 @@
 	Date: 13.02.2022
 */
 
-#include "histeq.cuh"
+#include "histeq.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -22,8 +22,12 @@ int main(){
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[nX * nY * nZ];
+	float* inputVolBk = new float[nX * nY * nZ];
 	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
+	{
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
+		inputVolBk[iIdx] = inputVol[iIdx];
+	}
 		// this should generate a random number between 0 and 1
 
 	// initialize some parameters
@@ -34,17 +38,27 @@ int main(){
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;
-	histHandler.setNBins(binSize);
-	histHandler.setNoiseLevel(clipLimit);
-	histHandler.setVolSize(gridSize);
-	histHandler.setSizeSubVols(subVolSize);
-	histHandler.setSpacingSubVols(subVolSpacing);
-	histHandler.setData(inputVol);
-	histHandler.setOverwrite(0);
+	histHandler.set_nBins(binSize);
+	histHandler.set_noiseLevel(clipLimit);
+	histHandler.set_volSize(gridSize);
+	histHandler.set_sizeSubVols(subVolSize);
+	histHandler.set_spacingSubVols(subVolSpacing);
+	histHandler.set_data(inputVol);
+	histHandler.set_overwrite(0);
 	
 	// histogram calculation on GPU
-	histHandler.calculate();
+	histHandler.calculate_cdf();
 	histHandler.equalize();
+
+	// check if input volume remained the same
+	for (uint64_t iElem = 0; iElem < (nX * nY * nZ); iElem++)
+	{
+		if (inputVol[iElem] != inputVolBk[iElem])
+		{
+			printf("The input volume changed! Not acceptable.\n");
+			throw "InvalidBehaviour";
+		}
+	}
 
 	const float testVal1 = histHandler.get_cdf(120, 15, 2, 5);
 
@@ -59,10 +73,11 @@ int main(){
 	}
 	else
 	{
-		printf("Seems to work as expected!\n");
+		printf("Overwrite flag seems to work as expected!\n");
 	}
 
 	delete[] inputVol;
+	delete[] inputVolBk;
 		
 	return 0;
 

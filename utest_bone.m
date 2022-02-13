@@ -1,7 +1,7 @@
 
 % recompile our code first
 % cd src
-% mex -g -O -v clahe3dmex.cpp interpGrid.cpp histeq.cpp
+% mex -g -O -v clahe3dmex.cpp histeq.cpp gridder.cpp
 % cd ..
 
 addpath(genpath(pwd))
@@ -13,7 +13,7 @@ subVolSize = uint64([21, 21, 21]);
 spacingSubVols = uint64([5, 5, 5]);
 
 clipLimit = single(1);
-binSize = uint64(100);
+binSize = uint64(255);
 % vtkwrite('/media/hofmannu/hofmannu/unclahed.vtk', 'structured_points', 'unclahed', saftedVol, 'spacing', Settings.z(2) - Settings.z(1), Settings.dX, Settings.dY, 'BINARY');
 
 % test code

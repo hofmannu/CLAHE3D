@@ -5,8 +5,7 @@
 	Date: 13.02.2022
 */
 
-#include "histeq.cuh"
-#include "interpGrid.h"
+#include "histeq.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -35,17 +34,20 @@ int main()
 	const uint64_t subVolSpacing[3] = {20, 20, 20};
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
+	const uint64_t iBin = rand() % binSize;
+
 	histeq histHandler;
-	histHandler.setNBins(binSize);
-	histHandler.setNoiseLevel(clipLimit);
-	histHandler.setVolSize(gridSize);
-	histHandler.setSizeSubVols(subVolSize);
-	histHandler.setSpacingSubVols(subVolSpacing);
-	histHandler.setData(inputVol);
-	histHandler.setOverwrite(0);
+	histHandler.set_nBins(binSize);
+	histHandler.set_noiseLevel(clipLimit);
+	histHandler.set_volSize(gridSize);
+	histHandler.set_sizeSubVols(subVolSize);
+	histHandler.set_spacingSubVols(subVolSpacing);
+	histHandler.set_data(inputVol);
+	histHandler.set_overwrite(0);
 	
 	// histogram calculation on GPU
-	histHandler.calculate();
+	histHandler.calculate_cdf();
+	const float testValCpu = histHandler.get_cdf(iBin, 10, 10, 10);
 	histHandler.equalize();
 
 	float* outputVolCpu = histHandler.get_ptrOutput();
@@ -53,14 +55,21 @@ int main()
 	{
 		if (!(outputVolCpu[iElem] == 0))
 		{
-			printf("CPU: All elements need to be zero now!\n");
+			printf("CPU: All elements need to be zero now! I saw a %.1f\n", outputVolCpu[iElem]);
 			throw "InvalidValue";
 		}
 	}
 
 	printf("Looking good on CPU here\n");
 
-	histHandler.calculate_gpu();
+	#if USE_CUDA
+	histHandler.calculate_cdf_gpu();
+	const float testValGpu = histHandler.get_cdf(iBin, 10, 10, 10);
+	if (testValGpu != testValCpu)
+	{	
+		printf("CPU value: %.1f, GPU value: %.1f\n", testValCpu, testValGpu);
+		throw "InvalidValue";
+	}
 	histHandler.equalize_gpu();
 
 	float* outputVolGpu = histHandler.get_ptrOutput();
@@ -68,12 +77,13 @@ int main()
 	{
 		if (!(outputVolGpu[iElem] == 0))
 		{
-			printf("GPU: All elements need to be zero now!\n");
+			printf("GPU: All elements need to be zero now! I saw a %.1f\n", outputVolGpu[iElem]);
 			throw "InvalidValue";
 		}
 	}
 
 	printf("Looking good on GPU here\n");
+	#endif
 
 	delete[] inputVol;
 		

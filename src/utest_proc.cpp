@@ -5,8 +5,7 @@
 	Date: 13.02.2022
 */
 
-#include "histeq.cuh"
-#include "interpGrid.h"
+#include "histeq.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -36,19 +35,17 @@ int main()
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;
-	histHandler.setNBins(binSize);
-	histHandler.setNoiseLevel(clipLimit);
-	histHandler.setVolSize(gridSize);
-	histHandler.setSizeSubVols(subVolSize);
-	histHandler.setSpacingSubVols(subVolSpacing);
-	histHandler.setData(inputVol);
+	histHandler.set_nBins(binSize);
+	histHandler.set_noiseLevel(clipLimit);
+	histHandler.set_volSize(gridSize);
+	histHandler.set_sizeSubVols(subVolSize);
+	histHandler.set_spacingSubVols(subVolSpacing);
+	histHandler.set_data(inputVol);
 	
 	// histogram calculation on GPU
-	histHandler.calculate();
-	// histHandler.calculate_gpu();
-	
+	histHandler.calculate_cdf();
 	histHandler.equalize();
-	// histHandler.equalize_gpu();
+	
 	delete[] inputVol;
 		
 	return 0;

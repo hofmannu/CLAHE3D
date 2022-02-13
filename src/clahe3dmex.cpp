@@ -6,9 +6,10 @@
 */
 
 #include <fstream>
-#include "interpGrid.h"
 #include "histeq.h"
 #include <mex.h>
+
+#define USE_CUDA 0
 
 using namespace std;
 
@@ -27,15 +28,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 
 	printf("[clahe3d] initializing histogram handler\n");
 	histeq histHandler;
-	histHandler.setNBins(binSize[0]);
-	histHandler.setNoiseLevel(clipLimit[0]);
-	histHandler.setVolSize(volumeSize);
-	histHandler.setSizeSubVols(subVolSize);
-	histHandler.setSpacingSubVols(subVolSpacing);
-	histHandler.setData(inputVol);
-	
+	histHandler.set_nBins(binSize[0]);
+	histHandler.set_noiseLevel(clipLimit[0]);
+	histHandler.set_volSize(volumeSize);
+	histHandler.set_sizeSubVols(subVolSize);
+	histHandler.set_spacingSubVols(subVolSpacing);
+	histHandler.set_data(inputVol);
+	histHandler.set_overwrite(1);
+
 	printf("[clahe3d] calculating historgrams for subvolumes\n");
-	histHandler.calculate();
+	histHandler.calculate_cdf();
 
 	// loop over full volume
 	printf("[clahe3d] running histogram equilization for each voxel\n");

@@ -6,7 +6,7 @@
 */
 
 
-#include "histeq.cuh"
+#include "histeq.h"
 #include <iostream>
 #include <cstdint>
 #include <fstream>
@@ -35,36 +35,57 @@ int main(){
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;
-	histHandler.setNBins(binSize);
-	histHandler.setNoiseLevel(clipLimit);
-	histHandler.setVolSize(gridSize);
-	histHandler.setSizeSubVols(subVolSize);
-	histHandler.setSpacingSubVols(subVolSpacing);
-	histHandler.setData(inputVol);
-	histHandler.setOverwrite(0);
+	histHandler.set_nBins(binSize);
+	histHandler.set_noiseLevel(clipLimit);
+	histHandler.set_volSize(gridSize);
+	histHandler.set_sizeSubVols(subVolSize);
+	histHandler.set_spacingSubVols(subVolSpacing);
+	histHandler.set_data(inputVol);
+	histHandler.set_overwrite(0);
 	
+	// quickly check if nElements works
+	if (histHandler.get_nElements() != (nZ * nX * nY))
+	{
+		printf("Number of elements is incorrect\n");
+		throw "InvalidValue";
+	}
+
 	// histogram calculation on GPU
-	histHandler.calculate();
-	histHandler.equalize();
-
-	const float testValCpu = histHandler.get_cdf(120, 15, 2, 5);
-
+	histHandler.calculate_cdf();
 	histHandler.equalize_gpu();
 
-	const float testValGpu = histHandler.get_cdf(120, 15, 2, 5);
-
-	if (testValCpu != testValGpu)
+	// backup the result which we got from CPI
+	float * outputBk = new float[histHandler.get_nElements()];
+	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
-		printf("Test values are not identical, CPU val: %f, GPU val: %f!\n", 
-			testValCpu, testValGpu);
-		throw "InvalidResult";
+		outputBk[iElem] = histHandler.get_outputValue(iElem);
+	}
+	
+	histHandler.equalize();
+	bool isSame = 1;
+	uint64_t counterNotSame = 0;
+	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	{
+		if (histHandler.get_outputValue(iElem) != outputBk[iElem])
+		{
+			bool isSame = 0;
+			counterNotSame++;
+		}
+	}
+
+	if (!isSame)
+	{
+		const float percOff = ((float) counterNotSame) / ((float) histHandler.get_nElements()) * 100.0;
+		printf("Sir we had a few differences here for %.1f percent!\n", percOff);
+		throw "InvalidValue";
 	}
 	else
 	{
-		printf("Seems to work as expected!\n");
+		printf("Everything went well, congratulations.\n");
 	}
 
 	delete[] inputVol;
+	delete[] outputBk;
 		
 	return 0;
 

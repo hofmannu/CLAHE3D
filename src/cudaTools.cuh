@@ -18,6 +18,7 @@ class cudaTools
 {
 	public:
 		void checkCudaErr(cudaError_t err, const char* msgErr);
+		cudaError_t cErr;
 };
 
 #endif
