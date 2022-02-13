@@ -7,7 +7,7 @@
 // Date: 23.11.2019
 // Version: 1.0
 
-#include "histeq.h"
+#include "histeq.cuh"
 #include "interpGrid.h"
 #include <iostream>
 #include <cstdint>

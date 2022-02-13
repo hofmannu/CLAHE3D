@@ -16,7 +16,8 @@ using namespace std;
 
 class cudaTools
 {
-	void checkCudaErr(cudaError_t err, const char* msgErr);
+	public:
+		void checkCudaErr(cudaError_t err, const char* msgErr);
 };
 
 #endif

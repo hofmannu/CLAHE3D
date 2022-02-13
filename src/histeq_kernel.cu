@@ -2,8 +2,6 @@
 	all kernel functions required go here
 */
 
-__device__ inline float get_icdf(
-	const uint64_t iZ, const uint64_t inArgs)
 
 #ifndef EQ_ARGUMENTS_H
 #define EQ_ARGUMENTS_H
@@ -22,8 +20,14 @@ __device__ inline void get_neighbours(
 	const eq_arguments inArgs
 	)
 {
-	// HERE
+	
 	return;
+}
+
+__device__ inline float get_icdf(
+	const uint64_t iZ, const uint64_t inArgs)
+{
+	return 0.0;	
 }
 
 __global__ void equalize_kernel(
@@ -39,19 +43,19 @@ __global__ void equalize_kernel(
 	};
 
 	if (
-		(iSub[0] < inArgs.volSize[0]) && 
-		(iSub[2] < inArgs.volSize[2]) && 
-		(iSub[1] < inArgs.volSize[1]))
+		(idxVol[0] < inArgs.volSize[0]) && 
+		(idxVol[1] < inArgs.volSize[1]) && 
+		(idxVol[2] < inArgs.volSize[2]))
 	{
-		const uint64_t idxVol = idxVol[0] + inArgs.volSize[0] * 
+		const uint64_t idxVolLin = idxVol[0] + inArgs.volSize[0] * 
 			(idxVol[1] + inArgs.volSize[1] * idxVol[2]);
-		const float currValue = dataMatrix[idxVol];
+		const float currValue = dataMatrix[idxVolLin];
 
 		// now we need to get the neighbours defined as the subvolume
 		// indices at lower and upper end
 		uint64_t neighbours[6];
 		float ratio[3];
-		get_neighbours(iSub, neighbours, ratio, inArgs);
+		get_neighbours(idxVol, neighbours, ratio, inArgs);
 
 	}
 

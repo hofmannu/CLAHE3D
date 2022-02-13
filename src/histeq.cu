@@ -1,7 +1,25 @@
-#include "histeq.h"
+#include "histeq.cuh"
+
+// all declarations for cuda are externalized here
 #include "histeq_kernel.cu"
 
-// constant stuff which we need to know during kernel execution
+// class constructor
+histeq::histeq()
+{
+
+}
+
+histeq::~histeq()
+{
+	if (isCdfAlloc)
+		delete[] cdf;
+
+	if (isMaxValBinAlloc)
+	{
+		delete[] minValBin;
+		delete[] maxValBin;
+	}
+}
 
 // same as calculate but this time running on the GPU
 void histeq::calculate_gpu()
@@ -106,25 +124,6 @@ void histeq::calculate_gpu()
 	cudaFree(maxValBin_dev);
 	cudaFree(minValBin_dev);
 	return;
-}
-
-
-// class constructor
-histeq::histeq()
-{
-
-}
-
-histeq::~histeq()
-{
-	if (isCdfAlloc)
-		delete[] cdf;
-
-	if (isMaxValBinAlloc)
-	{
-		delete[] minValBin;
-		delete[] maxValBin;
-	}
 }
 
 // finds the maximum value in the whole matrix
@@ -408,7 +407,8 @@ void histeq::equalize()
 }
 
 // calculate number of subvolumes
-void histeq::calculate_nsubvols(){
+void histeq::calculate_nsubvols()
+{
 	// number of subvolumes
 	for (unsigned char iDim = 0; iDim < 3; iDim++)
 		nSubVols[iDim] = (volSize[iDim] - 2) / spacingSubVols[iDim] + 1;
@@ -427,7 +427,8 @@ float histeq::get_cdf(const uint64_t iBin, const uint64_t iZSub, const uint64_t 
 }
 
 // define number of bins during eq
-void histeq::setNBins(const uint64_t _nBins){
+void histeq::setNBins(const uint64_t _nBins)
+{
 	if (_nBins == 0)
 	{
 		printf("The number of bins must be bigger then 0");
@@ -450,7 +451,9 @@ void histeq::setNoiseLevel(const float _noiseLevel)
 }
 
 // size of full three dimensional volume
-void histeq::setVolSize(const uint64_t* _volSize){
+void histeq::setVolSize(const uint64_t* _volSize)
+{
+	#pragma unroll
 	for(uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		if (_volSize[iDim] == 0)
@@ -474,7 +477,9 @@ void histeq::setData(float* _dataMatrix){
 }
 
 // defines the size of the individual subvolumes (lets make this uneven)
-void histeq::setSizeSubVols(const uint64_t* _subVolSize){
+void histeq::setSizeSubVols(const uint64_t* _subVolSize)
+{
+	#pragma unroll
 	for(uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		if ((_subVolSize[iDim] % 2) == 0)
@@ -488,7 +493,9 @@ void histeq::setSizeSubVols(const uint64_t* _subVolSize){
 }
 
 // defines the spacing of the individual histogram samples
-void histeq::setSpacingSubVols(const uint64_t* _spacingSubVols){
+void histeq::setSpacingSubVols(const uint64_t* _spacingSubVols)
+{
+	#pragma unroll
 	for(uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		if (_spacingSubVols[iDim] == 0)

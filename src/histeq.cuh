@@ -16,7 +16,7 @@
 #include "interpGrid.h"
 #include "cudaTools.cuh"
 
-class histeq : public cudaTools 
+class histeq: public cudaTools 
 {
 
 	private:
@@ -56,10 +56,6 @@ class histeq : public cudaTools
 		void getOverallMax();
 		inline uint64_t getStartIdxSubVol(const uint64_t iSub, const uint8_t iDim);
 		inline uint64_t getStopIdxSubVol(const uint64_t iSub, const uint8_t iDim);
-		
-		// function to handle cuda errors
-		void checkCudaErr(cudaError_t err, const char* msgErr);
-
 
 	public:
 		// class constructor and destructor
@@ -67,8 +63,11 @@ class histeq : public cudaTools
 		~histeq();
 
 		void calculate();
-		void calculate_gpu();
 		void equalize();
+
+		// gpu functions
+		void calculate_gpu();
+		void equalize_gpu();
 
 		float get_icdf(
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY, const float value);

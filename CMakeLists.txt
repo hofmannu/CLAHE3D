@@ -26,10 +26,13 @@ set(
 
 add_subdirectory(src/)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 add_executable(main_exp src/main.cpp)
+set_property(TARGET main_exp PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+set_property(TARGET main_exp PROPERTY CUDA_ARCHITECTURES 50 75)
+
 target_link_libraries(main_exp PUBLIC Histeq Interpgrid)
 
 install(TARGETS main_exp DESTINATION bin)

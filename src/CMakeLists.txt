@@ -1,8 +1,4 @@
 # prepare for cuda compilation
-enable_language(CUDA)
-find_package(CUDA REQUIRED QUIET)
-INCLUDE(FindCUDA)
-INCLUDE_DIRECTORIES(/opt/cuda/include include)
 set(CUDA_SEPARABLE_COMPILATION ON)
 set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 set(BUILD_SHARED_LIBS OFF)
@@ -18,7 +14,7 @@ target_link_libraries(Histeq PUBLIC
 	CudaTools)
 
 add_library(CudaTools cudaTools.cu)
-set_property(TARGET Histeq PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-set_property(TARGET Histeq PROPERTY CUDA_ARCHITECTURES 50 75)
+# set_property(TARGET CudaTools PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+# set_property(TARGET CudaTools PROPERTY CUDA_ARCHITECTURES 50 75)
 
 add_library(Interpgrid interpGrid.cpp)
