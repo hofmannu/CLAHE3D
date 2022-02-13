@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/main_exp.dir/src/main.cpp.o CMakeFiles/main_exp.dir/cmake_device_link.o -o main_exp   -L/opt/cuda-10.1/targets/x86_64-linux/lib/stubs  -L/opt/cuda-10.1/targets/x86_64-linux/lib  -L/usr/lib/gcc/x86_64-pc-linux-gnu/8.5.0  src/libHisteq.a src/libInterpgrid.a -lcudadevrt -lcudart_static -lrt -lpthread -ldl 

@@ -1,2 +1,0 @@
-/usr/bin/ar qc libHisteq.a CMakeFiles/Histeq.dir/histeq.cu.o
-/usr/bin/ranlib libHisteq.a
