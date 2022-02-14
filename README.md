@@ -1,9 +1,13 @@
 # CLAHE3D
 
-A three dimensional contrast enhancement code written in `C++`. Works as standalone C++ application or through a MATLAB interface specified as a `*.mex` file. Since I am using it at the moment only through `mex` I did not implement any file import or export functions for the `C++` based version but can do that upon reasonable request. Histograms are calculated for subvolumes and afterwards interpolated to the currently adapted pixel through trilinear interpolation.
+A three dimensional contrast enhancement code written in `C++` and `CUDA`. Works as standalone C++ application or through a MATLAB interface specified as a `*.mex` file. Histograms are calculated for subvolumes of definable size. The spacing of the histogram bins can be chosen independently of the bin size. Afterwards, Each histogram is then converted into a normalized cummulative distribution function. By interpolating the inverted distribution function for each subregion, we can enhance the local contrast in a volumetric image.
+
+# Installation / Compiling
+
+The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. 
 
 # MATLAB
-Change to folder and run `mex -O clahe3dmex.cpp gridder.cpp histeq.cpp`. Afterwards you can use the function as:
+Change to folder the subfolder `src` and run `mex -O clahe3dmex.cpp gridder.cpp histeq.cpp`. Afterwards you can use the function as:
 `clahe3dmex(interpVol, subVolSize, spacingSubVols, clipLimit, binSize);`
 where 
 
@@ -17,19 +21,18 @@ Tested using `MATLAB 2019 A` and `MATLAB 2019 B`. The function `utest_bone.m` se
 
 # C++
 
-The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device).
-
-To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`.
+The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device). To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`.
 
 ```bash
 mkdir Debug
 cd Debug 
 cmake ..
+
 make all
 ctest
 ```
 
-An example of how to use the main class can be found in `src/main.cpp`.
+An example of how to use the main class can be found in `src/main.cpp`. To run a throughout test of the procedures, run `ctest` from the `Debug` subfolder after compilation.
 
 # Feature request / bug report
 
