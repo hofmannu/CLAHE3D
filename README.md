@@ -37,3 +37,9 @@ An example of how to use the main class can be found in `src/main.cpp`. To run a
 # Feature request / bug report
 
 Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is going to be a `CUDA` capable parallelized version of the code.
+
+
+# Literature
+*  Karen Lucknavalai, Jürgen P. Schulze: [Real-Time Contrast Enhancement for 3D Medical Images Using Histogram Equalization](https://link.springer.com/chapter/10.1007/978-3-030-64556-4_18) in ISVC 2020: Advances in Visual Computing pp 224-235 --> describes a layer wise processing but does not use volumetric tiling
+*  P Amorim et al.: [3D Adaptive Histogram Equalization Method for Medical Volumes.](https://www.scitepress.org/Papers/2018/66153/66153.pdf) in VISIGRAPP (4: VISAPP), 2018
+*  V. Stimper et al.: [Multidimensional Contrast Limited Adaptive Histogram Equalization](https://ieeexplore.ieee.org/abstract/document/8895993)
