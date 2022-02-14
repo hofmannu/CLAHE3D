@@ -74,10 +74,12 @@ public gridder
 		float get_icdf(
 			const uint64_t iZ, const uint64_t iX, const uint64_t iY, const float value);
 
-		float get_cdf( // return a specific position of our cdf array
-			const uint64_t _iBin, 
-			const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub);
+		// return values from cdf array
+		float get_cdf(const uint64_t _iBin, 
+			const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub) const;
+		float get_cdf(const uint64_t iBin, const uint64_t iSubLin) const;
 		float get_cdf(const uint64_t linIdx) const {return cdf[linIdx];};
+		
 		float* get_pcdf() {return cdf;}; // return pointer to cdf
 		uint64_t get_ncdf() const {return (nSubVols[0] * nSubVols[1] * nSubVols[2] * nBins);};
 

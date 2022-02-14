@@ -21,22 +21,19 @@ int main(){
  	const uint64_t nX = 500;
 	const uint64_t nY = 400;
 
-	// generate input volume matrix and assign random values to it
+	// generate input volume matrix and assign random values between 0.0 and 1.0
 	float* inputVol = new float[nX * nY * nZ];
 	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
-		// this should generate a random number between 0 and 1
 
 	// initialize some parameters
-	const float clipLimit = 0.1;
-	const uint64_t binSize = 250;
 	const uint64_t subVolSize[3] = {31, 31, 31};
 	const uint64_t subVolSpacing[3] = {20, 20, 20};
 	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;
-	histHandler.set_nBins(binSize);
-	histHandler.set_noiseLevel(clipLimit);
+	histHandler.set_nBins(250);
+	histHandler.set_noiseLevel(0.1);
 	histHandler.set_volSize(gridSize);
 	histHandler.set_sizeSubVols(subVolSize);
 	histHandler.set_spacingSubVols(subVolSpacing);
@@ -50,11 +47,13 @@ int main(){
 		throw "InvalidValue";
 	}
 
-	// histogram calculation on GPU
+	// caluclate cummulative distribution function
 	histHandler.calculate_cdf();
+
+	// histogram calculation on GPU
 	histHandler.equalize_gpu();
 
-	// backup the result which we got from CPI
+	// backup the result which we got from CPU
 	float * outputBk = new float[histHandler.get_nElements()];
 	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
@@ -68,15 +67,16 @@ int main(){
 	{
 		if (histHandler.get_outputValue(iElem) != outputBk[iElem])
 		{
-			bool isSame = 0;
+			isSame = 0;
 			counterNotSame++;
 		}
 	}
 
+	// check if results are the same, if not: complain
 	if (!isSame)
 	{
 		const float percOff = ((float) counterNotSame) / ((float) histHandler.get_nElements()) * 100.0;
-		printf("Sir we had a few differences here for %.1f percent!\n", percOff);
+		printf("EQ test resulted in a few differences here for %.1f percent!\n", percOff);
 		throw "InvalidValue";
 	}
 	else

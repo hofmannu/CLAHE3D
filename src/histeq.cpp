@@ -249,7 +249,8 @@ void histeq::calculate_sub_cdf(
 
 					// special case for maximum values in subvolume (they gonna end up
 					// one index above)
-					if (iBin == nBins)
+
+					if (iBin >= nBins)
 					{
 						iBin = nBins - 1;
 					}
@@ -260,12 +261,13 @@ void histeq::calculate_sub_cdf(
 		}
 	}
 
-	localCdf[0] = 0; // we ignore the first bin since it is minimum anyway and should point to 0
+	// calculate cummulative sum and scale along y
 	float cdfTemp = 0;
-	for (uint64_t iBin = 1; iBin < nBins; iBin++)
+	const float zeroElem = localCdf[0];
+	for (uint64_t iBin = 0; iBin < nBins; iBin++)
 	{
 		cdfTemp += localCdf[iBin];
-		localCdf[iBin] = cdfTemp;
+		localCdf[iBin] = cdfTemp - zeroElem;
 	}
 
 	// now we scale cdf to max == 1 (first value is 0 anyway)
@@ -293,23 +295,30 @@ float histeq::get_icdf(
 	const uint64_t iZ, // subvolume index in z 
 	const uint64_t iX, // subvolume index in x
 	const uint64_t iY, // subvolume index in y
-	const float value) // value to extract
+	const float currValue) // value to extract
 {
 	// if we are below noise level, directy return
 	const uint64_t subVolIdx = iZ + nSubVols[0] * (iX + nSubVols[1] * iY);
-	if (value < minValBin[subVolIdx])
+	if (currValue <= minValBin[subVolIdx])
 	{
 		return 0.0;
 	}
 	else
 	{
+		if (maxValBin[subVolIdx] == minValBin[subVolIdx])
+			printf("CPU: We should never get here");
+
 		// get index describes the 3d index of the subvolume
 		const uint64_t subVolOffset = nBins * subVolIdx;
-		const float vInterp = (value - minValBin[subVolIdx]) / 
+		const float vInterp = (currValue - minValBin[subVolIdx]) / 
 			(maxValBin[subVolIdx] - minValBin[subVolIdx]); // should now span 0 to 1 		
+		
+		// if (vInterp > 1.0)
+		// 	printf("CPU: How can i be bigger then 1");
+
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
-		const uint64_t binOffset = (vInterp > 1) ? 
+		const uint64_t binOffset = (vInterp > 1.0) ? 
 			(nBins - 1 + subVolOffset)
 			: (vInterp * ((float) nBins - 1.0) + 0.5) + subVolOffset;
 
@@ -375,7 +384,7 @@ void histeq::equalize_gpu()
 	{
 		inArgs.volSize[iDim] = volSize[iDim];
 		inArgs.origin[iDim] = origin[iDim];
-		inArgs.end[iDim] = end[iDim];
+		inArgs.end[iDim] = endIdx[iDim];
 		inArgs.nSubVols[iDim] = nSubVols[iDim];
 		inArgs.spacingSubVols[iDim] = spacingSubVols[iDim];
 	}
@@ -413,7 +422,10 @@ void histeq::equalize_gpu()
 #endif
 
 // returns interpolated value between two grid positions
-inline float get_interpVal(const float valLeft, const float valRight, const float ratio)
+inline float get_interpVal(
+	const float valLeft,
+	const float valRight,
+	const float ratio)
 {
 	const float interpVal = valLeft * (1 - ratio) + valRight * ratio;
 	return interpVal;
@@ -451,14 +463,14 @@ void histeq::equalize()
 		{
 			for (uint64_t iZ = 0; iZ < volSize[0]; iZ++)
 			{
-				const float currValue = 
-					dataMatrix[iZ + volSize[0] * (iX + volSize[1] * iY)];
+				const uint64_t idxVolLin = iZ + volSize[0] * (iX + volSize[1] * iY);
+				const float currValue = dataMatrix[idxVolLin];
 	
 				const uint64_t position[3] = {iZ, iX, iY};
 				get_neighbours(position, neighbours, ratio);
 
 				// assign new value based on trilinear interpolation
-				ptrOutput[iZ + volSize[0] * (iX + volSize[1] * iY)] =
+				ptrOutput[idxVolLin] =
 				// first two opposing z corners
 				(
 					get_interpVal(
@@ -492,9 +504,16 @@ void histeq::equalize()
 
 
 // returns a single value from our cdf function
-float histeq::get_cdf(const uint64_t iBin, const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub)
+float histeq::get_cdf(const uint64_t iBin, 
+	const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub) const
 {
 	const uint64_t idx = iBin + nBins * (iZSub + nSubVols[0] * (iXSub +  nSubVols[1] * iYSub));
+	return cdf[idx];
+}
+
+float histeq::get_cdf(const uint64_t iBin, const uint64_t iSubLin) const
+{
+	const uint64_t idx = iBin + nBins * iSubLin;
 	return cdf[idx];
 }
 

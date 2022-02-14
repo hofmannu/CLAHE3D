@@ -74,18 +74,21 @@ __device__ inline float get_icdf_gpu(
 	const uint64_t subVolIdx = iZ + inArgs.nSubVols[0] * (iX + inArgs.nSubVols[1] * iY);
 	if (currValue <= inArgs.minValBin[subVolIdx])
 	{
-		return 0;
+		return 0.0;
 	}
 	else
 	{
+		if (inArgs.maxValBin[subVolIdx] == inArgs.minValBin[subVolIdx])
+			printf("GPU: We should never get here");
+
 		// get index describes the 3d index of the subvolume
 		const uint64_t subVolOffset = inArgs.nBins * subVolIdx;
 		const float vInterp = (currValue - inArgs.minValBin[subVolIdx]) / 
-			(inArgs.maxValBin[subVolIdx] - inArgs.minValBin[subVolIdx]); // should now span 0 to 1 
+			(inArgs.maxValBin[subVolIdx] - inArgs.minValBin[subVolIdx]);
 		
 		// it can happen that the voxel value is higher then the max value detected
-		// in the next volume. In this case we crop it to the maximum permittable value
-		const uint64_t binOffset = (vInterp > 1) ? 
+		// in the neighbouring histogram. In this case we crop it to the maximum permittable value
+		const uint64_t binOffset = (vInterp > 1.0) ? 
 			(inArgs.nBins - 1 + subVolOffset)
 			: (vInterp * ((float) inArgs.nBins - 1.0) + 0.5) + subVolOffset;
 
@@ -291,12 +294,12 @@ __global__ void cdf_kernel(
 		}
 
 		// calculate cummulative sum and scale along y
-		localCdf[0] = 0; // we ignore the first bin since it is minimum anyway and should point to 0
 		float cdfTemp = 0;
-		for (uint64_t iBin = 1; iBin < inArgs.nBins; iBin++)
+		const float zeroElem = localCdf[0];
+		for (uint64_t iBin = 0; iBin < inArgs.nBins; iBin++)
 		{
 			cdfTemp += localCdf[iBin];
-			localCdf[iBin] = cdfTemp;
+			localCdf[iBin] = cdfTemp - zeroElem;
 		}
 
 		// now we scale cdf to max == 1 (first value is 0 anyway)

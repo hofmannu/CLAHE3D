@@ -1,4 +1,4 @@
-# include "gridder.h"
+#include "gridder.h"
 
 // defines the size of the individual subvolumes (lets make this uneven)
 void gridder::set_sizeSubVols(const uint64_t* _subVolSize)
@@ -62,16 +62,19 @@ void gridder::calculate_nsubvols()
 	{
 		const uint64_t lastIdx = volSize[iDim] - 1;
 		nSubVols[iDim] = (lastIdx - origin[iDim]) / spacingSubVols[iDim] + 1;
-		end[iDim] = origin[iDim] + (nSubVols[iDim] - 1) * spacingSubVols[iDim];
+		endIdx[iDim] = origin[iDim] + (nSubVols[iDim] - 1) * spacingSubVols[iDim];
 	}
 
 	return;
 }
 
 //
-void gridder::get_neighbours(const uint64_t* position, uint64_t* neighbours, float* ratio) const
+void gridder::get_neighbours(
+	const uint64_t* position,
+	uint64_t* neighbours,
+	float* ratio) const
 {
-#pragma unroll
+	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		// let see if we hit the lower limit
@@ -81,7 +84,7 @@ void gridder::get_neighbours(const uint64_t* position, uint64_t* neighbours, flo
 			neighbours[iDim * 2] = 0; // left index along current dimension
 			neighbours[iDim * 2 + 1] = 0; // right index along current dimension
 		}
-		else if (((float) position[iDim]) >=  end[iDim])
+		else if (((float) position[iDim]) >=  endIdx[iDim])
 		{
 			ratio[iDim] = 0;
 			neighbours[iDim * 2] =  nSubVols[iDim] - 1; // left index along curr dimension
@@ -95,9 +98,7 @@ void gridder::get_neighbours(const uint64_t* position, uint64_t* neighbours, flo
 			const float leftDistance = offsetDistance - ((float) neighbours[iDim * 2]) * 
 				spacingSubVols[iDim];
 			ratio[iDim] = leftDistance / ((float) spacingSubVols[iDim]);
-			
 		}
-
 	}
 	return;
 }

@@ -23,7 +23,7 @@ public:
 	uint64_t sizeSubVols[3]; // size of each subvolume in zxy (should be uneven)
 	uint64_t spacingSubVols[3]; // spacing of subvolumes (they can overlap)
 	uint64_t origin[3]; // position of the very first element [0, 0, 0]
-	uint64_t end[3]; // terminal value
+	uint64_t endIdx[3]; // terminal value
 	uint64_t nElements; // total number of elements
 	
 	// calculations

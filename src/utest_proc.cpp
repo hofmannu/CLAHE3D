@@ -28,8 +28,8 @@ int main()
 		// this should generate a random number between 0 and 1
 
 	// initialize some parameters
-	const float clipLimit = 0.1;
-	const uint64_t binSize = 250;
+	const float clipLimit = 0.01;
+	const uint64_t binSize = 20;
 	const uint64_t subVolSize[3] = {31, 31, 31};
 	const uint64_t subVolSpacing[3] = {20, 20, 20};
 	const uint64_t gridSize[3] = {nZ, nX, nY};
@@ -44,6 +44,33 @@ int main()
 	
 	// histogram calculation on GPU
 	histHandler.calculate_cdf();
+
+	printf("Printing example bins\n");
+	float oldBinVal = 0;
+	float deltaBin[binSize];
+	for (uint64_t iBin = 1; iBin < binSize; iBin++)
+	{
+		const float delta = histHandler.get_cdf(iBin) - oldBinVal;
+		printf("iBin = %d, Value = %.1f, Delta = %.4f\n", (int) iBin, histHandler.get_cdf(iBin), delta);
+		oldBinVal = histHandler.get_cdf(iBin);
+	}
+
+	// first bin must be zero and last bin must be one
+	for (uint64_t iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
+	{
+		if (histHandler.get_cdf(0, iSub) != 0.0)
+		{
+			printf("All initial bins must have zero value\n");
+			throw "Invalid result";
+		}
+
+		if (histHandler.get_cdf(binSize - 1, iSub) != 1.0)
+		{
+			printf("All end bins must have one value\n");
+			throw "Invalid result";
+		}
+	}
+
 	histHandler.equalize();
 	
 	delete[] inputVol;

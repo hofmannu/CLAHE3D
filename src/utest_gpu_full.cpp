@@ -16,12 +16,15 @@ using namespace std;
 int main(){
 
 	srand(1);
+
 	// define grid dimensions for testing
-	const uint64_t volSize[3] = {600, 500, 400};
+	const uint64_t nZ = 600;
+ 	const uint64_t nX = 500;
+	const uint64_t nY = 400;
 
 	// generate input volume matrix and assign random values to it
-	float* inputVol = new float[volSize[0] * volSize[1] * volSize[2]];
-	for(uint64_t iIdx = 0; iIdx < (volSize[0] * volSize[1] * volSize[2]); iIdx ++)
+	float* inputVol = new float[nX * nY * nZ];
+	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
@@ -30,6 +33,7 @@ int main(){
 	const uint64_t binSize = 10;
 	const uint64_t subVolSize[3] = {11, 11, 11};
 	const uint64_t subVolSpacing[3] = {20, 20, 20};
+	const uint64_t volSize[3] = {nZ, nX, nY};
 
 	const uint64_t iBin = rand() % binSize;
 
@@ -40,48 +44,38 @@ int main(){
 	histHandler.set_sizeSubVols(subVolSize);
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
+	histHandler.set_overwrite(0);
 
 	// histogram calculation on GPU
 	histHandler.calculate_cdf_gpu();
+	histHandler.equalize_gpu();
 	
 	// backup the version of the CDF calculated with
-	float* cdf_bk = new float[histHandler.get_ncdf()];
-	for (uint64_t iElem = 0; iElem < histHandler.get_ncdf(); iElem++)
+	float* output_bk = new float[histHandler.get_nElements()];
+	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
-		cdf_bk[iElem] = histHandler.get_cdf(iElem);
-	}
-
-	float oldBin = 0;
-	for (uint64_t iBin = 0; iBin < binSize; iBin++)
-	{
-		printf("iBin = %d, Value = %.1f, Delta = $.1d");
+		output_bk[iElem] = histHandler.get_outputValue(iElem);
 	}
 
 	// histogram calculation of CPU
 	histHandler.calculate_cdf();
+	histHandler.equalize();
+
 	bool isSame = 1;
 	uint64_t countNotSame = 0;
-	for (uint64_t iElem = 0; iElem < histHandler.get_ncdf(); iElem++)
+	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
-		const float deltaVal = abs(cdf_bk[iElem] - histHandler.get_cdf(iElem));
-		if (cdf_bk[iElem] != histHandler.get_cdf(iElem))
+		if (output_bk[iElem] != histHandler.get_outputValue(iElem))
 		{
 			isSame = 0;
 			countNotSame++;
 		}
 	}
 
-	printf("Displaying example CDF function:\n");
-	for (uint64_t iBin = 0; iBin < binSize; iBin++)
-	{
-		printf("iBin: %d, GPU: %.3f, CPU: %.3f\n", 
-			(int) iBin, cdf_bk[iBin + 20], histHandler.get_cdf(iBin + 20));
-	}
-
 	// compare if results are the same
 	if (!isSame)
 	{
-		const float percOff = ((float) countNotSame / ((float) histHandler.get_ncdf())) * 100.0;
+		const float percOff = ((float) countNotSame / ((float) histHandler.get_nElements())) * 100.0;
 		printf("CPU and GPU results differ for %.1f percent of the elements\n", percOff);
 		throw "InvalidResult";
 	}
@@ -91,7 +85,7 @@ int main(){
 	}
 	
 	delete[] inputVol;
-	delete[] cdf_bk;
+	delete[] output_bk;
 		
 	return 0;
 

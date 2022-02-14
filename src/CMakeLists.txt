@@ -12,7 +12,6 @@ add_library(Gridder gridder.cpp)
 
 add_library(Histeq histeq.cpp)
 if (${USE_CUDA})
-	set_property(TARGET Histeq PROPERTY CUDA_ARCHITECTURES 50 75)
 	set_property(TARGET Histeq PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 	target_link_libraries(Histeq PUBLIC Gridder CudaTools)
 	set_source_files_properties(histeq.cpp PROPERTIES LANGUAGE CUDA)
@@ -45,11 +44,18 @@ if(${USE_CUDA})
 
 	add_executable(UtestProcGpu utest_proc_gpu.cpp)
 	target_link_libraries(UtestProcGpu PUBLIC Histeq)
+	set_property(TARGET UtestProcGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 	add_executable(UtestCdfGpu utest_cdf_gpu.cpp)
 	target_link_libraries(UtestCdfGpu PUBLIC Histeq)
+	set_property(TARGET UtestCdfGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 	add_executable(UtestEqGpu utest_eq_gpu.cpp)
 	target_link_libraries(UtestEqGpu PUBLIC Histeq)
+	set_property(TARGET UtestEqGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+
+	add_executable(UtestGpuFull utest_gpu_full.cpp)
+	target_link_libraries(UtestGpuFull PUBLIC Histeq)
+	set_property(TARGET UtestGpuFull PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 endif()
