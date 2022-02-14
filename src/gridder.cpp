@@ -96,7 +96,7 @@ void gridder::get_neighbours(
 			neighbours[iDim * 2] = (uint64_t) (offsetDistance / spacingSubVols[iDim]);
 			neighbours[iDim * 2 + 1] = neighbours[iDim * 2] + 1;
 			const float leftDistance = offsetDistance - ((float) neighbours[iDim * 2]) * 
-				spacingSubVols[iDim];
+				((float) spacingSubVols[iDim]);
 			ratio[iDim] = leftDistance / ((float) spacingSubVols[iDim]);
 		}
 	}

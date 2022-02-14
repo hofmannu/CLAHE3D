@@ -65,7 +65,8 @@ int main(){
 	uint64_t countNotSame = 0;
 	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
-		if (output_bk[iElem] != histHandler.get_outputValue(iElem))
+		const float deltaVal = abs(output_bk[iElem] - histHandler.get_outputValue(iElem));
+		if (deltaVal > 1e-6)
 		{
 			isSame = 0;
 			countNotSame++;

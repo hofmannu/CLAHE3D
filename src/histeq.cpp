@@ -245,17 +245,18 @@ void histeq::calculate_sub_cdf(
 				// only add to histogram if above clip limit
 				if (currVal >= noiseLevel)
 				{
-					uint64_t iBin = (currVal - tempMin) / binRange;
-
+					const uint64_t iBin = (currVal - tempMin) / binRange;
 					// special case for maximum values in subvolume (they gonna end up
 					// one index above)
 
 					if (iBin >= nBins)
 					{
-						iBin = nBins - 1;
+						localCdf[nBins - 1] += 1;
 					}
-
-					localCdf[iBin] += 1;
+					else
+					{
+						localCdf[iBin] += 1;
+					}
 				}
 			}
 		}
@@ -276,7 +277,7 @@ void histeq::calculate_sub_cdf(
 	{
 		for (uint64_t iBin = 1; iBin < nBins; iBin++)
 		{
-			localCdf[iBin] = localCdf[iBin] / cdfMax;
+			localCdf[iBin] /= cdfMax;
 		}
 	}
 	else
@@ -305,22 +306,16 @@ float histeq::get_icdf(
 	}
 	else
 	{
-		if (maxValBin[subVolIdx] == minValBin[subVolIdx])
-			printf("CPU: We should never get here");
-
 		// get index describes the 3d index of the subvolume
 		const uint64_t subVolOffset = nBins * subVolIdx;
 		const float vInterp = (currValue - minValBin[subVolIdx]) / 
 			(maxValBin[subVolIdx] - minValBin[subVolIdx]); // should now span 0 to 1 		
 		
-		// if (vInterp > 1.0)
-		// 	printf("CPU: How can i be bigger then 1");
-
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
 		const uint64_t binOffset = (vInterp > 1.0) ? 
 			(nBins - 1 + subVolOffset)
-			: (vInterp * ((float) nBins - 1.0) + 0.5) + subVolOffset;
+			: fmaf(vInterp, (float) nBins - 1.0, 0.5) + subVolOffset;
 
 		return cdf[binOffset];
 	}
@@ -342,11 +337,10 @@ void histeq::equalize_gpu()
 	float* cdf_dev; // array for cummulative distribution function [iBin, iZS, iXS, iYS]
 	float* minValBin_dev; // minimum value of each bin [iZS, iXS, iYS]
 	float* maxValBin_dev; // maximum value of each bin [iZS, iXS, iYS]
-	const uint64_t nCdf = nBins * nSubVols[0] * nSubVols[1] * nSubVols[2];
-	const uint64_t nSubs = nSubVols[0] * nSubVols[1] * nSubVols[2];
+	const uint64_t nCdf = nBins * get_nSubVols();
 
 	// allocate memory for main data array
-	cErr = cudaMalloc((void**)&dataMatrix_dev, nElements * sizeof(float));
+	cErr = cudaMalloc((void**)&dataMatrix_dev, get_nElements() * sizeof(float));
 	checkCudaErr(cErr, "Could not allocate memory for inputData on GPU");
 
 	// allocate memory for cumulative distribution function
@@ -354,15 +348,15 @@ void histeq::equalize_gpu()
 	checkCudaErr(cErr, "Could not allocate memory for cdf on GPU");
 
 	// allocate memory for maximum values in bins
-	cErr = cudaMalloc((void**)&maxValBin_dev, nSubs * sizeof(float));
+	cErr = cudaMalloc((void**)&maxValBin_dev, get_nSubVols() * sizeof(float));
 	checkCudaErr(cErr, "Could not allocate memory for maxValBins on GPU");
 
 	// allocate memory for minimum values in bins
-	cErr = cudaMalloc((void**)&minValBin_dev, nSubs * sizeof(float));
+	cErr = cudaMalloc((void**)&minValBin_dev, get_nSubVols() * sizeof(float));
 	checkCudaErr(cErr, "Coult not allocate memory for miNValBins on GPU");
 
 	// copy data matrix over
-	cErr = cudaMemcpy(dataMatrix_dev, dataMatrix, nElements * sizeof(float), cudaMemcpyHostToDevice);
+	cErr = cudaMemcpy(dataMatrix_dev, dataMatrix, get_nElements() * sizeof(float), cudaMemcpyHostToDevice);
 	checkCudaErr(cErr, "Could not copy data array to GPU");
 
 	// copy cdf
@@ -370,14 +364,14 @@ void histeq::equalize_gpu()
 	checkCudaErr(cErr, "Could not copy cdf to GPU");
 
 	// copy minValBin
-	cErr = cudaMemcpy(maxValBin_dev, maxValBin, nSubs * sizeof(float), cudaMemcpyHostToDevice);
+	cErr = cudaMemcpy(maxValBin_dev, maxValBin, get_nSubVols() * sizeof(float), cudaMemcpyHostToDevice);
 	checkCudaErr(cErr, "Could not copy max val array to GPU");
 
 	// copy maxValBin
-	cErr = cudaMemcpy(minValBin_dev, minValBin, nSubs * sizeof(float), cudaMemcpyHostToDevice);
+	cErr = cudaMemcpy(minValBin_dev, minValBin, get_nSubVols() * sizeof(float), cudaMemcpyHostToDevice);
 	checkCudaErr(cErr, "Could not copy min val array to GPU");
 
-
+	// prepare structure with all arguments
 	eq_arguments inArgs;
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
@@ -409,9 +403,10 @@ void histeq::equalize_gpu()
 
 	// copy back new data matrix
 	float* ptrOutput = create_ptrOutput();
-	cErr = cudaMemcpy(ptrOutput, dataMatrix_dev, nElements * sizeof(float), cudaMemcpyDeviceToHost);
+	cErr = cudaMemcpy(ptrOutput, dataMatrix_dev, get_nElements() * sizeof(float), cudaMemcpyDeviceToHost);
 	checkCudaErr(cErr, "Problem while copying data matrix back from device");
 
+	// free gpu memory
 	cudaFree(dataMatrix_dev);
 	cudaFree(cdf_dev);
 	cudaFree(maxValBin_dev);
@@ -469,32 +464,37 @@ void histeq::equalize()
 				const uint64_t position[3] = {iZ, iX, iY};
 				get_neighbours(position, neighbours, ratio);
 
-				// assign new value based on trilinear interpolation
-				ptrOutput[idxVolLin] =
-				// first two opposing z corners
-				(
-					get_interpVal(
-						get_icdf(neighbours[0], neighbours[2], neighbours[4], currValue),
-						get_icdf(neighbours[1], neighbours[2], neighbours[4], currValue), ratio[0])
+				// get values from all eight corners
+				const float value[8] = {
+					get_icdf(neighbours[0], neighbours[2], neighbours[4], currValue),
+					get_icdf(neighbours[0], neighbours[2], neighbours[5], currValue),
+					get_icdf(neighbours[0], neighbours[3], neighbours[4], currValue),
+					get_icdf(neighbours[0], neighbours[3], neighbours[5], currValue),
+					get_icdf(neighbours[1], neighbours[2], neighbours[4], currValue),
+					get_icdf(neighbours[1], neighbours[2], neighbours[5], currValue),
+					get_icdf(neighbours[1], neighbours[3], neighbours[4], currValue),
+					get_icdf(neighbours[1], neighbours[3], neighbours[5], currValue)};
 
-					* (1 - ratio[1]) +
-				// fourth two opposing z corners
-				get_interpVal(
-					get_icdf(neighbours[0], neighbours[3], neighbours[5], currValue), 
-					get_icdf(neighbours[1], neighbours[3], neighbours[5], currValue), ratio[0])
-					* ratio[1]) * (1 - ratio[2]) +
-				// second two opposing z corners
-				(
-					get_interpVal(
-						get_icdf(neighbours[0], neighbours[3], neighbours[4], currValue),
-						get_icdf(neighbours[1], neighbours[3], neighbours[4], currValue), ratio[0])
-					* (1 - ratio[1]) +
-				// third two opposing z corners
-				
-					get_interpVal(
-						get_icdf(neighbours[0], neighbours[2], neighbours[5], currValue),
-						get_icdf(neighbours[1], neighbours[2], neighbours[5], currValue), ratio[0])
-					* ratio[1]) * ratio[2];
+				// trilinear interpolation
+				ptrOutput[idxVolLin] =
+					(1 - ratio[0]) * (
+						(1 - ratio[1]) * (
+							value[0] * (1 - ratio[2]) +
+							value[1] * ratio[2]
+						) + ratio[1] * (
+							value[2] * (1 - ratio[2]) +
+							value[3] * ratio[2] 
+						)
+					) + ratio[0] * (
+						(1 - ratio[1]) * (
+							value[4] * (1 - ratio[2]) +
+							value[5] * ratio[2]
+						) + ratio[1] * (
+							value[6] * (1 - ratio[2]) +
+							value[7] * ratio[2]
+						)
+					);
+
 			}
 		}
 	}

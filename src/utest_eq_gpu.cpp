@@ -65,10 +65,13 @@ int main(){
 	uint64_t counterNotSame = 0;
 	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
-		if (histHandler.get_outputValue(iElem) != outputBk[iElem])
+		const float deltaVal = abs(histHandler.get_outputValue(iElem) - outputBk[iElem]);
+		if (deltaVal > 1e-6) // some inaccuracies might occur
 		{
 			isSame = 0;
 			counterNotSame++;
+			printf("Difference found: CPU = %f, GPU = %f, delta = %f\n",
+				outputBk[iElem], histHandler.get_outputValue(iElem), deltaVal * 1e9);
 		}
 	}
 

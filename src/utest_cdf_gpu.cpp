@@ -51,11 +51,6 @@ int main(){
 		cdf_bk[iElem] = histHandler.get_cdf(iElem);
 	}
 
-	float oldBin = 0;
-	for (uint64_t iBin = 0; iBin < binSize; iBin++)
-	{
-		printf("iBin = %d, Value = %.1f, Delta = $.1d");
-	}
 
 	// histogram calculation of CPU
 	histHandler.calculate_cdf();

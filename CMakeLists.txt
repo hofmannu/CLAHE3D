@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # flag to enable and disable GPU support
-set(USE_CUDA FALSE)
+set(USE_CUDA TRUE)
 
 if(${USE_CUDA})
 	message("Compiling with GPU support")
@@ -55,7 +55,6 @@ add_test(NAME test_proc COMMAND UtestProc)
 add_test(NAME test_overwrite COMMAND UtestOverwrite)
 add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
-add_test(NAME test_histafter COMMAND UtestHistAfter)
 
 # gpu specific tests
 if(${USE_CUDA})
