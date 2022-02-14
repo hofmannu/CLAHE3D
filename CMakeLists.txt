@@ -1,13 +1,14 @@
 cmake_minimum_required(VERSION 3.12)
 
 # flag to enable and disable GPU support
-set(USE_CUDA TRUE)
+set(USE_CUDA FALSE)
 
 if(${USE_CUDA})
 	message("Compiling with GPU support")
 	project(clahe3d VERSION 0.1
 		DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
 		LANGUAGES CUDA CXX)
+	add_compile_definitions(USE_CUDA)
 else()
 	message("Compiling wihtout GPU support")
 	project(clahe3d VERSION 0.1
@@ -16,7 +17,6 @@ else()
 endif()
 
 
-add_compile_definitions(USE_CUDA)
 
 if(${USE_CUDA})
 	enable_language(CUDA)
