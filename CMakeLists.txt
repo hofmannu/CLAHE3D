@@ -55,6 +55,7 @@ add_test(NAME test_proc COMMAND UtestProc)
 add_test(NAME test_overwrite COMMAND UtestOverwrite)
 add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
+add_test(NAME test_vector3 COMMAND UtestVector3)
 
 # gpu specific tests
 if(${USE_CUDA})

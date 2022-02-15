@@ -25,7 +25,8 @@ histeq::~histeq()
 		delete[] dataOutput;
 	}
 }
- #if USE_CUDA
+
+#if USE_CUDA
 // same as calculate but this time running on the GPU
 void histeq::calculate_cdf_gpu()
 {
@@ -55,7 +56,7 @@ void histeq::calculate_cdf_gpu()
 	float* cdf_dev; // cumulative distribution function [iBin, izSub, ixSub, iySub]
 	float* maxValBin_dev; // maximum value of current bin [izSub, ixSub, iySub]
 	float* minValBin_dev; // minimum value of current bin [izSub, ixSub, iySub]
-	const uint64_t nCdf = nBins * get_nSubVols();
+	const int64_t nCdf = nBins * get_nSubVols();
 
 	cudaError_t cErr;
 
@@ -129,6 +130,7 @@ void histeq::calculate_cdf_gpu()
 	return;
 }
 #endif
+
 // cpu version of cummulative distribution function calculation
 void histeq::calculate_cdf()
 {
@@ -149,29 +151,17 @@ void histeq::calculate_cdf()
 	minValBin = new float[get_nSubVols()];
 	isMaxValBinAlloc = 1;
 
-	uint64_t idxStart[3]; // start index of current subvolume
-	uint64_t idxEnd[3]; // end index of current subvolume
-
 	// calculate histogram for each individual block
-	for(uint64_t iYSub = 0; iYSub < nSubVols[2]; iYSub++) // for each z subvolume
+	for (int64_t iZSub = 0; iZSub < nSubVols.z; iZSub++) // for each x subvolume
 	{
-		for(uint64_t iXSub = 0; iXSub < nSubVols[1]; iXSub++) // for each y subvolume
+		for(int64_t iYSub = 0; iYSub < nSubVols.y; iYSub++) // for each z subvolume
 		{
-			for (uint64_t iZSub = 0; iZSub < nSubVols[0]; iZSub++) // for each x subvolume
+			for(int64_t iXSub = 0; iXSub < nSubVols.x; iXSub++) // for each y subvolume
 			{
-				// get stopping index
-				const uint64_t idxSub[3] = {iZSub, iXSub, iYSub}; // index of current subvolume
-
-				for(uint8_t iDim = 0; iDim < 3; iDim++)
-				{
-					idxStart[iDim] = get_startIdxSubVol(idxSub[iDim], iDim);
-					idxEnd[iDim] = get_stopIdxSubVol(idxSub[iDim], iDim);
-				}
-
-				calculate_sub_cdf(idxStart[0], idxEnd[0], // zStart, zEnd
-					idxStart[1], idxEnd[1], // xStart, xEnd
-					idxStart[2], idxEnd[2], // yStart, yEnd
-					idxSub[0], idxSub[1], idxSub[2]);
+				const vector3<int64_t> idxSub = {iXSub, iYSub, iZSub}; // index of current subvolume
+				const vector3<int64_t> idxStart = get_startIdxSubVol(idxSub);
+				const vector3<int64_t> idxEnd = get_stopIdxSubVol(idxSub);
+				calculate_sub_cdf(idxStart, idxEnd, idxSub);
 			}
 		}
 	}
@@ -180,36 +170,33 @@ void histeq::calculate_cdf()
 
 // get cummulative distribution function for a certain bin 
 void histeq::calculate_sub_cdf(
-	const uint64_t zStart, const uint64_t zEnd, // z start & stop idx
-	const uint64_t xStart, const uint64_t xEnd, // x start & stop idx
-	const uint64_t yStart, const uint64_t yEnd, // y start & stop idx
-	const uint64_t iZBin, const uint64_t iXBin, const uint64_t iYBin) // bin index
+	const vector3<int64_t> startVec, const vector3<int64_t> endVec, const vector3<int64_t> iBin) // bin index
 {
 
-	const uint64_t idxSubVol = iZBin + nSubVols[0] * (iXBin + iYBin * nSubVols[1]);
+	const int64_t idxSubVol = iBin.x + nSubVols.x * (iBin.y + iBin.z * nSubVols.y);
 	float* localCdf = &cdf[idxSubVol * nBins]; // histogram of subvolume, only temporarily requried
 
 	// volume is indexed as iz + ix * nz + iy * nx * nz
 	// cdf is indexed as [iBin, iZSub, iXSub, iYSub]
 
 	// reset bins to zero before summing them up
-	for (uint64_t iBin = 0; iBin < nBins; iBin++)
+	for (int64_t iBin = 0; iBin < nBins; iBin++)
 		localCdf[iBin] = 0;
 
 	// calculate local maximum and minimum
 	const float firstVal = dataMatrix[
-		zStart + volSize[0] * (xStart + volSize[1] * yStart)];
+		startVec.x + volSize.x * (startVec.y + volSize.y * startVec.z)];
 	float tempMax = firstVal; // temporary variable to reduce data access
 	float tempMin = firstVal;
-	for (uint64_t iY = yStart; iY <= yEnd; iY++)
+	for (int64_t iZ = startVec.z; iZ <= endVec.z; iZ++)
 	{
-		const uint64_t yOffset = iY * volSize[0] * volSize[1];
-		for(uint64_t iX = xStart; iX <= xEnd; iX++)
+		const int64_t zOffset = iZ * volSize.x * volSize.y;
+		for(int64_t iY = startVec.y; iY <= endVec.y ; iY++)
 		{
-			const uint64_t xOffset = iX * volSize[0];
-			for(uint64_t iZ = zStart; iZ <= zEnd; iZ++)
+			const int64_t yOffset = iY * volSize.x;
+			for(int64_t iX = startVec.x; iX <= endVec.x; iX++)
 			{
-				const float currVal = dataMatrix[iZ + xOffset + yOffset];
+				const float currVal = dataMatrix[iX + yOffset + zOffset];
 				if (currVal > tempMax)
 				{
 					tempMax = currVal;
@@ -233,19 +220,19 @@ void histeq::calculate_sub_cdf(
 	const float binRange = (tempMin == tempMax) ? 1 : (tempMax - tempMin) / ((float) nBins);
 
 	// sort values into bins which are above clipLimit
-	for (uint64_t iY = yStart; iY <= yEnd; iY++)
+	for (int64_t iZ = startVec.z; iZ <= endVec.z; iZ++)
 	{
-		const uint64_t yOffset = iY * volSize[0] * volSize[1];
-		for(uint64_t iX = xStart; iX <= xEnd; iX++)
+		const int64_t zOffset = iZ * volSize.x * volSize.y;
+		for(int64_t iY = startVec.y; iY <= endVec.y; iY++)
 		{
-			const uint64_t xOffset = iX * volSize[0];
-			for(uint64_t iZ = zStart; iZ <= zEnd; iZ++)
+			const int64_t yOffset = iY * volSize.x;
+			for(int64_t iX = startVec.x; iX <= endVec.x; iX++)
 			{
-				const float currVal = dataMatrix[iZ + xOffset + yOffset];
+				const float currVal = dataMatrix[iX + yOffset + zOffset];
 				// only add to histogram if above clip limit
 				if (currVal >= noiseLevel)
 				{
-					const uint64_t iBin = (currVal - tempMin) / binRange;
+					const int64_t iBin = (currVal - tempMin) / binRange;
 					// special case for maximum values in subvolume (they gonna end up
 					// one index above)
 
@@ -265,7 +252,7 @@ void histeq::calculate_sub_cdf(
 	// calculate cummulative sum and scale along y
 	float cdfTemp = 0;
 	const float zeroElem = localCdf[0];
-	for (uint64_t iBin = 0; iBin < nBins; iBin++)
+	for (int64_t iBin = 0; iBin < nBins; iBin++)
 	{
 		cdfTemp += localCdf[iBin];
 		localCdf[iBin] = cdfTemp - zeroElem;
@@ -275,16 +262,16 @@ void histeq::calculate_sub_cdf(
 	const float cdfMax = localCdf[nBins - 1];
 	if (cdfMax > 0)
 	{
-		for (uint64_t iBin = 1; iBin < nBins; iBin++)
+		for (int64_t iBin = 1; iBin < nBins; iBin++)
 		{
 			localCdf[iBin] /= cdfMax;
 		}
 	}
 	else
 	{
-		for (uint64_t iBin = 1; iBin < nBins; iBin++)
+		for (int64_t iBin = 1; iBin < nBins; iBin++)
 		{
-			localCdf[iBin] = ((float) iBin) / ((float) nBins);
+			localCdf[iBin] = ((float) iBin) / ((float) nBins - 1);
 		}
 	}
 
@@ -292,14 +279,10 @@ void histeq::calculate_sub_cdf(
 }
 
 // returns the inverted cummulative distribution function
-float histeq::get_icdf(
-	const uint64_t iZ, // subvolume index in z 
-	const uint64_t iX, // subvolume index in x
-	const uint64_t iY, // subvolume index in y
-	const float currValue) // value to extract
+float histeq::get_icdf(const vector3<int64_t> iSubVol, const float currValue) // value to extract
 {
 	// if we are below noise level, directy return
-	const uint64_t subVolIdx = iZ + nSubVols[0] * (iX + nSubVols[1] * iY);
+	const int64_t subVolIdx = iSubVol.x + nSubVols.x * (iSubVol.y + nSubVols.y * iSubVol.z);
 	if (currValue <= minValBin[subVolIdx])
 	{
 		return 0.0;
@@ -307,13 +290,13 @@ float histeq::get_icdf(
 	else
 	{
 		// get index describes the 3d index of the subvolume
-		const uint64_t subVolOffset = nBins * subVolIdx;
+		const int64_t subVolOffset = nBins * subVolIdx;
 		const float vInterp = (currValue - minValBin[subVolIdx]) / 
 			(maxValBin[subVolIdx] - minValBin[subVolIdx]); // should now span 0 to 1 		
 		
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
-		const uint64_t binOffset = (vInterp > 1.0) ? 
+		const int64_t binOffset = (vInterp > 1.0) ? 
 			(nBins - 1 + subVolOffset)
 			: fmaf(vInterp, (float) nBins - 1.0, 0.5) + subVolOffset;
 
@@ -337,7 +320,7 @@ void histeq::equalize_gpu()
 	float* cdf_dev; // array for cummulative distribution function [iBin, iZS, iXS, iYS]
 	float* minValBin_dev; // minimum value of each bin [iZS, iXS, iYS]
 	float* maxValBin_dev; // maximum value of each bin [iZS, iXS, iYS]
-	const uint64_t nCdf = nBins * get_nSubVols();
+	const int64_t nCdf = nBins * get_nSubVols();
 
 	// allocate memory for main data array
 	cErr = cudaMalloc((void**)&dataMatrix_dev, get_nElements() * sizeof(float));
@@ -450,30 +433,30 @@ void histeq::equalize()
 	// if overwrite is disabled we need to allocate memory for new output here
 	float* ptrOutput = create_ptrOutput();
 
-	uint64_t neighbours[6]; // index of next neighbouring elements
+	int64_t neighbours[6]; // index of next neighbouring elements
 	float ratio[3]; // ratios in z x y
-	for(uint64_t iY = 0; iY < volSize[2]; iY++)
+	for(int64_t iZ = 0; iZ < volSize.z; iZ++)
 	{
-		for (uint64_t iX = 0; iX < volSize[1]; iX++)
+		for (int64_t iY = 0; iY < volSize.y; iY++)
 		{
-			for (uint64_t iZ = 0; iZ < volSize[0]; iZ++)
+			for (int64_t iX = 0; iX < volSize.x; iX++)
 			{
-				const uint64_t idxVolLin = iZ + volSize[0] * (iX + volSize[1] * iY);
+				const int64_t idxVolLin = iX + volSize.x * (iY + volSize.y * iZ);
 				const float currValue = dataMatrix[idxVolLin];
 	
-				const uint64_t position[3] = {iZ, iX, iY};
+				const vector3<int64_t> position = {iX, iY, iZ};
 				get_neighbours(position, neighbours, ratio);
 
 				// get values from all eight corners
 				const float value[8] = {
-					get_icdf(neighbours[0], neighbours[2], neighbours[4], currValue),
-					get_icdf(neighbours[0], neighbours[2], neighbours[5], currValue),
-					get_icdf(neighbours[0], neighbours[3], neighbours[4], currValue),
-					get_icdf(neighbours[0], neighbours[3], neighbours[5], currValue),
-					get_icdf(neighbours[1], neighbours[2], neighbours[4], currValue),
-					get_icdf(neighbours[1], neighbours[2], neighbours[5], currValue),
-					get_icdf(neighbours[1], neighbours[3], neighbours[4], currValue),
-					get_icdf(neighbours[1], neighbours[3], neighbours[5], currValue)};
+					get_icdf({neighbours[0], neighbours[2], neighbours[4]}, currValue),
+					get_icdf({neighbours[0], neighbours[2], neighbours[5]}, currValue),
+					get_icdf({neighbours[0], neighbours[3], neighbours[4]}, currValue),
+					get_icdf({neighbours[0], neighbours[3], neighbours[5]}, currValue),
+					get_icdf({neighbours[1], neighbours[2], neighbours[4]}, currValue),
+					get_icdf({neighbours[1], neighbours[2], neighbours[5]}, currValue),
+					get_icdf({neighbours[1], neighbours[3], neighbours[4]}, currValue),
+					get_icdf({neighbours[1], neighbours[3], neighbours[5]}, currValue)};
 
 				// trilinear interpolation
 				ptrOutput[idxVolLin] =
@@ -504,16 +487,21 @@ void histeq::equalize()
 
 
 // returns a single value from our cdf function
-float histeq::get_cdf(const uint64_t iBin, 
-	const uint64_t iZSub, const uint64_t iXSub, const uint64_t iYSub) const
+float histeq::get_cdf(const int64_t iBin, const int64_t iXSub, const int64_t iYSub, const int64_t iZSub) const
 {
-	const uint64_t idx = iBin + nBins * (iZSub + nSubVols[0] * (iXSub +  nSubVols[1] * iYSub));
+	const int64_t idx = iBin + nBins * (iXSub + nSubVols[0] * (iYSub +  nSubVols[1] * iZSub));
 	return cdf[idx];
 }
 
-float histeq::get_cdf(const uint64_t iBin, const uint64_t iSubLin) const
+float histeq::get_cdf(const int64_t iBin, const vector3<int64_t> iSub) const
 {
-	const uint64_t idx = iBin + nBins * iSubLin;
+	const int64_t idx = iBin + nBins * (iSub.x + nSubVols[0] * (iSub.y +  nSubVols[1] * iSub.z));
+	return cdf[idx];
+}
+
+float histeq::get_cdf(const int64_t iBin, const int64_t iSubLin) const
+{
+	const int64_t idx = iBin + nBins * iSubLin;
 	return cdf[idx];
 }
 
@@ -531,7 +519,7 @@ float* histeq::get_ptrOutput()
 }
 
 // returns the data value for a linearized element
-float histeq::get_outputValue(const uint64_t iElem) const
+float histeq::get_outputValue(const int64_t iElem) const
 {
 	if (flagOverwrite)
 	{
@@ -544,9 +532,9 @@ float histeq::get_outputValue(const uint64_t iElem) const
 } 
 
 // returns output value for 3d index
-float histeq::get_outputValue(const uint64_t iZ, const uint64_t iX, const uint64_t iY) const
+float histeq::get_outputValue(const int64_t iZ, const int64_t iX, const int64_t iY) const
 {
-	const uint64_t linIdx = iZ + volSize[0] * (iX + volSize[1] * iY);
+	const int64_t linIdx = iZ + volSize[0] * (iX + volSize[1] * iY);
 	if (flagOverwrite)
 	{
 		return dataMatrix[linIdx];
@@ -558,21 +546,21 @@ float histeq::get_outputValue(const uint64_t iZ, const uint64_t iX, const uint64
 } 
 
 // returns the minimum value of a bin
-float histeq::get_minValBin(const uint64_t zBin, const uint64_t xBin, const uint64_t yBin)
+float histeq::get_minValBin(const int64_t zBin, const int64_t xBin, const int64_t yBin)
 {
-	const uint64_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
+	const int64_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
 	return minValBin[idxBin];
 }
 
 // returns the maximum value of a bin
-float histeq::get_maxValBin(const uint64_t zBin, const uint64_t xBin, const uint64_t yBin)
+float histeq::get_maxValBin(const int64_t zBin, const int64_t xBin, const int64_t yBin)
 {
-	const uint64_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
+	const int64_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
 	return maxValBin[idxBin];
 }
 
 // define number of bins during eq
-void histeq::set_nBins(const uint64_t _nBins)
+void histeq::set_nBins(const int64_t _nBins)
 {
 	if (_nBins == 0)
 	{

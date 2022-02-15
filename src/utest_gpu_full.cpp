@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <fstream>
 #include <chrono>
+#include "vector3.h"
 
 using namespace std;
 
@@ -18,24 +19,20 @@ int main(){
 	srand(1);
 
 	// define grid dimensions for testing
-	const uint64_t nZ = 600;
- 	const uint64_t nX = 500;
-	const uint64_t nY = 400;
-
+	const vector3<int64_t> volSize = {600, 500, 400};
+	const float clipLimit = 0.1;
+	const int64_t binSize = 10;
+	const vector3<int64_t> subVolSize = {11, 11, 11};
+	const vector3<int64_t> subVolSpacing = {20, 20, 20};
+	
 	// generate input volume matrix and assign random values to it
-	float* inputVol = new float[nX * nY * nZ];
-	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
+	float* inputVol = new float[volSize.elementMult()];
+	for(int64_t iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
 	// initialize some parameters
-	const float clipLimit = 0.1;
-	const uint64_t binSize = 10;
-	const uint64_t subVolSize[3] = {11, 11, 11};
-	const uint64_t subVolSpacing[3] = {20, 20, 20};
-	const uint64_t volSize[3] = {nZ, nX, nY};
-
-	const uint64_t iBin = rand() % binSize;
+	const int64_t iBin = rand() % binSize;
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
@@ -52,7 +49,7 @@ int main(){
 	
 	// backup the version of the CDF calculated with
 	float* output_bk = new float[histHandler.get_nElements()];
-	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		output_bk[iElem] = histHandler.get_outputValue(iElem);
 	}
@@ -62,8 +59,8 @@ int main(){
 	histHandler.equalize();
 
 	bool isSame = 1;
-	uint64_t countNotSame = 0;
-	for (uint64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	int64_t countNotSame = 0;
+	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		const float deltaVal = abs(output_bk[iElem] - histHandler.get_outputValue(iElem));
 		if (deltaVal > 1e-6)

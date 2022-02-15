@@ -11,35 +11,32 @@
 #include <fstream>
 #include <chrono>
 
+#include "vector3.h"
+
 using namespace std;
 
 int main()
 {
 
 	// define grid dimensions for testing
-	const uint64_t nZ = 600;
- 	const uint64_t nX = 500;
-	const uint64_t nY = 400;
+	const vector3<int64_t> volSize(600, 500, 400);
+	const vector3<int64_t> subVolSize(31, 31, 31);
+	const vector3<int64_t> subVolSpacing(20, 20, 20);
+	const float clipLimit = 2.0;
+	const int64_t binSize = 250;
 
 	// generate input volume matrix and assign random values to it
-	float* inputVol = new float[nX * nY * nZ];
-	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
+	float* inputVol = new float[volSize.elementMult()];
+	for(int64_t iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
-	// initialize some parameters
-	const float clipLimit = 2.0;
-	const uint64_t binSize = 250;
-	const uint64_t subVolSize[3] = {31, 31, 31};
-	const uint64_t subVolSpacing[3] = {20, 20, 20};
-	const uint64_t gridSize[3] = {nZ, nX, nY};
-
-	const uint64_t iBin = rand() % binSize;
+	const int64_t iBin = rand() % binSize;
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
 	histHandler.set_noiseLevel(clipLimit);
-	histHandler.set_volSize(gridSize);
+	histHandler.set_volSize(volSize);
 	histHandler.set_sizeSubVols(subVolSize);
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
@@ -51,7 +48,7 @@ int main()
 	histHandler.equalize();
 
 	float* outputVolCpu = histHandler.get_ptrOutput();
-	for (uint64_t iElem = 0; iElem < (nX * nY * nZ); iElem++)
+	for (int64_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
 		if (!(outputVolCpu[iElem] == 0))
 		{
@@ -73,7 +70,7 @@ int main()
 	histHandler.equalize_gpu();
 
 	float* outputVolGpu = histHandler.get_ptrOutput();
-	for (uint64_t iElem = 0; iElem < (nX * nY * nZ); iElem++)
+	for (int64_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
 		if (!(outputVolGpu[iElem] == 0))
 		{

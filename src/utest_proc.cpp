@@ -10,34 +10,35 @@
 #include <cstdint>
 #include <fstream>
 #include <chrono>
+#include "vector3.h"
+
 
 using namespace std;
 
 int main()
 {
 
-	// define grid dimensions for testing
-	const uint64_t nZ = 600;
- 	const uint64_t nX = 500;
-	const uint64_t nY = 400;
+
+	// define testing parameters
+	const vector3<int64_t> volSize(600, 500, 300);
+	const float clipLimit = 0.01;
+	const int64_t binSize = 20;
+	const vector3<int64_t> subVolSize(31, 31, 31);
+	const vector3<int64_t> subVolSpacing(20, 20, 20);
+	
+	srand(1);
 
 	// generate input volume matrix and assign random values to it
-	float* inputVol = new float[nX * nY * nZ];
-	for(uint64_t iIdx = 0; iIdx < (nX * nY * nZ); iIdx ++)
+	float* inputVol = new float[volSize.x * volSize.y * volSize.z];
+	for(int64_t iIdx = 0; iIdx < (volSize.x * volSize.y * volSize.z); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
-	// initialize some parameters
-	const float clipLimit = 0.01;
-	const uint64_t binSize = 20;
-	const uint64_t subVolSize[3] = {31, 31, 31};
-	const uint64_t subVolSpacing[3] = {20, 20, 20};
-	const uint64_t gridSize[3] = {nZ, nX, nY};
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
 	histHandler.set_noiseLevel(clipLimit);
-	histHandler.set_volSize(gridSize);
+	histHandler.set_volSize(volSize);
 	histHandler.set_sizeSubVols(subVolSize);
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
@@ -47,8 +48,7 @@ int main()
 
 	printf("Printing example bins\n");
 	float oldBinVal = 0;
-	float deltaBin[binSize];
-	for (uint64_t iBin = 1; iBin < binSize; iBin++)
+	for (int64_t iBin = 1; iBin < binSize; iBin++)
 	{
 		const float delta = histHandler.get_cdf(iBin) - oldBinVal;
 		printf("iBin = %d, Value = %.1f, Delta = %.4f\n", (int) iBin, histHandler.get_cdf(iBin), delta);
@@ -56,7 +56,7 @@ int main()
 	}
 
 	// first bin must be zero and last bin must be one
-	for (uint64_t iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
+	for (int64_t iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
 	{
 		if (histHandler.get_cdf(0, iSub) != 0.0)
 		{
@@ -64,9 +64,10 @@ int main()
 			throw "Invalid result";
 		}
 
-		if (histHandler.get_cdf(binSize - 1, iSub) != 1.0)
+		const float deltaEnd = abs(1.0 - histHandler.get_cdf(binSize - 1, iSub));
+		if (deltaEnd > 1e-6)
 		{
-			printf("All end bins must have one value\n");
+			printf("All end bins must have one value: deviation: %.6f\n", deltaEnd);
 			throw "Invalid result";
 		}
 	}

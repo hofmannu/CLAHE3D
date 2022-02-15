@@ -17,14 +17,14 @@ using namespace std;
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]){
 	
 	float* inputVol = (float *) mxGetData(prhs[0]); // input volume
-	const uint64_t nZ = mxGetDimensions(prhs[0])[0]; // z dimension
-	const uint64_t nX = mxGetDimensions(prhs[0])[1]; // x dimension
-	const uint64_t nY = mxGetDimensions(prhs[0])[2]; // y dimension
-	uint64_t * subVolSize = (uint64_t*) mxGetData(prhs[1]); // size of bins [z, x, y]
-	uint64_t * subVolSpacing = (uint64_t*) mxGetData(prhs[2]); // size of bins [z, x, y]
+	const int64_t nZ = mxGetDimensions(prhs[0])[0]; // z dimension
+	const int64_t nX = mxGetDimensions(prhs[0])[1]; // x dimension
+	const int64_t nY = mxGetDimensions(prhs[0])[2]; // y dimension
+	int64_t * subVolSize = (int64_t*) mxGetData(prhs[1]); // size of bins [z, x, y]
+	int64_t * subVolSpacing = (int64_t*) mxGetData(prhs[2]); // size of bins [z, x, y]
 	float* clipLimit = (float *) mxGetData(prhs[3]);
-	uint64_t* binSize = (uint64_t*) mxGetData(prhs[4]);
-	uint64_t volumeSize[3] = {nZ, nX, nY};
+	int64_t* binSize = (int64_t*) mxGetData(prhs[4]);
+	int64_t volumeSize[3] = {nZ, nX, nY};
 
 	printf("[clahe3d] initializing histogram handler\n");
 	histeq histHandler;

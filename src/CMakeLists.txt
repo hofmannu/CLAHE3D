@@ -39,6 +39,8 @@ target_link_libraries(UtestNoiseLevel PUBLIC Histeq)
 add_executable(UtestBinarization utest_binarization.cpp)
 target_link_libraries(UtestBinarization PUBLIC Histeq)
 
+add_executable(UtestVector3 utest_vector3.cpp)
+
 # cuda specific test functions
 if(${USE_CUDA})
 
