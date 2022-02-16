@@ -15,6 +15,7 @@ void gridder::set_sizeSubVols(const vector3<int>& _subVolSize)
 	}
 	sizeSubVols = _subVolSize;
 	origin = (sizeSubVols - 1) / 2;
+
 	return;
 }
 
@@ -58,6 +59,7 @@ void gridder::calculate_nsubvols()
 	// }
 	vector3<int> lastIdx = volSize - 1;
 	nSubVols = (lastIdx - origin) / spacingSubVols + 1;
+	endIdx = origin + (nSubVols - 1) * spacingSubVols;
 
 	return;
 }
@@ -72,13 +74,13 @@ void gridder::get_neighbours(
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		// let see if we hit the lower limit
-		if (((float) position[iDim]) <=  origin[iDim])
+		if (((float) position[iDim]) <= origin[iDim])
 		{
 			ratio[iDim] = 0;
 			neighbours[iDim * 2] = 0; // left index along current dimension
 			neighbours[iDim * 2 + 1] = 0; // right index along current dimension
 		}
-		else if (((float) position[iDim]) >=  endIdx[iDim])
+		else if (((float) position[iDim]) >= endIdx[iDim])
 		{
 			ratio[iDim] = 0;
 			neighbours[iDim * 2] =  nSubVols[iDim] - 1; // left index along curr dimension

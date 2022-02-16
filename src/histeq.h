@@ -89,8 +89,11 @@ public gridder
 		int get_ncdf() const {return (nSubVols[0] * nSubVols[1] * nSubVols[2] * nBins);};
 
 		float* get_ptrOutput(); // return pointer to output array
+		
 		float get_outputValue(const int iElem) const;
+		float get_outputValue(const vector3<int> idx) const;
 		float get_outputValue(const int iZ, const int iX, const int iY) const;
+
 		float get_minValBin(const int zBin, const int xBin, const int yBin);
 		float get_maxValBin(const int zBin, const int xBin, const int yBin);
 

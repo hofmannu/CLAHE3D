@@ -14,6 +14,7 @@ private:
 	float* planes[3]; // x normal, y normal, z normal
 	bool isPlanesAlloc = 0;
 	bool reqUpdate[3] = {0, 0, 0};
+	bool flipFlag[3] = {0, 0, 0};
 
 	void free_planes();
 	void alloc_planes();
@@ -23,6 +24,7 @@ private:
 public:
 	~slicer();
 
+	void flip(const uint8_t iDim);
 	float* get_plane(const uint8_t iDim);
 
 	void set_sizeArray(const vector3<int> _sizeArray);
@@ -33,6 +35,10 @@ public:
 	vector3<int> get_slicePoint() const {return slicePoint;};
 	vector3<int> get_sizeArray() const {return sizeArray;};
 
+	bool* get_pflipFlag(const uint8_t iDim) {return &flipFlag[iDim];};
+	bool get_flipFlag(const uint8_t iDim) const {return flipFlag[iDim];};
+
+	void set_reqUpdate(const uint8_t iDim, const bool status) {reqUpdate[iDim] = status;};
 };
 
 #endif

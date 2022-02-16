@@ -64,12 +64,14 @@ endif()
 
 add_library(Nifti nifti.cpp)
 
+add_library(Histogram histogram.cpp)
+
 
 if(${USE_GUI})
 	add_library(ImGuiFileDialog ImGuiFileDialog.cpp)
 	target_link_libraries(ImGuiFileDialog PUBLIC ImGui)
 
-	# add_library(ImGuiPlot imgui_plot.cpp)
+	add_library(ImGuiPlot imgui_plot.cpp)
 	add_library(ColorMapper color_mapper.cpp)
 
 	set(OpenGL_GL_PREFERENCE GLVND)
@@ -104,6 +106,8 @@ if(${USE_GUI})
 		Nifti
 		Slicer
 		ColorMapper
+		Histogram
+		ImGuiPlot
 		)
 	set_property(TARGET Gui PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 	

@@ -13,6 +13,8 @@
 #include "nifti.h"
 #include "slicer.h"
 #include "color_mapper.h"
+#include "histogram.h"
+#include "imgui_plot.h"
 
 class gui
 {
@@ -22,7 +24,6 @@ private:
 	
 	histeq histoEq;
 	nifti niiReader;
-	slicer mySlice;
 
 	void MainDisplayCode(); // iterates over the main display boxes 
 	void DataLoaderWindow(); 
@@ -30,15 +31,28 @@ private:
 	void SlicerWindow();
 
 	bool isDataLoaded = 0;
+	bool isProc = 0;
+	bool showRaw = 1;
 	bool flagGpu = 1; // should we process on the GPU
 
 	// helper function to display stuff
 	void ImImagesc(
 		const float* data, const uint64_t sizex, const uint64_t sizey, 
 		GLuint* out_texture, const color_mapper myCMap);
+	
+	slicer mySlice;
 
-	GLuint rawSliceZ; 
+	// raw viz
+	GLuint sliceZ; 
+	GLuint sliceX; 
+	GLuint sliceY; 
+
 	color_mapper rawMap;
+
+	// processed viz
+	color_mapper procMap;
+
+	histogram histRawData;
 
 public:
 	gui();

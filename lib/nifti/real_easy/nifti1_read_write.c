@@ -195,7 +195,7 @@ if (ret != 0) {
 /********** allocate buffer and read first 3D volume from data file */
 data = (MY_DATATYPE *) malloc(sizeof(MY_DATATYPE) * hdr.dim[1]*hdr.dim[2]*hdr.dim[3]);
 if (data == NULL) {
-        fprintf(stderr, "\nError allocating data buffer for %s\n",data_file);
+        fprintf(stderr, "\nError allocating data buffer for %s\n", data_file);
         exit(1);
 }
 ret = fread(data, sizeof(MY_DATATYPE), hdr.dim[1]*hdr.dim[2]*hdr.dim[3], fp);

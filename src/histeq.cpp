@@ -28,9 +28,6 @@ histeq::~histeq()
 
 #if USE_CUDA
 // same as calculate but this time running on the GPU
-
-
-
 void histeq::calculate_cdf_gpu()
 {
 	calculate_nsubvols();
@@ -179,6 +176,8 @@ void histeq::calculate_cdf()
 				const vector3<int> idxSub = {iXSub, iYSub, iZSub}; // index of current subvolume
 				const vector3<int> idxStart = get_startIdxSubVol(idxSub);
 				const vector3<int> idxEnd = get_stopIdxSubVol(idxSub);
+				// printf("subvol ranges from %d, %d, %d to %d, %d, %d\n",
+				// 	idxStart.x, idxStart.y, idxStart.z, idxEnd.x, idxEnd.y, idxEnd.z);
 				calculate_sub_cdf(idxStart, idxEnd, idxSub);
 			}
 		}
@@ -317,6 +316,7 @@ float histeq::get_icdf(const vector3<int> iSubVol, const float currValue) // val
 		const int binOffset = (vInterp > 1.0) ? 
 			(nBins - 1 + subVolOffset)
 			: fmaf(vInterp, (float) nBins - 1.0, 0.5) + subVolOffset;
+
 
 		return cdf[binOffset];
 	}
@@ -464,6 +464,7 @@ void histeq::equalize()
 	
 				const vector3<int> position = {iX, iY, iZ};
 				get_neighbours(position, neighbours, ratio);
+				// printf("%d, %d, %d\n", neighbours[0], neighbours[2], neighbours[4]);
 
 				// get values from all eight corners
 				const float value[8] = {
@@ -549,18 +550,18 @@ float histeq::get_outputValue(const int iElem) const
 	}
 } 
 
+// returns the data value for a linearized element
+float histeq::get_outputValue(const vector3<int> idx) const
+{
+	const int linIdx = idx.x + volSize.x * (idx.y + volSize.y * idx.z);
+	return get_outputValue(linIdx);
+} 
+
 // returns output value for 3d index
 float histeq::get_outputValue(const int iZ, const int iX, const int iY) const
 {
 	const int linIdx = iZ + volSize[0] * (iX + volSize[1] * iY);
-	if (flagOverwrite)
-	{
-		return dataMatrix[linIdx];
-	}
-	else
-	{
-		return dataOutput[linIdx];
-	}
+	return get_outputValue(linIdx);
 } 
 
 // returns the minimum value of a bin
@@ -592,11 +593,6 @@ void histeq::set_nBins(const int _nBins)
 // define noiselevel of dataset as minimum occuring value
 void histeq::set_noiseLevel(const float _noiseLevel)
 {
-	if (_noiseLevel < 0)
-	{
-		printf("The noise level should be at least 0");
-		throw "InvalidValue";
-	}
 	noiseLevel = _noiseLevel;
 	return;
 }

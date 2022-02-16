@@ -2,15 +2,8 @@
 
 gui::gui()
 {
-	niiReader.read_header("/home/hofmannu/Documents/MRT_brain.nii");
-	niiReader.print_header();
-	niiReader.read_data();
-	histoEq.set_data(niiReader.get_pdataMatrix());
-	histoEq.set_volSize(niiReader.get_dim());
-	mySlice.set_sizeArray(niiReader.get_dim());
-	mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
-
-	isDataLoaded = true;
+	histoEq.set_overwrite(0);
+	isDataLoaded = false;
 }
 
 // displays a small help marker next to the text
@@ -125,7 +118,7 @@ void gui::DataLoaderWindow()
 	if (ImGui::Button("Load data"))
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
-			"Choose File", ".h5\0.mat\0.nii\0", ".");
+			"Choose File", ".nii\0", ".");
 	}
 
 	if (ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) 
@@ -134,13 +127,16 @@ void gui::DataLoaderWindow()
 		{
 			std::string inputFilePath = ImGuiFileDialog::Instance()->GetFilepathName();
 			printf("File path: %s\n", inputFilePath.c_str());
-			niiReader.read_header(inputFilePath);
+			niiReader.read(inputFilePath); // reads the entire input file
 			niiReader.print_header();
-			niiReader.read_data();
 			histoEq.set_data(niiReader.get_pdataMatrix());
 			histoEq.set_volSize(niiReader.get_dim());
+			histoEq.set_noiseLevel(niiReader.get_min());
 			mySlice.set_sizeArray(niiReader.get_dim());
 			mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
+			rawMap.set_maxVal(niiReader.get_max());
+			rawMap.set_minVal(niiReader.get_min());
+			histRawData.calculate(niiReader.get_pdataMatrix(), niiReader.get_nElements());
 
 			isDataLoaded = true;
 		}
@@ -149,11 +145,34 @@ void gui::DataLoaderWindow()
 
 	if (isDataLoaded)
 	{
-		ImGui::Text("Current dataset: %s", niiReader.get_filePath());
-		ImGui::Text("Dimensions: %d x %d x %d", 
-			niiReader.get_dim(0), niiReader.get_dim(1), niiReader.get_dim(2));
-		ImGui::Text("Minimum value: %f", niiReader.get_min());
-		ImGui::Text("Maximum value: %f", niiReader.get_max());
+		if (ImGui::CollapsingHeader("Dataset information"))
+		{
+			ImGui::Text("File path: %s", niiReader.get_filePath());
+			ImGui::Text("Dimensions: %d x %d x %d", 
+				niiReader.get_dim(0), niiReader.get_dim(1), niiReader.get_dim(2));
+			ImGui::Text("Resolution: %.2f x %.3f %.3f", 
+				niiReader.get_res(0), niiReader.get_res(1), niiReader.get_res(2));
+			ImGui::Text("Data range: %.3f ... %.3f", niiReader.get_min(), niiReader.get_max());
+		}
+
+		if (ImGui::CollapsingHeader("Raw data histogram"))
+		{
+			// plot histogram of input data 
+			ImGui::PlotConfig conf;
+			conf.values.xs = histRawData.get_pcontainerVal(); // this line is optional
+			conf.values.ys = histRawData.get_pcounter(); // this line is optional
+			conf.values.count = histRawData.get_nBins();
+			conf.scale.min = histRawData.get_minHist();
+			conf.scale.max = histRawData.get_maxHist();
+			conf.tooltip.show = true;
+			conf.tooltip.format = "x=%.2f, y=%.2f";
+			conf.grid_x.show = false;
+			conf.grid_y.show = false;
+			conf.frame_size = ImVec2(400, 200);
+			conf.line_thickness = 2.f;
+			ImGui::Plot("Histogram", conf);
+		}
+
 	}
 
 	ImGui::End();
@@ -161,32 +180,43 @@ void gui::DataLoaderWindow()
 
 void gui::SettingsWindow()
 {
-	ImGui::Begin("Settings");
-	ImGui::Checkbox("Overwrite flag", histoEq.get_pflagOverwrite());
-	ImGui::Checkbox("GPU processing", &flagGpu);
-	ImGui::InputInt3("Subvol spacing", histoEq.get_pspacingSubVols());
-	ImGui::InputInt3("Subvol size", histoEq.get_psizeSubVols());
-	ImGui::InputFloat("Noise level", histoEq.get_pnoiseLevel());
-	ImGui::InputInt("Bin size", histoEq.get_pnBins());
-
 	if (isDataLoaded)
 	{
-		if (ImGui::Button("CLAHE it!"))
+		ImGui::Begin("Settings");
+		// ImGui::Checkbox("Overwrite flag", histoEq.get_pflagOverwrite());
+		ImGui::Checkbox("GPU processing", &flagGpu);
+		ImGui::InputInt3("Subvol spacing", histoEq.get_pspacingSubVols());
+		ImGui::InputInt3("Subvol size", histoEq.get_psizeSubVols());
+		ImGui::InputFloat("Noise level", histoEq.get_pnoiseLevel());
+		ImGui::InputInt("Bin size", histoEq.get_pnBins());
+
+		if (isDataLoaded)
 		{
-			if (flagGpu)
+			if (ImGui::Button("CLAHE it!"))
 			{
-				histoEq.calculate_cdf_gpu();
-				histoEq.equalize_gpu();
-			}
-			else
-			{
-				histoEq.calculate_cdf();
-				histoEq.equalize();	
+	#if USE_CUDA
+				if (flagGpu)
+				{
+					histoEq.calculate_cdf_gpu();
+					histoEq.equalize_gpu();
+					isProc = 1; 
+					showRaw = 0;
+				}
+				else
+				{
+	#endif
+					histoEq.calculate_cdf();
+					histoEq.equalize();
+					isProc = 1;	
+					showRaw = 0;
+	#if USE_CUDA
+				}
+	#endif
 			}
 		}
-	}
 
-	ImGui::End();
+		ImGui::End();
+	}
 }
 
 void gui::SlicerWindow()
@@ -194,6 +224,40 @@ void gui::SlicerWindow()
 	if (isDataLoaded)
 	{
 		ImGui::Begin("Slicer");
+		
+		if (ImGui::Button("Flip x"))
+		{
+		 mySlice.flip(0); 
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Flip y"))
+		{
+		 mySlice.flip(1); 
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Button("Flip z"))
+		{
+		 mySlice.flip(2);
+		}
+		
+		
+		bool oldRaw = showRaw;
+		if (isProc)
+		{
+			ImGui::SameLine();
+			ImGui::Checkbox("Show raw", &showRaw);
+		}
+
+		// if we switched toggle, lets update data pointer
+		if (oldRaw != showRaw)
+		{
+			if (showRaw)
+				mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
+			else
+				mySlice.set_dataMatrix(histoEq.get_ptrOutput());
+		}
 
 		vector3<int> slicePos = mySlice.get_slicePoint();
 		vector3<int> sizeArray = mySlice.get_sizeArray();
@@ -202,30 +266,53 @@ void gui::SlicerWindow()
 		ImGui::SliderInt("z", &slicePos.z, 0, sizeArray.z - 1);
 		mySlice.set_slicePoint(slicePos);
 
+		ImGui::Text("Value at current position (raw): %f", niiReader.get_val(slicePos));
+		if (isProc)
+			ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
 
-		ImImagesc(
-			mySlice.get_plane(0), 
-			sizeArray.y, sizeArray.z, &rawSliceZ, rawMap);
-		ImGui::Image((void*)(intptr_t)rawSliceZ, 
-				ImVec2(550, 550),
-				ImVec2(0, 0), // lower corner to crop
-				ImVec2(sizeArray.y, sizeArray.z)); // upper corner to crop
+		int width = 600;
+		int heightX = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(0)); 
+		int heightZ = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(2)); 
+		int widthZ = round(((float) heightX) / niiReader.get_length(0) * niiReader.get_length(2)); 
 
-		ImGui::SliderFloat("MinVal", 
-			rawMap.get_pminVal(), 
-			niiReader.get_min(), niiReader.get_max(), "%.1f");
-		ImGui::SliderFloat("MaxVal", 
-			rawMap.get_pmaxVal(), niiReader.get_min(), 
-			niiReader.get_max(), "%.1f");
-			
+		if (showRaw)
+		{
+			ImImagesc(mySlice.get_plane(0), sizeArray.y, sizeArray.z, &sliceX, rawMap);
+			ImImagesc(mySlice.get_plane(1), sizeArray.z, sizeArray.x, &sliceY, rawMap);
+			ImImagesc(mySlice.get_plane(2), sizeArray.y, sizeArray.x, &sliceZ, rawMap);
 
-		ImGui::ColorEdit4("Min color", rawMap.get_pminCol(), ImGuiColorEditFlags_Float);
-		ImGui::ColorEdit4("Max color", rawMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX)); ImGui::SameLine(); 
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
+			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, heightZ));
+
+			ImGui::SliderFloat("MinVal", 
+				rawMap.get_pminVal(), 
+				niiReader.get_min(), niiReader.get_max(), "%.1f");
+			ImGui::SliderFloat("MaxVal", 
+				rawMap.get_pmaxVal(), niiReader.get_min(), 
+				niiReader.get_max(), "%.1f");
+				
+
+			ImGui::ColorEdit4("Min color", rawMap.get_pminCol(), ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit4("Max color", rawMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
+		}
+		else
+		{
+			ImImagesc(mySlice.get_plane(0),	sizeArray.y, sizeArray.z, &sliceX, procMap);
+			ImImagesc(mySlice.get_plane(1),	sizeArray.z, sizeArray.x, &sliceY, procMap);
+			ImImagesc(mySlice.get_plane(2),	sizeArray.y, sizeArray.x, &sliceZ, procMap);
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX));  ImGui::SameLine(); 
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
+			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, widthZ)); 
+			ImGui::SliderFloat("MinVal", procMap.get_pminVal(), 0, 1, "%.2f");
+			ImGui::SliderFloat("MaxVal", procMap.get_pmaxVal(), 0, 1, "%.2f");
+				
+
+			ImGui::ColorEdit4("Min color", procMap.get_pminCol(), ImGuiColorEditFlags_Float);
+			ImGui::ColorEdit4("Max color", procMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
+		}
 		ImGui::End();
 	}
-
-
-
 }
 
 // helper function to display stuff

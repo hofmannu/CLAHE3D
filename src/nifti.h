@@ -24,21 +24,27 @@ private:
 public: 
 
 	~nifti();
-	int read_header(const string _filePath);
+	int read();
+	int read(const string _filePath);
 	void print_header();
 
-	int read_data();
-	int read_data(const string _filePath);
 
 	// get functions to quickly access properties
-	int get_dim(const uint8_t iDim) {return hdr.dim[iDim+1];};
+	int get_nElements() const {return hdr.dim[1] * hdr.dim[2] * hdr.dim[3];};
+	int get_dim(const uint8_t iDim) const {return hdr.dim[iDim+1];};
+	float get_res(const uint8_t iDim) const {return hdr.pixdim[iDim+1];};
 	vector3<int> get_dim() {return {hdr.dim[1], hdr.dim[2], hdr.dim[3]};};
 	const char* get_filePath() const {return filePath.c_str();}; 
+	
 	float* get_pdataMatrix() {return dataMatrix;};
+	float* get_pdataMatrix(const int index) {return &dataMatrix[index];};
 
 	float get_min() const {return minVal;};
 	float get_max() const {return maxVal;};
 
+	float get_val(const vector3<int> pos) const;
+
+	float get_length(const uint8_t iDim) const {return ((float) hdr.dim[iDim+1] ) * hdr.pixdim[iDim+1];};
 };
 
 #endif
