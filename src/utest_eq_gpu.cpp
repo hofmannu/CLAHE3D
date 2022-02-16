@@ -18,14 +18,14 @@ using namespace std;
 int main(){
 
 	// define grid dimensions for testing
-	const vector3<int64_t> volSize = {600, 500, 400};
+	const vector3<int> volSize = {600, 500, 400};
 	// initialize some parameters
-	const vector3<int64_t> subVolSize = {31, 31, 31};
-	const vector3<int64_t> subVolSpacing = {20, 20, 20};
+	const vector3<int> subVolSize = {31, 31, 31};
+	const vector3<int> subVolSpacing = {20, 20, 20};
 
 	// generate input volume matrix and assign random values between 0.0 and 1.0
 	float* inputVol = new float[volSize.elementMult()];
-	for(int64_t iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
+	for(int iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 
 
@@ -53,15 +53,15 @@ int main(){
 
 	// backup the result which we got from CPU
 	float * outputBk = new float[histHandler.get_nElements()];
-	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	for (int iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		outputBk[iElem] = histHandler.get_outputValue(iElem);
 	}
 	
 	histHandler.equalize();
 	bool isSame = 1;
-	int64_t counterNotSame = 0;
-	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	int counterNotSame = 0;
+	for (int iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		const float deltaVal = abs(histHandler.get_outputValue(iElem) - outputBk[iElem]);
 		if (deltaVal > 1e-6) // some inaccuracies might occur

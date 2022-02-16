@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
-# flag to enable and disable GPU support
-set(USE_CUDA TRUE)
+set(USE_CUDA TRUE) # flag to enable and disable GPU support
+set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
 	message("Compiling with GPU support")
@@ -15,7 +15,6 @@ else()
 		DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
 		LANGUAGES CXX)
 endif()
-
 
 
 if(${USE_CUDA})
@@ -42,6 +41,7 @@ if(${USE_CUDA})
 
 endif()
 
+add_subdirectory(lib/)
 add_subdirectory(src/)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -51,13 +51,22 @@ add_executable(main_exp src/main.cpp)
 target_link_libraries(main_exp PUBLIC Histeq)
 install(TARGETS main_exp DESTINATION bin)
 
+# gui specific stuff
+if(${USE_GUI})
+	set(OpenGL_GL_PREFERENCE GLVND)
+	cmake_policy(SET CMP0079 NEW)
+	add_executable(main_gui src/main_gui.cpp)
+	target_link_libraries(main_gui PUBLIC Gui)
+endif()
+
+# general unit tests
 add_test(NAME test_proc COMMAND UtestProc)
 add_test(NAME test_overwrite COMMAND UtestOverwrite)
 add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
 add_test(NAME test_vector3 COMMAND UtestVector3)
 
-# gpu specific tests
+# gpu specific unit tests
 if(${USE_CUDA})
 	add_test(NAME test_proc_gpu COMMAND UtestProcGpu)
 	add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)

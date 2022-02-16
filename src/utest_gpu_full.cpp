@@ -19,20 +19,20 @@ int main(){
 	srand(1);
 
 	// define grid dimensions for testing
-	const vector3<int64_t> volSize = {600, 500, 400};
+	const vector3<int> volSize = {600, 500, 400};
 	const float clipLimit = 0.1;
-	const int64_t binSize = 10;
-	const vector3<int64_t> subVolSize = {11, 11, 11};
-	const vector3<int64_t> subVolSpacing = {20, 20, 20};
+	const int binSize = 10;
+	const vector3<int> subVolSize = {31, 31, 31};
+	const vector3<int> subVolSpacing = {10, 10, 10};
 	
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.elementMult()];
-	for(int64_t iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
+	for(int iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
 	// initialize some parameters
-	const int64_t iBin = rand() % binSize;
+	const int iBin = rand() % binSize;
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
@@ -44,12 +44,24 @@ int main(){
 	histHandler.set_overwrite(0);
 
 	// histogram calculation on GPU
+	const auto startTimeCdf = std::chrono::high_resolution_clock::now();
 	histHandler.calculate_cdf_gpu();
+	const auto stopTimeCdf = std::chrono::high_resolution_clock::now();
+
+	const auto startTimeEq = std::chrono::high_resolution_clock::now();
 	histHandler.equalize_gpu();
+	const auto stopTimeEq = std::chrono::high_resolution_clock::now();
+
+	const auto duractionCdf = std::chrono::duration_cast<std::chrono::milliseconds>
+		(stopTimeCdf - startTimeCdf);
+	const auto durationEq = std::chrono::duration_cast<std::chrono::milliseconds>
+		(stopTimeEq - startTimeEq);
+
+	printf("Time required for CDF: %d ms, EQ: %d ms\n", duractionCdf.count(), durationEq.count());
 	
 	// backup the version of the CDF calculated with
 	float* output_bk = new float[histHandler.get_nElements()];
-	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	for (int iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		output_bk[iElem] = histHandler.get_outputValue(iElem);
 	}
@@ -59,8 +71,8 @@ int main(){
 	histHandler.equalize();
 
 	bool isSame = 1;
-	int64_t countNotSame = 0;
-	for (int64_t iElem = 0; iElem < histHandler.get_nElements(); iElem++)
+	int countNotSame = 0;
+	for (int iElem = 0; iElem < histHandler.get_nElements(); iElem++)
 	{
 		const float deltaVal = abs(output_bk[iElem] - histHandler.get_outputValue(iElem));
 		if (deltaVal > 1e-6)

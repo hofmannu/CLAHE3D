@@ -15,17 +15,17 @@ using namespace std;
 
 int main(){
 
-	const vector3<int64_t> volSize(600, 500, 300);
+	const vector3<int> volSize(600, 500, 300);
 	const float clipLimit = 0.1;
-	const int64_t binSize = 250;
-	const vector3<int64_t> subVolSize(31, 31, 31);
-	const vector3<int64_t> subVolSpacing(20, 20, 20);
+	const int binSize = 250;
+	const vector3<int> subVolSize(31, 31, 31);
+	const vector3<int> subVolSpacing(20, 20, 20);
 	
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.x * volSize.y * volSize.z];
 	float* inputVolBk = new float[volSize.x * volSize.y * volSize.z];
-	for(int64_t iIdx = 0; iIdx < (volSize.x * volSize.y * volSize.z); iIdx ++)
+	for(int iIdx = 0; iIdx < (volSize.x * volSize.y * volSize.z); iIdx ++)
 	{
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		inputVolBk[iIdx] = inputVol[iIdx];
@@ -46,7 +46,7 @@ int main(){
 	histHandler.equalize();
 
 	// check if input volume remained the same
-	for (int64_t iElem = 0; iElem < (volSize.x * volSize.y * volSize.z); iElem++)
+	for (int iElem = 0; iElem < (volSize.x * volSize.y * volSize.z); iElem++)
 	{
 		if (inputVol[iElem] != inputVolBk[iElem])
 		{

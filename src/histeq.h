@@ -10,6 +10,7 @@
 #include <fstream>
 #include <cstdint>
 #include <cmath>
+#include <chrono>
 #include "gridder.h"
 #include "vector3.h"
 
@@ -29,7 +30,7 @@ public gridder
 	private:
 
 		// overwrite behaviour
-		bool flagOverwrite = 1; // should we put output over input matrix?
+		bool flagOverwrite = 0; // should we put output over input matrix?
 		float* dataOutput; // this will be used to store the output if overwrite is disabled
 		bool isDataOutputAlloc = 0;
 
@@ -43,16 +44,16 @@ public gridder
 		float* minValBin; // maximum value occuring in each subvolume [iZ, iX, iY]
 		bool isMaxValBinAlloc = 0;
 
-		int64_t nBins; // number of histogram bins
-		float noiseLevel; // noise level threshold (clipLimit)
+		int nBins = 255; // number of histogram bins
+		float noiseLevel = 0.1; // noise level threshold (clipLimit)
 				
-		float overallMax = 0; // maximum value in entire data matrix
+		// float overallMax = 0; // maximum value in entire data matrix
 
 		// private functions
 		void calculate_sub_cdf(
-			const vector3<int64_t> startVec, 
-			const vector3<int64_t> endVec, 
-			const vector3<int64_t> iBin);
+			const vector3<int> startVec, 
+			const vector3<int> endVec, 
+			const vector3<int> iBin);
 	
 		float* create_ptrOutput(); // returns a pointer to the output memory bit, careful
 
@@ -70,27 +71,31 @@ public gridder
 		void calculate_cdf_gpu();
 		void equalize_gpu();
 #endif
+	
+		float* get_pnoiseLevel() { return &noiseLevel;};
+		bool* get_pflagOverwrite() {return &flagOverwrite;};
+		int* get_pnBins() {return &nBins;};
 
-		float get_icdf(const vector3<int64_t> iSubVol, const float value);
+		float get_icdf(const vector3<int> iSubVol, const float value);
 
 		// return values from cdf array
-		float get_cdf(const int64_t _iBin, 
-			const int64_t iXSub, const int64_t iYSub, const int64_t iZSub) const;
-		float get_cdf(const int64_t iBin, const vector3<int64_t> iSub) const;
-		float get_cdf(const int64_t iBin, const int64_t iSubLin) const;
-		float get_cdf(const int64_t linIdx) const {return cdf[linIdx];};
+		float get_cdf(const int _iBin, 
+			const int iXSub, const int iYSub, const int iZSub) const;
+		float get_cdf(const int iBin, const vector3<int> iSub) const;
+		float get_cdf(const int iBin, const int iSubLin) const;
+		float get_cdf(const int linIdx) const {return cdf[linIdx];};
 		
 		float* get_pcdf() {return cdf;}; // return pointer to cdf
-		int64_t get_ncdf() const {return (nSubVols[0] * nSubVols[1] * nSubVols[2] * nBins);};
+		int get_ncdf() const {return (nSubVols[0] * nSubVols[1] * nSubVols[2] * nBins);};
 
 		float* get_ptrOutput(); // return pointer to output array
-		float get_outputValue(const int64_t iElem) const;
-		float get_outputValue(const int64_t iZ, const int64_t iX, const int64_t iY) const;
-		float get_minValBin(const int64_t zBin, const int64_t xBin, const int64_t yBin);
-		float get_maxValBin(const int64_t zBin, const int64_t xBin, const int64_t yBin);
+		float get_outputValue(const int iElem) const;
+		float get_outputValue(const int iZ, const int iX, const int iY) const;
+		float get_minValBin(const int zBin, const int xBin, const int yBin);
+		float get_maxValBin(const int zBin, const int xBin, const int yBin);
 
 		// set functions
-		void set_nBins(const int64_t _nBins);
+		void set_nBins(const int _nBins);
 		void set_noiseLevel(const float _noiseLevel);
 		void set_data(float* _dataMatrix);
 		void set_overwrite(const bool _flagOverwrite);

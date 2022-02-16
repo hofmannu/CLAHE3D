@@ -9,11 +9,11 @@ load ct.mat
 
 [nz, nx, ny] = size(interpVol); 
 
-subVolSize = uint64([21, 21, 21]);
-spacingSubVols = uint64([5, 5, 5]);
+subVolSize = int32([21, 21, 21]);
+spacingSubVols = int32([5, 5, 5]);
 
-clipLimit = single(1);
-binSize = uint64(255);
+clipLimit = single(0.1);
+binSize = int32(255);
 % vtkwrite('/media/hofmannu/hofmannu/unclahed.vtk', 'structured_points', 'unclahed', saftedVol, 'spacing', Settings.z(2) - Settings.z(1), Settings.dX, Settings.dY, 'BINARY');
 
 % test code

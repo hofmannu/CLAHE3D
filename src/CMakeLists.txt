@@ -61,3 +61,50 @@ if(${USE_CUDA})
 	set_property(TARGET UtestGpuFull PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 endif()
+
+add_library(Nifti nifti.cpp)
+
+
+if(${USE_GUI})
+	add_library(ImGuiFileDialog ImGuiFileDialog.cpp)
+	target_link_libraries(ImGuiFileDialog PUBLIC ImGui)
+
+	# add_library(ImGuiPlot imgui_plot.cpp)
+	add_library(ColorMapper color_mapper.cpp)
+
+	set(OpenGL_GL_PREFERENCE GLVND)
+	cmake_policy(SET CMP0079 NEW)
+
+	add_library(ImGuiImplOpenGL3 imgui_impl_opengl3.cpp)
+	target_link_libraries(ImGuiImplOpenGL3 PUBLIC ImGui OpenGL)
+
+	find_package(SDL2 REQUIRED)
+	add_library(ImGuiImplSdl imgui_impl_sdl.cpp)
+	target_link_libraries(ImGuiImplSdl PUBLIC ImGui SDL2 OpenGL)
+
+	find_package(OpenGL REQUIRED)
+	include_directories(${OPENGL_INCLUDE_DIRS})
+
+	find_package(glfw3 REQUIRED)
+	include_directories(${GLFW3_INCLUDE_DIR})
+	link_libraries(${GLFW_LIBRARY_DIRS})
+
+	add_library(Slicer slicer.cpp)
+
+
+	add_library(Gui gui.cpp)
+	target_link_libraries(Gui PUBLIC
+		ImGuiFileDialog
+		ImGuiImplOpenGL3
+		GLEW
+		ImGuiImplSdl
+		OpenGL::GL
+		${CMAKE_DL_LIBS}
+		Histeq
+		Nifti
+		Slicer
+		ColorMapper
+		)
+	set_property(TARGET Gui PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	
+endif()
