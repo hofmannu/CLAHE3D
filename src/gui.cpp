@@ -137,6 +137,8 @@ void gui::DataLoaderWindow()
 			rawMap.set_maxVal(niiReader.get_max());
 			rawMap.set_minVal(niiReader.get_min());
 			histRawData.calculate(niiReader.get_pdataMatrix(), niiReader.get_nElements());
+			showRaw = 0;
+			isProc = 0;
 
 			isDataLoaded = true;
 		}
