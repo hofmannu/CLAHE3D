@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+
 // const arguments passed to equilization kernel 
 #ifndef EQ_ARGUMENTS_H
 #define EQ_ARGUMENTS_H
@@ -36,127 +37,6 @@ struct neighbour_result
 
 #endif
 
-// returns the indices of the neighbouring subvolumes for a defined position
-__device__ inline neighbour_result get_neighbours_gpu(
-	const int* position,
-	const eq_arguments& inArgs)
-{
-	neighbour_result res;
-	#pragma unroll
-	for (uint8_t iDim = 0; iDim < 3; iDim++)
-	{
-		// let see if we hit the lower limit
-		if (((float) position[iDim]) <=  inArgs.origin[iDim])
-		{
-			res.ratio[iDim] = 0;
-			res.neighbours[iDim * 2] = 0; // left index along current dimension
-			res.neighbours[iDim * 2 + 1] = 0; // right index along current dimension
-		}
-		else if (((float) position[iDim]) >=  inArgs.end[iDim])
-		{
-			res.ratio[iDim] = 0;
-			res.neighbours[iDim * 2] =  inArgs.nSubVols[iDim] - 1; // left index along curr dimension
-		 	res.neighbours[iDim * 2 + 1] =   inArgs.nSubVols[iDim] - 1; // right index along curr dimension
-		} 
-		else // we are actually in between!
-		{
-			const float offsetDistance = (float) position[iDim] - (float) inArgs.origin[iDim];
-			res.neighbours[iDim * 2] = (int) (offsetDistance / inArgs.spacingSubVols[iDim]);
-			res.neighbours[iDim * 2 + 1] = res.neighbours[iDim * 2] + 1;
-			const float leftDistance = offsetDistance - ((float) res.neighbours[iDim * 2]) * 
-				((float) inArgs.spacingSubVols[iDim]);
-			res.ratio[iDim] = leftDistance / ((float) inArgs.spacingSubVols[iDim]);
-		}
-
-	}
-	return res;
-}
-
-// return bin in which current value is positioned
-__device__ inline float get_icdf_gpu(
-	const int iZ, // index of subvolume we request along z
-	const int iX, // index of subvolume we request along x
-	const int iY, // index of subvolume we request along y
-	const float currValue,
-	const eq_arguments& inArgs)
-{
-	// if we are below noise level, directy return 0
-	const int subVolIdx = iZ + inArgs.nSubVols[0] * (iX + inArgs.nSubVols[1] * iY);
-	if (currValue <= inArgs.minValBin[subVolIdx])
-	{
-		return 0.0;
-	}
-	else
-	{
-		// get index describes the 3d index of the subvolume
-		const int subVolOffset = inArgs.nBins * subVolIdx;
-		const float vInterp = (currValue - inArgs.minValBin[subVolIdx]) / 
-			(inArgs.maxValBin[subVolIdx] - inArgs.minValBin[subVolIdx]);
-		
-		// it can happen that the voxel value is higher then the max value detected
-		// in the neighbouring histogram. In this case we crop it to the maximum permittable value
-		const int binOffset = (vInterp > 1.0) ? 
-			(inArgs.nBins - 1 + subVolOffset)
-			: fmaf(vInterp, (float) inArgs.nBins - 1.0, 0.5) + subVolOffset;
-
-		return inArgs.cdf[binOffset];
-	}
-}
-
-
-// kernel function to run equilization
-__global__ void equalize_kernel(
-	float* dataMatrix, // input and output volume
-	const eq_arguments inArgs // constant arguemtns
-	)
-{
-	// get index of currently adjusted voxel
-	const int idxVol[3] = {
-		threadIdx.x + blockIdx.x * blockDim.x,
-		threadIdx.y + blockIdx.y * blockDim.y,
-		threadIdx.z + blockIdx.z * blockDim.z
-	};
-
-	if ( // check if we are within boundaries
-		(idxVol[0] < inArgs.volSize[0]) && 
-		(idxVol[1] < inArgs.volSize[1]) && 
-		(idxVol[2] < inArgs.volSize[2]))
-	{
-		// get current value to convert
-		const int idxVolLin = idxVol[0] + inArgs.volSize[0] * 
-			(idxVol[1] + inArgs.volSize[1] * idxVol[2]);
-		const float currValue = dataMatrix[idxVolLin];
-
-		// get neighbours defined as the subvolume indices at lower and upper end
-		const neighbour_result currRes = get_neighbours_gpu(idxVol, inArgs);
-		
-		// get values from all eight corners
-		const float value[8] = {
-			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[2], currRes.neighbours[4], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[2], currRes.neighbours[5], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[3], currRes.neighbours[4], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[3], currRes.neighbours[5], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[2], currRes.neighbours[4], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[2], currRes.neighbours[5], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[4], currValue, inArgs),
-			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[5], currValue, inArgs)};
-		
-		// trilinear interpolation
-		dataMatrix[idxVolLin] =
-			fmaf(1 - currRes.ratio[0], 
-				fmaf(1 - currRes.ratio[1], 
-					fmaf(value[0], 1 - currRes.ratio[2], value[1] * currRes.ratio[2])
-					, currRes.ratio[1] * fmaf(value[2], 1 - currRes.ratio[2], value[3] * currRes.ratio[2])
-			), 
-			currRes.ratio[0] * 
-				fmaf(1 - currRes.ratio[1],
-					fmaf(value[4], 1 - currRes.ratio[2], value[5] * currRes.ratio[2])
-				, currRes.ratio[1] * fmaf(value[6], 1 - currRes.ratio[2], value[7] * currRes.ratio[2])
-			));
-		}
-	return;
-}
-
 // struct holding arguments used in cdf kernel
 #ifndef CDF_ARGUMENTS_H
 #define CDF_ARGUMENTS_H
@@ -175,8 +55,6 @@ struct cdf_arguments
 
 #endif
 
-__constant__ cdf_arguments inArgsCdf[1];
-
 #ifndef VECTOR3GPU_H
 #define VECTOR3GPU_H
 
@@ -188,6 +66,127 @@ struct vector3gpu
 };
 
 #endif
+
+__constant__ cdf_arguments inArgsCdf[1];
+__constant__ eq_arguments inArgsEq_d[1];
+
+
+// returns the indices of the neighbouring subvolumes for a defined position
+__device__ inline neighbour_result get_neighbours_gpu(const int* position)
+{
+	neighbour_result res;
+	#pragma unroll
+	for (uint8_t iDim = 0; iDim < 3; iDim++)
+	{
+		// let see if we hit the lower limit
+		if (((float) position[iDim]) <=  inArgsEq_d->origin[iDim])
+		{
+			res.ratio[iDim] = 0;
+			res.neighbours[iDim * 2] = 0; // left index along current dimension
+			res.neighbours[iDim * 2 + 1] = 0; // right index along current dimension
+		}
+		else if (((float) position[iDim]) >=  inArgsEq_d->end[iDim])
+		{
+			res.ratio[iDim] = 0;
+			res.neighbours[iDim * 2] =  inArgsEq_d->nSubVols[iDim] - 1; // left index along curr dimension
+		 	res.neighbours[iDim * 2 + 1] =   inArgsEq_d->nSubVols[iDim] - 1; // right index along curr dimension
+		} 
+		else // we are actually in between!
+		{
+			const float offsetDistance = (float) position[iDim] - (float) inArgsEq_d->origin[iDim];
+			res.neighbours[iDim * 2] = (int) (offsetDistance / inArgsEq_d->spacingSubVols[iDim]);
+			res.neighbours[iDim * 2 + 1] = res.neighbours[iDim * 2] + 1;
+			const float leftDistance = offsetDistance - ((float) res.neighbours[iDim * 2]) * 
+				((float) inArgsEq_d->spacingSubVols[iDim]);
+			res.ratio[iDim] = leftDistance / ((float) inArgsEq_d->spacingSubVols[iDim]);
+		}
+
+	}
+	return res;
+}
+
+// return bin in which current value is positioned
+__device__ inline float get_icdf_gpu(
+	const int iZ, // index of subvolume we request along z
+	const int iX, // index of subvolume we request along x
+	const int iY, // index of subvolume we request along y
+	const float currValue)
+{
+	// if we are below noise level, directy return 0
+	const int subVolIdx = iZ + inArgsEq_d->nSubVols[0] * (iX + inArgsEq_d->nSubVols[1] * iY);
+	if (currValue <= inArgsEq_d->minValBin[subVolIdx])
+	{
+		return 0.0;
+	}
+	else
+	{
+		// get index describes the 3d index of the subvolume
+		const int subVolOffset = inArgsEq_d->nBins * subVolIdx;
+		const float vInterp = (currValue - inArgsEq_d->minValBin[subVolIdx]) / 
+			(inArgsEq_d->maxValBin[subVolIdx] - inArgsEq_d->minValBin[subVolIdx]);
+		
+		// it can happen that the voxel value is higher then the max value detected
+		// in the neighbouring histogram. In this case we crop it to the maximum permittable value
+		const int binOffset = (vInterp > 1.0) ? 
+			(inArgsEq_d->nBins - 1 + subVolOffset)
+			: fmaf(vInterp, (float) inArgsEq_d->nBins - 1.0, 0.5) + subVolOffset;
+
+		return inArgsEq_d->cdf[binOffset];
+	}
+}
+
+
+// kernel function to run equilization
+__global__ void equalize_kernel(float* dataMatrix)
+{
+	// get index of currently adjusted voxel
+	const int idxVol[3] = {
+		threadIdx.x + blockIdx.x * blockDim.x,
+		threadIdx.y + blockIdx.y * blockDim.y,
+		threadIdx.z + blockIdx.z * blockDim.z
+	};
+
+	if ( // check if we are within boundaries
+		(idxVol[0] < inArgsEq_d->volSize[0]) && 
+		(idxVol[1] < inArgsEq_d->volSize[1]) && 
+		(idxVol[2] < inArgsEq_d->volSize[2]))
+	{
+		// get current value to convert
+		const int idxVolLin = idxVol[0] + inArgsEq_d->volSize[0] * 
+			(idxVol[1] + inArgsEq_d->volSize[1] * idxVol[2]);
+		const float currValue = dataMatrix[idxVolLin];
+
+		// get neighbours defined as the subvolume indices at lower and upper end
+		const neighbour_result currRes = get_neighbours_gpu(idxVol);
+		
+		// get values from all eight corners
+		const float value[8] = {
+			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[2], currRes.neighbours[4], currValue),
+			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[2], currRes.neighbours[5], currValue),
+			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[3], currRes.neighbours[4], currValue),
+			get_icdf_gpu(currRes.neighbours[0], currRes.neighbours[3], currRes.neighbours[5], currValue),
+			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[2], currRes.neighbours[4], currValue),
+			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[2], currRes.neighbours[5], currValue),
+			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[4], currValue),
+			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[5], currValue)};
+		
+		// trilinear interpolation
+		dataMatrix[idxVolLin] =
+			fmaf(1 - currRes.ratio[0], 
+				fmaf(1 - currRes.ratio[1], 
+					fmaf(value[0], 1 - currRes.ratio[2], value[1] * currRes.ratio[2])
+					, currRes.ratio[1] * fmaf(value[2], 1 - currRes.ratio[2], value[3] * currRes.ratio[2])
+			), 
+			currRes.ratio[0] * 
+				fmaf(1 - currRes.ratio[1],
+					fmaf(value[4], 1 - currRes.ratio[2], value[5] * currRes.ratio[2])
+				, currRes.ratio[1] * fmaf(value[6], 1 - currRes.ratio[2], value[7] * currRes.ratio[2])
+			));
+		}
+	return;
+}
+
+
 
 // returns 3 element vector describing the starting index of our range
 __device__ inline vector3gpu get_startIndex(const vector3gpu iSub)

@@ -69,10 +69,6 @@ void histeq::calculate_cdf_gpu()
 	cErr = cudaMalloc((void**)&cdf_dev, nCdf * sizeof(float));
 	checkCudaErr(cErr, "Could not allocate memory for cdf on GPU");
 
-	// this memory set is much slower then the one in the kernel
-	// cErr = cudaMemset(cdf_dev, 0, nCdf * sizeof(float));
-	// checkCudaErr(cErr, "Could not initialize CDF to zeros");
-
 	cErr = cudaMemcpyToSymbol(inArgsCdf, &inArgs, sizeof(cdf_arguments));
 	checkCudaErr(cErr, "Could not copy symbol to GPU");
 
@@ -373,27 +369,27 @@ void histeq::equalize_gpu()
 	checkCudaErr(cErr, "Could not copy min val array to GPU");
 
 	// prepare structure with all arguments
-	eq_arguments inArgs;
+	eq_arguments inArgsEq_h;
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
-		inArgs.volSize[iDim] = volSize[iDim];
-		inArgs.origin[iDim] = origin[iDim];
-		inArgs.end[iDim] = endIdx[iDim];
-		inArgs.nSubVols[iDim] = nSubVols[iDim];
-		inArgs.spacingSubVols[iDim] = spacingSubVols[iDim];
+		inArgsEq_h.volSize[iDim] = volSize[iDim];
+		inArgsEq_h.origin[iDim] = origin[iDim];
+		inArgsEq_h.end[iDim] = endIdx[iDim];
+		inArgsEq_h.nSubVols[iDim] = nSubVols[iDim];
+		inArgsEq_h.spacingSubVols[iDim] = spacingSubVols[iDim];
 	}
 
-	inArgs.minValBin = minValBin_dev;
-	inArgs.maxValBin = maxValBin_dev;
-	inArgs.cdf = cdf_dev;
-	inArgs.nBins = nBins;
+	inArgsEq_h.minValBin = minValBin_dev;
+	inArgsEq_h.maxValBin = maxValBin_dev;
+	inArgsEq_h.cdf = cdf_dev;
+	inArgsEq_h.nBins = nBins;
 	
+	cErr = cudaMemcpyToSymbol(inArgsEq_d, &inArgsEq_h, sizeof(eq_arguments));
+	checkCudaErr(cErr, "Could not copy symbol to GPU");
+
 	// launch kernel
-	equalize_kernel<<< gridSize, blockSize>>>(
-		dataMatrix_dev, // pointer to cumulative distribution function 
-		inArgs // struct containing all important constant input arguments
-		);
+	equalize_kernel<<< gridSize, blockSize>>>(dataMatrix_dev);
 
 	// wait for GPU calculation to finish before we copy things back
 	cudaDeviceSynchronize();
