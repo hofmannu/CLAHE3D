@@ -4,6 +4,10 @@ gui::gui()
 {
 	histoEq.set_overwrite(0);
 	isDataLoaded = false;
+
+	// prepare colormap for processed
+	procMap.set_minVal(0.0);
+	procMap.set_maxVal(1.0);
 }
 
 // displays a small help marker next to the text
@@ -115,6 +119,7 @@ void gui::MainDisplayCode()
 void gui::DataLoaderWindow()
 {
 	ImGui::Begin("Data loader");
+	ImGui::Columns(2);
 	if (ImGui::Button("Load data"))
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
@@ -137,7 +142,7 @@ void gui::DataLoaderWindow()
 			rawMap.set_maxVal(niiReader.get_max());
 			rawMap.set_minVal(niiReader.get_min());
 			histRawData.calculate(niiReader.get_pdataMatrix(), niiReader.get_nElements());
-			showRaw = 0;
+			showRaw = 1;
 			isProc = 0;
 
 			isDataLoaded = true;
@@ -145,16 +150,29 @@ void gui::DataLoaderWindow()
 		ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
 	}
 
+	// if we loaded data once already we can allow for reloads
+	if (isDataLoaded)
+	{
+		ImGui::NextColumn();
+		if (ImGui::Button("Reload"))
+		{
+			niiReader.read(); // reads the entire input file
+		}
+	}
+
+	ImGui::Columns(1);
 	if (isDataLoaded)
 	{
 		if (ImGui::CollapsingHeader("Dataset information"))
 		{
-			ImGui::Text("File path: %s", niiReader.get_filePath());
-			ImGui::Text("Dimensions: %d x %d x %d", 
-				niiReader.get_dim(0), niiReader.get_dim(1), niiReader.get_dim(2));
-			ImGui::Text("Resolution: %.2f x %.3f %.3f", 
-				niiReader.get_res(0), niiReader.get_res(1), niiReader.get_res(2));
-			ImGui::Text("Data range: %.3f ... %.3f", niiReader.get_min(), niiReader.get_max());
+			ImGui::Columns(2);
+			ImGui::Text("File path"); ImGui::NextColumn(); ImGui::Text("%s", niiReader.get_filePath()); ImGui::NextColumn(); 
+			ImGui::Text("Dimensions"); ImGui::NextColumn(); ImGui::Text("%d x %d x %d", 
+				niiReader.get_dim(0), niiReader.get_dim(1), niiReader.get_dim(2)); ImGui::NextColumn(); 
+			ImGui::Text("Resolution"); ImGui::NextColumn(); ImGui::Text("%.2f x %.3f %.3f", 
+				niiReader.get_res(0), niiReader.get_res(1), niiReader.get_res(2)); ImGui::NextColumn(); 
+			ImGui::Text("Data range"); ImGui::NextColumn(); ImGui::Text("%.3f ... %.3f", niiReader.get_min(), niiReader.get_max());
+			ImGui::Columns(1);
 		}
 
 		if (ImGui::CollapsingHeader("Raw data histogram"))
@@ -223,32 +241,33 @@ void gui::SettingsWindow()
 
 void gui::SlicerWindow()
 {
+
 	if (isDataLoaded)
 	{
 		ImGui::Begin("Slicer");
-		
+	
+		ImGui::Columns(4);	
 		if (ImGui::Button("Flip x"))
 		{
 		 mySlice.flip(0); 
 		}
-		ImGui::SameLine();
+		ImGui::NextColumn();
 
 		if (ImGui::Button("Flip y"))
 		{
 		 mySlice.flip(1); 
 		}
-		ImGui::SameLine();
+		ImGui::NextColumn();
 
 		if (ImGui::Button("Flip z"))
 		{
 		 mySlice.flip(2);
 		}
-		
+		ImGui::NextColumn();
 		
 		bool oldRaw = showRaw;
 		if (isProc)
 		{
-			ImGui::SameLine();
 			ImGui::Checkbox("Show raw", &showRaw);
 		}
 
@@ -261,11 +280,16 @@ void gui::SlicerWindow()
 				mySlice.set_dataMatrix(histoEq.get_ptrOutput());
 		}
 
+		ImGui::Columns(1);
 		vector3<int> slicePos = mySlice.get_slicePoint();
 		vector3<int> sizeArray = mySlice.get_sizeArray();
+		ImGui::Columns(3);
 		ImGui::SliderInt("x", &slicePos.x, 0, sizeArray.x - 1);
+		ImGui::NextColumn();
 		ImGui::SliderInt("y", &slicePos.y, 0, sizeArray.y - 1);
+		ImGui::NextColumn();
 		ImGui::SliderInt("z", &slicePos.z, 0, sizeArray.z - 1);
+		ImGui::Columns(1);
 		mySlice.set_slicePoint(slicePos);
 
 		ImGui::Text("Value at current position (raw): %f", niiReader.get_val(slicePos));
@@ -286,17 +310,20 @@ void gui::SlicerWindow()
 			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX)); ImGui::SameLine(); 
 			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
 			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, heightZ));
+			
 
-			ImGui::SliderFloat("MinVal", 
-				rawMap.get_pminVal(), 
-				niiReader.get_min(), niiReader.get_max(), "%.1f");
-			ImGui::SliderFloat("MaxVal", 
-				rawMap.get_pmaxVal(), niiReader.get_min(), 
-				niiReader.get_max(), "%.1f");
+			ImGui::Columns(2);
+			ImGui::SliderFloat("Min Val Raw", 
+				rawMap.get_pminVal(), niiReader.get_min(), niiReader.get_max(), "%.1f");
+			ImGui::NextColumn();
+			ImGui::SliderFloat("Max Val Raw", 
+				rawMap.get_pmaxVal(), niiReader.get_min(), niiReader.get_max(), "%.1f");
 				
 
-			ImGui::ColorEdit4("Min color", rawMap.get_pminCol(), ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit4("Max color", rawMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
+			ImGui::NextColumn();
+			ImGui::ColorEdit4("Min color Raw", rawMap.get_pminCol(), ImGuiColorEditFlags_Float);
+			ImGui::NextColumn();
+			ImGui::ColorEdit4("Max color Raw", rawMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
 		}
 		else
 		{
@@ -306,12 +333,15 @@ void gui::SlicerWindow()
 			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX));  ImGui::SameLine(); 
 			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
 			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, widthZ)); 
-			ImGui::SliderFloat("MinVal", procMap.get_pminVal(), 0, 1, "%.2f");
-			ImGui::SliderFloat("MaxVal", procMap.get_pmaxVal(), 0, 1, "%.2f");
-				
-
-			ImGui::ColorEdit4("Min color", procMap.get_pminCol(), ImGuiColorEditFlags_Float);
-			ImGui::ColorEdit4("Max color", procMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
+			
+			ImGui::Columns(2);
+			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), 0, 1, "%.2f");
+			ImGui::NextColumn();
+			ImGui::SliderFloat("Max Val Proc", procMap.get_pmaxVal(), 0, 1, "%.2f");
+			ImGui::NextColumn();
+			ImGui::ColorEdit4("Min color Proc", procMap.get_pminCol(), ImGuiColorEditFlags_Float);
+			ImGui::NextColumn();
+			ImGui::ColorEdit4("Max color Proc", procMap.get_pmaxCol(), ImGuiColorEditFlags_Float);
 		}
 		ImGui::End();
 	}
