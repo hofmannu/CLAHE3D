@@ -296,7 +296,7 @@ void gui::SlicerWindow()
 		if (isProc)
 			ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
 
-		int width = 600;
+		int width = 500;
 		int heightX = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(0)); 
 		int heightZ = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(2)); 
 		int widthZ = round(((float) heightX) / niiReader.get_length(0) * niiReader.get_length(2)); 

@@ -38,12 +38,6 @@ int nifti::read()
     throw "OperationFailed";
   }
 
-   if (fp == NULL) 
-  {
-    printf("Error opening data file %s\n", filePath.c_str());
-    exit(1);
-  }
-
   ret = fseek(fp, (long)(hdr.vox_offset), SEEK_SET);
   if (ret != 0) 
   {
@@ -109,11 +103,47 @@ int nifti::read()
       minVal = dataMatrix[i];
   }
   total /= (hdr.dim[1] * hdr.dim[2] * hdr.dim[3]);
-  printf("Mean of volume 1 in %s is %.3f\n", 
-    filePath.c_str(), total);
-
 
   return 0;
+}
+
+void nifti::save(const string _filePath)
+{
+  nifti1_extender pad={0,0,0,0};
+  int ret, i;
+
+  hdr.datatype = DT_FLOAT;
+  
+  FILE *fp = fopen(_filePath.c_str(), "w");
+  if (fp == NULL) 
+  {
+    printf("Error opening header file %s for write\n", filePath.c_str());
+    throw "FileError";
+  }
+
+  ret = fwrite(&hdr, MIN_HEADER_SIZE, 1, fp);
+  if (ret != 1) 
+  {
+    printf("Error writing header file %s\n", filePath.c_str());
+    throw "FileError";
+  }
+
+  ret = fwrite(&pad, 4, 1, fp);
+  if (ret != 1) 
+  {
+    printf("Error writing header file extension pad %s\n", filePath.c_str());
+   throw "FileError";
+  }
+
+  ret = fwrite(dataMatrix, sizeof(float), hdr.dim[1] * hdr.dim[2] * hdr.dim[3] * hdr.dim[4], fp);
+  if (ret != hdr.dim[1] * hdr.dim[2] * hdr.dim[3] * hdr.dim[4]) {
+    printf("Error writing data to %s\n", filePath.c_str());
+    throw "FileError";
+  }
+
+  fclose(fp);
+
+  return;
 }
 
 void nifti::print_header()

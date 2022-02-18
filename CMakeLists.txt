@@ -51,6 +51,11 @@ add_executable(main_exp src/main.cpp)
 target_link_libraries(main_exp PUBLIC Histeq)
 install(TARGETS main_exp DESTINATION bin)
 
+add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
+target_link_libraries(clahe3d_scripted PUBLIC Histeq Nifti) 
+install(TARGETS clahe3d_scripted DESTINATION bin)
+
+
 # gui specific stuff
 if(${USE_GUI})
 	set(OpenGL_GL_PREFERENCE GLVND)
