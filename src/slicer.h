@@ -14,7 +14,7 @@ private:
 	float* planes[3]; // x normal, y normal, z normal
 	bool isPlanesAlloc = 0;
 	bool reqUpdate[3] = {0, 0, 0};
-	bool flipFlag[3] = {0, 0, 0};
+	bool flipFlag[3] = {0, 0, 1};
 
 	void free_planes();
 	void alloc_planes();

@@ -296,20 +296,23 @@ void gui::SlicerWindow()
 		if (isProc)
 			ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
 
-		int width = 500;
-		int heightX = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(0)); 
-		int heightZ = round(((float) width) / niiReader.get_length(1) * niiReader.get_length(2)); 
-		int widthZ = round(((float) heightX) / niiReader.get_length(0) * niiReader.get_length(2)); 
+		const float totalHeight = niiReader.get_length(1) + niiReader.get_length(2);
+		const float totalWidth = niiReader.get_length(0) + niiReader.get_length(1);
+		const float maxSize = 1000;
+		const float scale = maxSize / ((totalWidth > totalHeight) ? totalWidth : totalHeight);
+		const int xLength = round(scale * niiReader.get_length(0));
+		const int yLength = round(scale * niiReader.get_length(1));
+		const int zLength = round(scale * niiReader.get_length(2));
 
 		if (showRaw)
 		{
 			ImImagesc(mySlice.get_plane(0), sizeArray.y, sizeArray.z, &sliceX, rawMap);
-			ImImagesc(mySlice.get_plane(1), sizeArray.z, sizeArray.x, &sliceY, rawMap);
-			ImImagesc(mySlice.get_plane(2), sizeArray.y, sizeArray.x, &sliceZ, rawMap);
+			ImImagesc(mySlice.get_plane(1), sizeArray.x, sizeArray.z, &sliceY, rawMap);
+			ImImagesc(mySlice.get_plane(2), sizeArray.x, sizeArray.y, &sliceZ, rawMap);
 
-			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX)); ImGui::SameLine(); 
-			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
-			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, heightZ));
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine(); 
+			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(yLength, zLength));
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
 			
 
 			ImGui::Columns(2);
@@ -328,11 +331,12 @@ void gui::SlicerWindow()
 		else
 		{
 			ImImagesc(mySlice.get_plane(0),	sizeArray.y, sizeArray.z, &sliceX, procMap);
-			ImImagesc(mySlice.get_plane(1),	sizeArray.z, sizeArray.x, &sliceY, procMap);
-			ImImagesc(mySlice.get_plane(2),	sizeArray.y, sizeArray.x, &sliceZ, procMap);
-			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(width, heightX));  ImGui::SameLine(); 
-			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(widthZ, heightX)); 
-			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(width, widthZ)); 
+			ImImagesc(mySlice.get_plane(1),	sizeArray.x, sizeArray.z, &sliceY, procMap);
+			ImImagesc(mySlice.get_plane(2),	sizeArray.x, sizeArray.y, &sliceZ, procMap);
+			
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine(); 
+			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(yLength, zLength));
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
 			
 			ImGui::Columns(2);
 			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), 0, 1, "%.2f");
