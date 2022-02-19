@@ -70,7 +70,7 @@ void slicer::update_plane(const uint8_t iDim)
 			const int zOffset = slicePoint.z * sizeArray.x * sizeArray.y;
 			for (int iy = 0; iy < sizeArray.y; iy++)
 			{
-				const int yOut = (flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
+				const int yOut = (!flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
 				const int yOffset = iy * sizeArray.x;
 				for (int ix = 0; ix < sizeArray.x; ix++)
 				{

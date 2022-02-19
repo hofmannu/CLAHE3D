@@ -30,8 +30,6 @@ public:
 	void set_sizeArray(const vector3<int> _sizeArray);
 	void set_slicePoint(const vector3<int> _slicePoint);
 	void set_dataMatrix(const float* _dataMatrix);
-
-
 	vector3<int> get_slicePoint() const {return slicePoint;};
 	vector3<int> get_sizeArray() const {return sizeArray;};
 
