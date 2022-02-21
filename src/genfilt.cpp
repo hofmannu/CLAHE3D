@@ -67,7 +67,8 @@ void genfilt::padd()
 void genfilt::conv()
 {	
 	printf("Executing filter\n");
-	printf(" - kernel size: %d x %d x %d\n");
+	printf(" - kernel size: %d x %d x %d\n", 
+		(int) kernelSize.x, (int) kernelSize.y, (int) kernelSize.z);
 
 	padd();
 	alloc_output();

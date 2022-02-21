@@ -16,6 +16,7 @@
 #include "histogram.h"
 #include "imgui_plot.h"
 #include "meanfilt.h"
+#include "gaussfilt.h"
 
 class gui
 {
@@ -26,6 +27,7 @@ private:
 	// image processing parts
 	histeq histoEq;
 	meanfilt meanFilter;
+	gaussfilt gaussFilter;
 
 	nifti niiReader;
 

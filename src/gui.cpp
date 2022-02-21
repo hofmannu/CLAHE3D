@@ -146,6 +146,7 @@ void gui::DataLoaderWindow()
 			
 			// push size over to mean filter
 			meanFilter.set_dataSize(niiReader.get_dim());
+			gaussFilter.set_dataSize(niiReader.get_dim());
 			mySlice.set_sizeArray(niiReader.get_dim());
 
 			mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
@@ -169,6 +170,7 @@ void gui::DataLoaderWindow()
 				sizeof(float) * niiReader.get_nElements());
 
 			meanFilter.set_dataInput(dataProc);
+			gaussFilter.set_dataInput(dataProc);
 			histoEq.set_data(dataProc);
 			
 			isDataLoaded = true;
@@ -188,6 +190,8 @@ void gui::DataLoaderWindow()
 			maxValProc = niiReader.get_max();
 
 		}
+		ImGui::SameLine();
+		HelpMarker("This will reset the dataset to the initial status without any filtering applied.");
 
 		ImGui::NextColumn();
 		if (ImGui::Button("Reload"))
@@ -201,11 +205,14 @@ void gui::DataLoaderWindow()
 				sizeof(float) * niiReader.get_nElements());
 
 			meanFilter.set_dataInput(dataProc);
+			gaussFilter.set_dataInput(dataProc);
 			histoEq.set_data(dataProc);
 
 			minValProc = niiReader.get_min();
 			maxValProc = niiReader.get_max();
 		}
+		ImGui::SameLine();
+		HelpMarker("This will reload the file from the disc.");
 	}
 
 	ImGui::Columns(1);
@@ -286,10 +293,8 @@ void gui::SettingsWindow()
 
 		if (ImGui::CollapsingHeader("Mean filter"))
 		{
-			ImGui::InputInt3("Kernel size", meanFilter.get_pkernelSize());
-			ImGui::Text("Preceived dataset size: %d", meanFilter.get_nData());
-			ImGui::Text("Preceived dataset size: %d, %d, %d", 
-				meanFilter.get_dataDim(0), meanFilter.get_dataDim(1), meanFilter.get_dataDim(2));
+			ImGui::InputInt3("Kernel size", meanFilter.get_pkernelSize());ImGui::SameLine();
+				HelpMarker("Number of neighbouring voxels taking into account during mean filter along x, y, z.");
 			if (ImGui::Button("Run mean filter"))
 			{
 				meanFilter.run();
@@ -298,6 +303,17 @@ void gui::SettingsWindow()
 			}
 		}
 
+		if (ImGui::CollapsingHeader("Gaussian filter"))
+		{
+			ImGui::InputInt3("Kernel size", gaussFilter.get_pkernelSize());
+			ImGui::InputFloat("Sigma", gaussFilter.get_psigma());
+			if (ImGui::Button("Run gaussian filter"))
+			{
+				gaussFilter.run();
+				memcpy(dataProc, gaussFilter.get_pdataOutput(), 
+					sizeof(float) * niiReader.get_nElements());
+			}
+		}
 
 		ImGui::End();
 	}

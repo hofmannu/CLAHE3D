@@ -71,6 +71,8 @@ add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
 add_test(NAME test_vector3 COMMAND UtestVector3)
 add_test(NAME test_genfilt COMMAND UtestGenfilt)
+add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
+add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
 
 # gpu specific unit tests
 if(${USE_CUDA})

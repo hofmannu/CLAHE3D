@@ -41,6 +41,8 @@ public:
 	void set_kernelSize(const vector3<int> _kernelSize);
 
 	int* get_pkernelSize() {return &kernelSize.x;};
+	vector3<int> get_kernelSize() const {return kernelSize;};
+
 	// get functions
 	vector3<int> get_range() const {return range;};
 	vector3<int> get_paddedSize() const {return (dataSize + range * 2);};
