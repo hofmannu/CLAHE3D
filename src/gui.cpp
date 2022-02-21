@@ -2,12 +2,17 @@
 
 gui::gui()
 {
-	histoEq.set_overwrite(0);
+	histoEq.set_overwrite(1);
 	isDataLoaded = false;
+	isDataProcAlloc = false;
 
-	// prepare colormap for processed
-	procMap.set_minVal(0.0);
-	procMap.set_maxVal(1.0);
+	
+}
+
+gui::~gui()
+{
+	if (isDataProcAlloc)
+		delete[] dataProc;
 }
 
 // displays a small help marker next to the text
@@ -107,7 +112,7 @@ void gui::InitWindow(int *argcp, char**argv)
 	return;
 }
 
-
+// main loop running the display code
 void gui::MainDisplayCode()
 {
 	DataLoaderWindow();
@@ -116,10 +121,11 @@ void gui::MainDisplayCode()
 	return;
 }
 
+// window to load datasets from the harddrive
 void gui::DataLoaderWindow()
 {
 	ImGui::Begin("Data loader");
-	ImGui::Columns(2);
+	ImGui::Columns(3);
 	if (ImGui::Button("Load data"))
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
@@ -133,18 +139,38 @@ void gui::DataLoaderWindow()
 			std::string inputFilePath = ImGuiFileDialog::Instance()->GetFilepathName();
 			printf("File path: %s\n", inputFilePath.c_str());
 			niiReader.read(inputFilePath); // reads the entire input file
-			niiReader.print_header();
-			histoEq.set_data(niiReader.get_pdataMatrix());
+			
+			// push size over to histogram eq
 			histoEq.set_volSize(niiReader.get_dim());
 			histoEq.set_noiseLevel(niiReader.get_min());
+			
+			// push size over to mean filter
+			meanFilter.set_dataSize(niiReader.get_dim());
 			mySlice.set_sizeArray(niiReader.get_dim());
+
 			mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
 			rawMap.set_maxVal(niiReader.get_max());
 			rawMap.set_minVal(niiReader.get_min());
-			histRawData.calculate(niiReader.get_pdataMatrix(), niiReader.get_nElements());
+			histRawData.calculate(
+				niiReader.get_pdataMatrix(), 
+				niiReader.get_nElements());
 			showRaw = 1;
-			isProc = 0;
 
+			minValProc = niiReader.get_min();
+			maxValProc = niiReader.get_max();
+
+			// generate copy of data for processing
+
+			if (isDataProcAlloc)
+				delete[] dataProc;
+
+			dataProc = new float[niiReader.get_nElements()];
+			memcpy(dataProc, niiReader.get_pdataMatrix(), 
+				sizeof(float) * niiReader.get_nElements());
+
+			meanFilter.set_dataInput(dataProc);
+			histoEq.set_data(dataProc);
+			
 			isDataLoaded = true;
 		}
 		ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
@@ -154,9 +180,31 @@ void gui::DataLoaderWindow()
 	if (isDataLoaded)
 	{
 		ImGui::NextColumn();
+		if (ImGui::Button("Reset"))
+		{
+			memcpy(dataProc, niiReader.get_pdataMatrix(), 
+				sizeof(float) * niiReader.get_nElements());
+			minValProc = niiReader.get_min();
+			maxValProc = niiReader.get_max();
+
+		}
+
+		ImGui::NextColumn();
 		if (ImGui::Button("Reload"))
 		{
 			niiReader.read(); // reads the entire input file
+			if (isDataProcAlloc)
+				delete[] dataProc;
+
+			dataProc = new float[niiReader.get_nElements()];
+			memcpy(dataProc, niiReader.get_pdataMatrix(), 
+				sizeof(float) * niiReader.get_nElements());
+
+			meanFilter.set_dataInput(dataProc);
+			histoEq.set_data(dataProc);
+
+			minValProc = niiReader.get_min();
+			maxValProc = niiReader.get_max();
 		}
 	}
 
@@ -202,38 +250,54 @@ void gui::SettingsWindow()
 {
 	if (isDataLoaded)
 	{
-		ImGui::Begin("Settings");
+		ImGui::Begin("Processing");
 		// ImGui::Checkbox("Overwrite flag", histoEq.get_pflagOverwrite());
-		ImGui::Checkbox("GPU processing", &flagGpu);
-		ImGui::InputInt3("Subvol spacing", histoEq.get_pspacingSubVols());
-		ImGui::InputInt3("Subvol size", histoEq.get_psizeSubVols());
-		ImGui::InputFloat("Noise level", histoEq.get_pnoiseLevel());
-		ImGui::InputInt("Bin size", histoEq.get_pnBins());
 
-		if (isDataLoaded)
+		if (ImGui::CollapsingHeader("CLAHE3D"))
 		{
+		#if USE_CUDA
+			ImGui::Checkbox("GPU processing", &flagGpu);
+		#endif
+			ImGui::InputInt3("Subvol spacing", histoEq.get_pspacingSubVols());
+			ImGui::InputInt3("Subvol size", histoEq.get_psizeSubVols());
+			ImGui::InputFloat("Noise level", histoEq.get_pnoiseLevel());
+			ImGui::InputInt("Bin size", histoEq.get_pnBins());
+
 			if (ImGui::Button("CLAHE it!"))
 			{
-	#if USE_CUDA
-				if (flagGpu)
-				{
-					histoEq.calculate_cdf_gpu();
-					histoEq.equalize_gpu();
-					isProc = 1; 
-					showRaw = 0;
-				}
-				else
-				{
-	#endif
-					histoEq.calculate_cdf();
-					histoEq.equalize();
-					isProc = 1;	
-					showRaw = 0;
-	#if USE_CUDA
-				}
-	#endif
+		#if USE_CUDA
+					if (flagGpu)
+					{
+						histoEq.calculate_cdf_gpu();
+						histoEq.equalize_gpu();
+					}
+					else
+					{
+		#endif
+						histoEq.calculate_cdf();
+						histoEq.equalize();
+		#if USE_CUDA
+					}
+		#endif
+				minValProc = 0;
+				maxValProc = 1;
 			}
 		}
+
+		if (ImGui::CollapsingHeader("Mean filter"))
+		{
+			ImGui::InputInt3("Kernel size", meanFilter.get_pkernelSize());
+			ImGui::Text("Preceived dataset size: %d", meanFilter.get_nData());
+			ImGui::Text("Preceived dataset size: %d, %d, %d", 
+				meanFilter.get_dataDim(0), meanFilter.get_dataDim(1), meanFilter.get_dataDim(2));
+			if (ImGui::Button("Run mean filter"))
+			{
+				meanFilter.run();
+				memcpy(dataProc, meanFilter.get_pdataOutput(), 
+					sizeof(float) * niiReader.get_nElements());
+			}
+		}
+
 
 		ImGui::End();
 	}
@@ -265,19 +329,16 @@ void gui::SlicerWindow()
 		}
 		ImGui::NextColumn();
 		
+		
 		bool oldRaw = showRaw;
-		if (isProc)
-		{
-			ImGui::Checkbox("Show raw", &showRaw);
-		}
-
+		ImGui::Checkbox("Show raw", &showRaw);
 		// if we switched toggle, lets update data pointer
 		if (oldRaw != showRaw)
 		{
 			if (showRaw)
 				mySlice.set_dataMatrix(niiReader.get_pdataMatrix());
 			else
-				mySlice.set_dataMatrix(histoEq.get_ptrOutput());
+				mySlice.set_dataMatrix(dataProc);
 		}
 
 		ImGui::Columns(1);
@@ -293,8 +354,7 @@ void gui::SlicerWindow()
 		mySlice.set_slicePoint(slicePos);
 
 		ImGui::Text("Value at current position (raw): %f", niiReader.get_val(slicePos));
-		if (isProc)
-			ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
+		// ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
 
 		const float totalHeight = niiReader.get_length(1) + niiReader.get_length(2);
 		const float totalWidth = niiReader.get_length(0) + niiReader.get_length(1);
@@ -339,9 +399,9 @@ void gui::SlicerWindow()
 			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
 			
 			ImGui::Columns(2);
-			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), 0, 1, "%.2f");
+			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), minValProc, maxValProc, "%.2f");
 			ImGui::NextColumn();
-			ImGui::SliderFloat("Max Val Proc", procMap.get_pmaxVal(), 0, 1, "%.2f");
+			ImGui::SliderFloat("Max Val Proc", procMap.get_pmaxVal(), minValProc, maxValProc, "%.2f");
 			ImGui::NextColumn();
 			ImGui::ColorEdit4("Min color Proc", procMap.get_pminCol(), ImGuiColorEditFlags_Float);
 			ImGui::NextColumn();

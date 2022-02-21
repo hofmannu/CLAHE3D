@@ -23,6 +23,11 @@ if (${USE_CUDA})
 	add_library(CudaTools cudaTools.cu)
 endif()
 
+add_library(Genfilt genfilt.cpp)
+
+add_library(Meanfilt meanfilt.cpp)
+target_link_libraries(Meanfilt PUBLIC Genfilt)
+
 # set_property(TARGET CudaTools PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 # set_property(TARGET CudaTools PROPERTY CUDA_ARCHITECTURES 50 75)
 
@@ -40,6 +45,12 @@ add_executable(UtestBinarization utest_binarization.cpp)
 target_link_libraries(UtestBinarization PUBLIC Histeq)
 
 add_executable(UtestVector3 utest_vector3.cpp)
+
+add_executable(UtestGenfilt utest_genfilt.cpp)
+target_link_libraries(UtestGenfilt PUBLIC Genfilt)
+
+add_executable(UtestMeanfilt utest_meanfilt.cpp)
+target_link_libraries(UtestMeanfilt PUBLIC Meanfilt)
 
 # cuda specific test functions
 if(${USE_CUDA})
@@ -108,6 +119,7 @@ if(${USE_GUI})
 		ColorMapper
 		Histogram
 		ImGuiPlot
+		Meanfilt
 		)
 	set_property(TARGET Gui PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 	
