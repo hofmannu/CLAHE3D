@@ -68,7 +68,7 @@ public:
 	vector3 operator * (const T multVal)
 	{
 		vector3 output = {x * multVal,	y * multVal,	z * multVal};
-		return *this;
+		return output;
 	}
 
 	vector3 operator / (const T divVal)

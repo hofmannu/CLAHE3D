@@ -20,12 +20,12 @@ using namespace std;
 // structs and datatzpes
 struct eq_arguments
 {
-	unsigned int volSize[3]; // total size of volume
-	unsigned int origin[3]; // origin of the subvolume grid
-	unsigned int endIdx[3]; // end of the subvolume grid
-	unsigned int nSubVols[3]; // number of subvolumes
-	unsigned int spacingSubVols[3]; // spacing between subvolumes
-	unsigned int nBins; // number of bins we have for the histogram
+	uint64_t volSize[3]; // total size of volume
+	uint64_t origin[3]; // origin of the subvolume grid
+	uint64_t endIdx[3]; // end of the subvolume grid
+	uint64_t nSubVols[3]; // number of subvolumes
+	uint64_t spacingSubVols[3]; // spacing between subvolumes
+	uint64_t nBins; // number of bins we have for the histogram
 	float* minValBin; // minimum value in each bin
 	float* maxValBin; // maximum value in each bin
 	float* cdf; // cummulative distribution function
@@ -33,26 +33,26 @@ struct eq_arguments
 
 struct vector3gpu
 {
-	unsigned int x;
-	unsigned int y;
-	unsigned int z;
+	uint64_t x;
+	uint64_t y;
+	uint64_t z;
 };
 
 struct neighbour_result
 {
-	unsigned int neighbours[6];
+	uint64_t neighbours[6];
 	float ratio[3];
 };
 
 struct cdf_arguments // struct holding constant arguments used in cdf kernel
 {
-	unsigned int spacingSubVols[3]; // distance between subvolumes [z, x, y]
-	unsigned int nSubVols[3]; // number of subvolumes [z, x, y]
-	unsigned int volSize[3]; // overall size of data volume [z, x, y]
-	unsigned int range[3]; // range of each bin in each direction [z, x, y]
-	unsigned int nBins; // number of bins which we use for our histogram
+	uint64_t spacingSubVols[3]; // distance between subvolumes [z, x, y]
+	uint64_t nSubVols[3]; // number of subvolumes [z, x, y]
+	uint64_t volSize[3]; // overall size of data volume [z, x, y]
+	uint64_t range[3]; // range of each bin in each direction [z, x, y]
+	uint64_t nBins; // number of bins which we use for our histogram
 	float noiseLevel; // noise level in matrix
-	unsigned int origin[3];
+	uint64_t origin[3];
 };
 
 // static memory
@@ -60,7 +60,7 @@ __constant__ cdf_arguments inArgsCdf_d[1];
 __constant__ eq_arguments inArgsEq_d[1];
 
 // returns the indices of the neighbouring subvolumes for a defined position
-__device__ inline neighbour_result get_neighbours_gpu(const unsigned int* position)
+__device__ inline neighbour_result get_neighbours_gpu(const uint64_t* position)
 {
 	neighbour_result res;
 	#pragma unroll
@@ -82,7 +82,7 @@ __device__ inline neighbour_result get_neighbours_gpu(const unsigned int* positi
 		else // we are actually in between!
 		{
 			const float offsetDistance = (float) position[iDim] - (float) inArgsEq_d->origin[iDim];
-			res.neighbours[iDim * 2] = (unsigned int) (offsetDistance / inArgsEq_d->spacingSubVols[iDim]);
+			res.neighbours[iDim * 2] = (uint64_t) (offsetDistance / inArgsEq_d->spacingSubVols[iDim]);
 			res.neighbours[iDim * 2 + 1] = res.neighbours[iDim * 2] + 1;
 			const float leftDistance = offsetDistance - ((float) res.neighbours[iDim * 2]) * 
 				((float) inArgsEq_d->spacingSubVols[iDim]);
@@ -95,13 +95,13 @@ __device__ inline neighbour_result get_neighbours_gpu(const unsigned int* positi
 
 // return inverted cumulative distribution function values
 __device__ inline float get_icdf_gpu(
-	const unsigned int iX, // index of subvolume we request along z
-	const unsigned int iY, // index of subvolume we request along x
-	const unsigned int iZ, // index of subvolume we request along y
+	const uint64_t iX, // index of subvolume we request along z
+	const uint64_t iY, // index of subvolume we request along x
+	const uint64_t iZ, // index of subvolume we request along y
 	const float currValue)
 {
 	// if we are below noise level, directy return 0
-	const unsigned int subVolIdx = iX + inArgsEq_d->nSubVols[0] * (iY + inArgsEq_d->nSubVols[1] * iZ);
+	const uint64_t subVolIdx = iX + inArgsEq_d->nSubVols[0] * (iY + inArgsEq_d->nSubVols[1] * iZ);
 	if (currValue <= inArgsEq_d->minValBin[subVolIdx])
 	{
 		return 0.0;
@@ -109,13 +109,13 @@ __device__ inline float get_icdf_gpu(
 	else
 	{
 		// get index describes the 3d index of the subvolume
-		const unsigned int subVolOffset = inArgsEq_d->nBins * subVolIdx;
+		const uint64_t subVolOffset = inArgsEq_d->nBins * subVolIdx;
 		const float vInterp = (currValue - inArgsEq_d->minValBin[subVolIdx]) / 
 			(inArgsEq_d->maxValBin[subVolIdx] - inArgsEq_d->minValBin[subVolIdx]); // should now span 0 to 1 
 		
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
-		const unsigned int binOffset = (vInterp > 1) ? 
+		const uint64_t binOffset = (vInterp > 1) ? 
 			(inArgsEq_d->nBins - 1 + subVolOffset)
 			: (vInterp * ((float) inArgsEq_d->nBins - 1.0) + 0.5) + subVolOffset;
 
@@ -127,7 +127,7 @@ __device__ inline float get_icdf_gpu(
 __global__ void equalize_kernel(float* dataMatrix)
 {
 	// get index of currently adjusted voxel
-	const unsigned int idxVol[3] = {
+	const uint64_t idxVol[3] = {
 		threadIdx.x + blockIdx.x * blockDim.x,
 		threadIdx.y + blockIdx.y * blockDim.y,
 		threadIdx.z + blockIdx.z * blockDim.z
@@ -139,7 +139,7 @@ __global__ void equalize_kernel(float* dataMatrix)
 		(idxVol[2] < inArgsEq_d->volSize[2]))
 	{
 		// get current value to convert
-		const unsigned int idxVolLin = idxVol[0] + inArgsEq_d->volSize[0] * 
+		const uint64_t idxVolLin = idxVol[0] + inArgsEq_d->volSize[0] * 
 			(idxVol[1] + inArgsEq_d->volSize[1] * idxVol[2]);
 		const float currValue = dataMatrix[idxVolLin];
 
@@ -157,7 +157,7 @@ __global__ void equalize_kernel(float* dataMatrix)
 			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[4], currValue),
 			get_icdf_gpu(currRes.neighbours[1], currRes.neighbours[3], currRes.neighbours[5], currValue)};
 		
-		// trilinear unsigned interpolation
+		// trilinear uint64_terpolation
 		dataMatrix[idxVolLin] =
 			fmaf(1 - currRes.ratio[0], 
 				fmaf(1 - currRes.ratio[1], 
@@ -236,7 +236,7 @@ __global__ void cdf_kernel(
 		const vector3gpu stopIdx = get_stopIndex(iSub);
 		
 		// index of currently employed subvolume
-		const unsigned int idxSubVol = iSub.x + inArgsCdf_d->nSubVols[0] * (iSub.y + inArgsCdf_d->nSubVols[1] * iSub.z);
+		const uint64_t idxSubVol = iSub.x + inArgsCdf_d->nSubVols[0] * (iSub.y + inArgsCdf_d->nSubVols[1] * iSub.z);
 		float* localCdf = &cdf[inArgsCdf_d->nBins * idxSubVol]; // histogram of subvolume, only temporarily requried
 		// volume is indexed as iz + ix * nz + iy * nx * nz
 		// cdf is indexed as [iBin, iZSub, iXSub, iYSub]
@@ -248,13 +248,13 @@ __global__ void cdf_kernel(
 			startIdx.x + inArgsCdf_d->volSize[0] * (startIdx.y + inArgsCdf_d->volSize[1] * startIdx.z)];
 		float tempMax = firstVal; // temporary variable to reduce data access
 		float tempMin = firstVal;
-		for (unsigned int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
+		for (uint64_t iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
 		{
-			const unsigned int zOffset = iZ * inArgsCdf_d->volSize[0] * inArgsCdf_d->volSize[1];
-			for(unsigned int iY = startIdx.y; iY <= stopIdx.y; iY++)
+			const uint64_t zOffset = iZ * inArgsCdf_d->volSize[0] * inArgsCdf_d->volSize[1];
+			for(uint64_t iY = startIdx.y; iY <= stopIdx.y; iY++)
 			{
-				const unsigned int yOffset = iY * inArgsCdf_d->volSize[0];
-				for(unsigned int iX = startIdx.x; iX <= stopIdx.x; iX++)
+				const uint64_t yOffset = iY * inArgsCdf_d->volSize[0];
+				for(uint64_t iX = startIdx.x; iX <= stopIdx.x; iX++)
 				{
 					const float currVal = dataMatrix[iX + zOffset + yOffset];
 					
@@ -280,20 +280,20 @@ __global__ void cdf_kernel(
 		const float binRange = (tempMin == tempMax) ? 
 			1 : (tempMax - tempMin) / ((float) inArgsCdf_d->nBins);
 
-		// sort values unsigned into bins which are above clipLimit
-		for (unsigned int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
+		// sort values uint64_to bins which are above clipLimit
+		for (uint64_t iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
 		{
-			const unsigned int zOffset = iZ * inArgsCdf_d->volSize[0] * inArgsCdf_d->volSize[1];
-			for(unsigned int iY = startIdx.y; iY <= stopIdx.y; iY++)
+			const uint64_t zOffset = iZ * inArgsCdf_d->volSize[0] * inArgsCdf_d->volSize[1];
+			for(uint64_t iY = startIdx.y; iY <= stopIdx.y; iY++)
 			{
-				const unsigned int yOffset = iY * inArgsCdf_d->volSize[0];
-				for(unsigned int iX = startIdx.x; iX <= stopIdx.x; iX++)
+				const uint64_t yOffset = iY * inArgsCdf_d->volSize[0];
+				for(uint64_t iX = startIdx.x; iX <= stopIdx.x; iX++)
 				{
 					const float currVal = dataMatrix[iX + yOffset + zOffset]; 
 					// only add to histogram if above clip limit
 					if (currVal >= inArgsCdf_d->noiseLevel)
 					{
-						const unsigned int iBin = (currVal - tempMin) / binRange;
+						const uint64_t iBin = (currVal - tempMin) / binRange;
 
 						// special case for maximum values in subvolume (they gonna end up
 						// one index above)
@@ -313,7 +313,7 @@ __global__ void cdf_kernel(
 		// calculate cummulative sum and scale along y
 		float cdfTemp = 0;
 		const float zeroElem = localCdf[0];
-		for (unsigned int iBin = 0; iBin < inArgsCdf_d->nBins; iBin++)
+		for (uint64_t iBin = 0; iBin < inArgsCdf_d->nBins; iBin++)
 		{
 			cdfTemp += localCdf[iBin];
 			localCdf[iBin] = cdfTemp - zeroElem;
@@ -323,14 +323,14 @@ __global__ void cdf_kernel(
 		const float cdfMax = localCdf[inArgsCdf_d->nBins - 1];
 		if (cdfMax > 0)
 		{
-			for (unsigned int iBin = 1; iBin < inArgsCdf_d->nBins; iBin++)
+			for (uint64_t iBin = 1; iBin < inArgsCdf_d->nBins; iBin++)
 			{
 				localCdf[iBin] /= cdfMax;
 			}
 		}
 		else
 		{
-			for (unsigned int iBin = 1; iBin < inArgsCdf_d->nBins; iBin++)
+			for (uint64_t iBin = 1; iBin < inArgsCdf_d->nBins; iBin++)
 			{
 				localCdf[iBin] = ((float) iBin) / ((float) inArgsCdf_d->nBins - 1);
 			}
@@ -345,19 +345,19 @@ class gridder
 {
 public:
 	// variables
-	unsigned int volSize[3] = {600, 500, 400}; // size of full three dimensional volume [z, x, y]
-	unsigned int nSubVols[3]; // number of subvolumes in zxy
-	unsigned int sizeSubVols[3] = {31, 31, 31}; // size of each subvolume in zxy (should be uneven)
-	unsigned int spacingSubVols[3] = {10, 10, 10}; // spacing of subvolumes (they can overlap)
-	unsigned int origin[3]; // position of the very first element [0, 0, 0]
-	unsigned int endIdx[3]; // terminal value
-	unsigned int nElements; // total number of elements
+	uint64_t volSize[3] = {600, 500, 400}; // size of full three dimensional volume [z, x, y]
+	uint64_t nSubVols[3]; // number of subvolumes in zxy
+	uint64_t sizeSubVols[3] = {31, 31, 31}; // size of each subvolume in zxy (should be uneven)
+	uint64_t spacingSubVols[3] = {10, 10, 10}; // spacing of subvolumes (they can overlap)
+	uint64_t origin[3]; // position of the very first element [0, 0, 0]
+	uint64_t endIdx[3]; // terminal value
+	uint64_t nElements; // total number of elements
 	
 	// get functions
 	void calculate_nsubvols();
-	unsigned int get_nSubVols(const uint8_t iDim) const {return nSubVols[iDim];};
-	unsigned int get_nSubVols() const {return nSubVols[0] * nSubVols[1] * nSubVols[2];};
-	unsigned int get_nElements() const {return volSize[0] * volSize[1] * volSize[2];};
+	uint64_t get_nSubVols(const uint8_t iDim) const {return nSubVols[iDim];};
+	uint64_t get_nSubVols() const {return nSubVols[0] * nSubVols[1] * nSubVols[2];};
+	uint64_t get_nElements() const {return volSize[0] * volSize[1] * volSize[2];};
 };
 
 
@@ -368,7 +368,7 @@ void gridder::calculate_nsubvols()
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
-		const unsigned int lastIdx = volSize[iDim] - 1;
+		const uint64_t lastIdx = volSize[iDim] - 1;
 		origin[iDim] = (sizeSubVols[iDim] - 1) / 2;
 		nSubVols[iDim] = (lastIdx - origin[iDim]) / spacingSubVols[iDim] + 1;
 		endIdx[iDim] = origin[iDim] + (nSubVols[iDim] - 1) * spacingSubVols[iDim];
@@ -400,7 +400,7 @@ class histeq: public cudaTools, public gridder
 {
 	public:
 		float* dataMatrix; // 3d matrix containing input and output volume
-		unsigned int nBins = 20; // number of histogram bins
+		uint64_t nBins = 20; // number of histogram bins
 		float noiseLevel = 0.1; // noise level threshold (clipLimit)
 		void calculate_gpu();
 };
@@ -434,11 +434,11 @@ void histeq::calculate_gpu()
 	inArgsCdf_h.nBins = nBins;
 	inArgsCdf_h.noiseLevel = noiseLevel;
 	
-	float* dataMatrix_dev; // pounsigned inter to data matrix clone on GPU (read only)
+	float* dataMatrix_dev; // pouint64_ter to data matrix clone on GPU (read only)
 	float* cdf_dev; // cumulative distribution function [iBin, izSub, ixSub, iySub]
 	float* maxValBin_dev; // maximum value of current bin [izSub, ixSub, iySub]
 	float* minValBin_dev; // minimum value of current bin [izSub, ixSub, iySub]
-	const unsigned int nCdf = nBins * get_nSubVols();
+	const uint64_t nCdf = nBins * get_nSubVols();
 
 	cudaError_t cErr;
 
@@ -467,7 +467,7 @@ void histeq::calculate_gpu()
 
 	// here we start the execution of the first kernel (dist function)
 	cdf_kernel<<< gridSize, blockSize>>>(
-		cdf_dev, // pounsigned inter to cumulative distribution function 
+		cdf_dev, // pouint64_ter to cumulative distribution function 
 		maxValBin_dev, 
 		minValBin_dev, 
 		dataMatrix_dev
@@ -530,7 +530,7 @@ int main()
 
 	// fill matrix with random values
 	histHandler.dataMatrix = new float[histHandler.get_nElements()];
-	for(unsigned int iIdx = 0; iIdx < histHandler.get_nElements(); iIdx++)
+	for(uint64_t iIdx = 0; iIdx < histHandler.get_nElements(); iIdx++)
 		histHandler.dataMatrix[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 
 	// run calculation
