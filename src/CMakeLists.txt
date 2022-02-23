@@ -23,6 +23,14 @@ if (${USE_CUDA})
 	add_library(CudaTools cudaTools.cu)
 endif()
 
+add_library(Genfilt genfilt.cpp)
+
+add_library(Meanfilt meanfilt.cpp)
+target_link_libraries(Meanfilt PUBLIC Genfilt)
+
+add_library(Gaussfilt gaussfilt.cpp)
+target_link_libraries(Gaussfilt PUBLIC Genfilt)
+
 # set_property(TARGET CudaTools PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 # set_property(TARGET CudaTools PROPERTY CUDA_ARCHITECTURES 50 75)
 
@@ -40,6 +48,15 @@ add_executable(UtestBinarization utest_binarization.cpp)
 target_link_libraries(UtestBinarization PUBLIC Histeq)
 
 add_executable(UtestVector3 utest_vector3.cpp)
+
+add_executable(UtestGenfilt utest_genfilt.cpp)
+target_link_libraries(UtestGenfilt PUBLIC Genfilt)
+
+add_executable(UtestMeanfilt utest_meanfilt.cpp)
+target_link_libraries(UtestMeanfilt PUBLIC Meanfilt)
+
+add_executable(UtestGaussfilt utest_gaussfilt.cpp)
+target_link_libraries(UtestGaussfilt PUBLIC Gaussfilt)
 
 # cuda specific test functions
 if(${USE_CUDA})
@@ -63,9 +80,7 @@ if(${USE_CUDA})
 endif()
 
 add_library(Nifti nifti.cpp)
-
 add_library(Histogram histogram.cpp)
-
 
 if(${USE_GUI})
 	add_library(ImGuiFileDialog ImGuiFileDialog.cpp)
@@ -108,6 +123,8 @@ if(${USE_GUI})
 		ColorMapper
 		Histogram
 		ImGuiPlot
+		Meanfilt
+		Gaussfilt
 		)
 	set_property(TARGET Gui PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 	

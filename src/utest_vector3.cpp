@@ -106,6 +106,15 @@ int main()
 		throw "InvalidResult";
 	}
 
+	vector3<int> startVal = {5, 6, 7};
+	vector3<int> outVal = startVal % 3;
+	vector3<int> expectedRes = {2, 0, 1};
+	if (outVal != expectedRes)
+	{
+		printf("Modulo operator seems invalid\n");
+		throw "InvalidResult";
+	}
+
 	printf("vector3 test executed successfully\n");
 
 	return 0;

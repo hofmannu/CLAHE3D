@@ -18,6 +18,7 @@ private:
   string filePath;
   float* dataMatrix;
   bool isDataMatrixAlloc = 0;
+
   void alloc_mem();
   float minVal = 0;
   float maxVal = 0;
@@ -26,8 +27,13 @@ public:
 	~nifti();
 	int read();
 	int read(const string _filePath);
+
+	void save(const string _filePath);
+
 	void print_header();
 
+	nifti_1_header get_header() const {return hdr;};
+	void set_header(const nifti_1_header _hdr) {hdr = _hdr; return;};
 
 	// get functions to quickly access properties
 	int get_nElements() const {return hdr.dim[1] * hdr.dim[2] * hdr.dim[3];};
@@ -38,6 +44,7 @@ public:
 	
 	float* get_pdataMatrix() {return dataMatrix;};
 	float* get_pdataMatrix(const int index) {return &dataMatrix[index];};
+	void set_dataMatrix(float* _dataMatrix) {dataMatrix = _dataMatrix; return;};
 
 	float get_min() const {return minVal;};
 	float get_max() const {return maxVal;};
@@ -45,6 +52,8 @@ public:
 	float get_val(const vector3<int> pos) const;
 
 	float get_length(const uint8_t iDim) const {return ((float) hdr.dim[iDim+1] ) * hdr.pixdim[iDim+1];};
+
+	void set_dataMatrix(const int index, const float value) {dataMatrix[index] = value; return;} 
 };
 
 #endif

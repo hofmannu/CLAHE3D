@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(USE_CUDA TRUE) # flag to enable and disable GPU support
+set(USE_CUDA FALSE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
@@ -51,6 +51,11 @@ add_executable(main_exp src/main.cpp)
 target_link_libraries(main_exp PUBLIC Histeq)
 install(TARGETS main_exp DESTINATION bin)
 
+add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
+target_link_libraries(clahe3d_scripted PUBLIC Histeq Nifti) 
+install(TARGETS clahe3d_scripted DESTINATION bin)
+
+
 # gui specific stuff
 if(${USE_GUI})
 	set(OpenGL_GL_PREFERENCE GLVND)
@@ -65,6 +70,9 @@ add_test(NAME test_overwrite COMMAND UtestOverwrite)
 add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
 add_test(NAME test_vector3 COMMAND UtestVector3)
+add_test(NAME test_genfilt COMMAND UtestGenfilt)
+add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
+add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
 
 # gpu specific unit tests
 if(${USE_CUDA})

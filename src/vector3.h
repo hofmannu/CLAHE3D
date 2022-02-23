@@ -122,6 +122,12 @@ public:
 		return output;
 	}
 
+	vector3 operator % (const T div)
+	{
+		vector3 output = {this->x % div, this->y % div, this->z % div};
+		return output;
+	}
+
 	// returns true if any element has that value
 	bool any(const T compValue) const
 	{

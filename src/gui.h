@@ -15,6 +15,8 @@
 #include "color_mapper.h"
 #include "histogram.h"
 #include "imgui_plot.h"
+#include "meanfilt.h"
+#include "gaussfilt.h"
 
 class gui
 {
@@ -22,7 +24,11 @@ private:
 	const char* windowTitle = "CLAHE3d";
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 0.10f); // bg color
 	
+	// image processing parts
 	histeq histoEq;
+	meanfilt meanFilter;
+	gaussfilt gaussFilter;
+
 	nifti niiReader;
 
 	void MainDisplayCode(); // iterates over the main display boxes 
@@ -31,7 +37,6 @@ private:
 	void SlicerWindow();
 
 	bool isDataLoaded = 0;
-	bool isProc = 0;
 	bool showRaw = 1;
 	bool flagGpu = 1; // should we process on the GPU
 
@@ -54,8 +59,13 @@ private:
 
 	histogram histRawData;
 
+	float* dataProc; // holds a full copy of the input data which we overwrite during processing
+	bool isDataProcAlloc = 0;
+	float minValProc; float maxValProc;
+
 public:
 	gui();
+	~gui();
 	void InitWindow(int *argcp, char**argv);
 };
 
