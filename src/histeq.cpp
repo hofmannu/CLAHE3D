@@ -194,7 +194,7 @@ void histeq::calculate_sub_cdf(
 
 	// reset bins to zero before summing them up
 	for (int iBin = 0; iBin < nBins; iBin++)
-		localCdf[iBin] = 0;
+		localCdf[iBin] = 0.0f;
 
 	// calculate local maximum and minimum
 	const float firstVal = dataMatrix[
@@ -230,7 +230,7 @@ void histeq::calculate_sub_cdf(
 
 
 	// calculate size of each bin
-	const float binRange = (tempMin == tempMax) ? 1 : (tempMax - tempMin) / ((float) nBins);
+	const float binRange = (tempMin == tempMax) ? 1.0f : (tempMax - tempMin) / ((float) nBins);
 
 	// sort values into bins which are above clipLimit
 	for (int iZ = startVec.z; iZ <= endVec.z; iZ++)
@@ -251,11 +251,11 @@ void histeq::calculate_sub_cdf(
 
 					if (iBin >= nBins)
 					{
-						localCdf[nBins - 1] += 1;
+						localCdf[nBins - 1] += 1.0f;
 					}
 					else
 					{
-						localCdf[iBin] += 1;
+						localCdf[iBin] += 1.0f;
 					}
 				}
 			}
@@ -263,7 +263,7 @@ void histeq::calculate_sub_cdf(
 	}
 
 	// calculate cummulative sum and scale along y
-	float cdfTemp = 0;
+	float cdfTemp = 0.0f;
 	const float zeroElem = localCdf[0];
 	for (int iBin = 0; iBin < nBins; iBin++)
 	{
@@ -309,9 +309,9 @@ float histeq::get_icdf(const vector3<int> iSubVol, const float currValue) // val
 		
 		// it can happen that the voxel value is higher then the max value detected
 		// in the next volume. In this case we crop it to the maximum permittable value
-		const int binOffset = (vInterp > 1.0) ? 
+		const int binOffset = (vInterp > 1.0f) ? 
 			(nBins - 1 + subVolOffset)
-			: fmaf(vInterp, (float) nBins - 1.0, 0.5) + subVolOffset;
+			: fmaf(vInterp, (float) nBins - 1.0f, 0.5f) + subVolOffset;
 
 
 		return cdf[binOffset];
@@ -419,7 +419,7 @@ inline float get_interpVal(
 	const float valRight,
 	const float ratio)
 {
-	const float interpVal = valLeft * (1 - ratio) + valRight * ratio;
+	const float interpVal = valLeft * (1.0f - ratio) + valRight * ratio;
 	return interpVal;
 } 
 
@@ -475,20 +475,20 @@ void histeq::equalize()
 
 				// trilinear interpolation
 				ptrOutput[idxVolLin] =
-					(1 - ratio[0]) * (
-						(1 - ratio[1]) * (
-							value[0] * (1 - ratio[2]) +
+					(1.0f - ratio[0]) * (
+						(1.0f - ratio[1]) * (
+							value[0] * (1.0f - ratio[2]) +
 							value[1] * ratio[2]
 						) + ratio[1] * (
 							value[2] * (1 - ratio[2]) +
 							value[3] * ratio[2] 
 						)
 					) + ratio[0] * (
-						(1 - ratio[1]) * (
-							value[4] * (1 - ratio[2]) +
+						(1.0f - ratio[1]) * (
+							value[4] * (1.0f - ratio[2]) +
 							value[5] * ratio[2]
 						) + ratio[1] * (
-							value[6] * (1 - ratio[2]) +
+							value[6] * (1.0f - ratio[2]) +
 							value[7] * ratio[2]
 						)
 					);

@@ -1,5 +1,7 @@
 #include "vector3.h"
 #include <iostream>
+#include <cmath>
+#include <chrono>
 
 using namespace std;
 
@@ -11,6 +13,7 @@ class genfilt
 private:
 	vector3<int> dataSize;
 	vector3<int> kernelSize;
+	// vector3<int> kernelSizeArray;
 	vector3<int> paddedSize;
 	vector3<int> range;
 	float* dataInput;
@@ -23,6 +26,7 @@ private:
 	bool isDataOutputAlloc = 0;
 
 	float* kernel;
+	float tExec; // execution time in ms
 
 public:
 	~genfilt();
@@ -32,7 +36,9 @@ public:
 	void alloc_padded();
 	void padd();
 	void conv();
+#if USE_CUDA
 	void conv_gpu();
+#endif
 
 	// set functions
 	void set_dataInput(float* _dataInput);
@@ -50,6 +56,8 @@ public:
 	int get_nData() const {return dataSize.elementMult();};
 	int get_nPadded() const {return paddedSize.elementMult();};
 	float* get_pdataOutput() {return dataOutput;};
+
+	float get_tExec() const {return tExec;};
 
 	int get_dataDim(const uint8_t iDim) const {return dataSize[iDim];};
 };

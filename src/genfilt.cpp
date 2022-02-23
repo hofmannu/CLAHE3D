@@ -66,12 +66,9 @@ void genfilt::padd()
 
 void genfilt::conv()
 {	
-	printf("Executing filter\n");
-	printf(" - kernel size: %d x %d x %d\n", 
-		(int) kernelSize.x, (int) kernelSize.y, (int) kernelSize.z);
-
 	padd();
 	alloc_output();
+	const auto tStart = std::chrono::high_resolution_clock::now();
 	for (int iz = 0; iz < dataSize.z; iz++)
 	{
 		for (int iy = 0; iy < dataSize.y; iy++)
@@ -80,25 +77,26 @@ void genfilt::conv()
 			{
 				// for each output element we do the sum with the local kernel
 				float tempVal = 0;
-				for (int zrel = -range.z; zrel <= range.z; zrel++)
+				for (int zrel = 0; zrel < kernelSize.z; zrel++)
 				{
-					for (int yrel = -range.y; yrel <= range.y; yrel++)
+					for (int yrel = 0; yrel < kernelSize.y; yrel++)
 					{
-						for (int xrel = -range.x; xrel <= range.x; xrel++)
+						for (int xrel = 0; xrel < kernelSize.x; xrel++)
 						{
 							// get current index in padding
 							const int xAbs = ix + xrel;
 							const int yAbs = iy + yrel;
 							const int zAbs = iz + zrel;
-							const int idxPadd = xAbs + paddedSize.x * (yAbs + paddedSize.y * zAbs);
 
-							// get current index in kernel
-							const int xKernel = xrel + range.x;
-							const int yKernel = yrel + range.y;
-							const int zKernel = zrel + range.z;
-							const int idxKernel = xKernel + kernelSize.x * (yKernel + kernelSize.y * zKernel);
+							// index in padded volume
+							const int idxPadd = xAbs + 
+								paddedSize.x * (yAbs + paddedSize.y * zAbs);
 
-							tempVal += (dataPadded[idxPadd] * kernel[idxKernel]);
+							const int idxKernel = xrel + 
+								kernelSize.x * (yrel + kernelSize.y * zrel);
+
+							tempVal = fmaf(
+								dataPadded[idxPadd], kernel[idxKernel], tempVal);
 						}
 					}
 				}
@@ -107,14 +105,20 @@ void genfilt::conv()
 			}
 		}
 	}
+	const auto tStop = std::chrono::high_resolution_clock::now();
+	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
+	tExec = tDuration.count();
 	return;
 }
 
+
+#if USE_CUDA
 void genfilt::conv_gpu()
 {
 
 	return;
 }
+#endif
 
 // set functions
 void genfilt::set_dataInput(float* _dataInput)

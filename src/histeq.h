@@ -45,7 +45,7 @@ public gridder
 		bool isMaxValBinAlloc = 0;
 
 		int nBins = 255; // number of histogram bins
-		float noiseLevel = 0.1; // noise level threshold (clipLimit)
+		float noiseLevel = 0.1f; // noise level threshold (clipLimit)
 				
 		// float overallMax = 0; // maximum value in entire data matrix
 

@@ -79,15 +79,15 @@ __device__ inline neighbour_result get_neighbours_gpu(const int* position)
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		// let see if we hit the lower limit
-		if (((float) position[iDim]) <=  inArgsEq_d->origin[iDim])
+		if (position[iDim] <=  inArgsEq_d->origin[iDim])
 		{
-			res.ratio[iDim] = 0;
+			res.ratio[iDim] = 0.0f;
 			res.neighbours[iDim * 2] = 0; // left index along current dimension
 			res.neighbours[iDim * 2 + 1] = 0; // right index along current dimension
 		}
 		else if (((float) position[iDim]) >=  inArgsEq_d->end[iDim])
 		{
-			res.ratio[iDim] = 0;
+			res.ratio[iDim] = 0.0f;
 			res.neighbours[iDim * 2] =  inArgsEq_d->nSubVols[iDim] - 1; // left index along curr dimension
 		 	res.neighbours[iDim * 2 + 1] =   inArgsEq_d->nSubVols[iDim] - 1; // right index along curr dimension
 		} 
@@ -129,7 +129,7 @@ __device__ inline float get_icdf_gpu(
 		// in the neighbouring histogram. In this case we crop it to the maximum permittable value
 		const int binOffset = (vInterp > 1.0) ? 
 			(inArgsEq_d->nBins - 1 + subVolOffset)
-			: fmaf(vInterp, (float) inArgsEq_d->nBins - 1.0, 0.5) + subVolOffset;
+			: fmaf(vInterp, (float) inArgsEq_d->nBins - 1.0f, 0.5f) + subVolOffset;
 
 		return inArgsEq_d->cdf[binOffset];
 	}
@@ -172,15 +172,15 @@ __global__ void equalize_kernel(float* dataMatrix)
 		
 		// trilinear interpolation
 		dataMatrix[idxVolLin] =
-			fmaf(1 - currRes.ratio[0], 
-				fmaf(1 - currRes.ratio[1], 
-					fmaf(value[0], 1 - currRes.ratio[2], value[1] * currRes.ratio[2])
-					, currRes.ratio[1] * fmaf(value[2], 1 - currRes.ratio[2], value[3] * currRes.ratio[2])
+			fmaf(1.0f - currRes.ratio[0], 
+				fmaf(1.0f - currRes.ratio[1], 
+					fmaf(value[0], 1.0f - currRes.ratio[2], value[1] * currRes.ratio[2])
+					, currRes.ratio[1] * fmaf(value[2], 1.0f - currRes.ratio[2], value[3] * currRes.ratio[2])
 			), 
 			currRes.ratio[0] * 
-				fmaf(1 - currRes.ratio[1],
-					fmaf(value[4], 1 - currRes.ratio[2], value[5] * currRes.ratio[2])
-				, currRes.ratio[1] * fmaf(value[6], 1 - currRes.ratio[2], value[7] * currRes.ratio[2])
+				fmaf(1.0f - currRes.ratio[1],
+					fmaf(value[4], 1.0f - currRes.ratio[2], value[5] * currRes.ratio[2])
+				, currRes.ratio[1] * fmaf(value[6], 1.0f - currRes.ratio[2], value[7] * currRes.ratio[2])
 			));
 		}
 	return;
@@ -293,7 +293,7 @@ __global__ void cdf_kernel(
 
 		// calculate size of each bin
 		const float binRange = (tempMin == tempMax) ? 
-			1 : (tempMax - tempMin) / ((float) inArgsCdf->nBins);
+			1.0f : (tempMax - tempMin) / ((float) inArgsCdf->nBins);
 
 		// sort values into bins which are above clipLimit
 		for (int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
@@ -314,11 +314,11 @@ __global__ void cdf_kernel(
 						// one index above)
 						if (iBin >= inArgsCdf->nBins)
 						{
-							localCdf[inArgsCdf->nBins - 1] += 1;
+							localCdf[inArgsCdf->nBins - 1] += 1.0f;
 						}
 						else
 						{
-							localCdf[iBin] += 1;
+							localCdf[iBin] += 1.0f;
 						}
 					}
 				}
@@ -326,7 +326,7 @@ __global__ void cdf_kernel(
 		}
 
 		// calculate cummulative sum and scale along y
-		float cdfTemp = 0;
+		float cdfTemp = 1.0f;
 		const float zeroElem = localCdf[0];
 		for (int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 		{
@@ -336,18 +336,20 @@ __global__ void cdf_kernel(
 
 		// now we scale cdf to max == 1 (first value is 0 anyway)
 		const float cdfMax = localCdf[inArgsCdf->nBins - 1];
-		if (cdfMax > 0)
+		const float rcdfMax = 1.0f / cdfMax;
+		const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1.0));
+		if (cdfMax > 0.0f)
 		{
 			for (int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
 			{
-				localCdf[iBin] /= cdfMax;
+				localCdf[iBin] *= rcdfMax;
 			}
 		}
 		else
 		{
 			for (int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
 			{
-				localCdf[iBin] = ((float) iBin) / ((float) inArgsCdf->nBins - 1);
+				localCdf[iBin] = ((float) iBin) * revMaxBin;
 			}
 		}
 	}
