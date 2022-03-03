@@ -12,15 +12,15 @@
 
 struct eq_arguments
 {
-	int volSize[3]; // total size of volume
+	unsigned int volSize[3]; // total size of volume
 	float origin[3]; // origin of the subvolume grid
 	float end[3]; // end of the subvolume grid
-	int nSubVols[3]; // number of subvolumes
-	int spacingSubVols[3]; // spacing between subvolumes
+	unsigned int nSubVols[3]; // number of subvolumes
+	unsigned int spacingSubVols[3]; // spacing between subvolumes
 	float* minValBin; // minimum value in each bib
 	float* maxValBin; // maximum value in each bin
 	float* cdf; // cummulative distribution function
-	int nBins; // number of bins we have for the histogram
+	unsigned int nBins; // number of bins we have for the histogram
 };
 
 #endif
@@ -43,13 +43,13 @@ struct neighbour_result
 
 struct cdf_arguments
 {
-	int spacingSubVols[3]; // distance between subvolumes [z, x, y]
-	int nSubVols[3]; // number of subvolumes [z, x, y]
-	int volSize[3]; // overall size of data volume [z, x, y]
-	int sizeSubVols[3]; // overall size of subvolume [z, x, y]
-	int range[3]; // range of each bin in each direction [z, x, y]
+	unsigned int spacingSubVols[3]; // distance between subvolumes [z, x, y]
+	unsigned int nSubVols[3]; // number of subvolumes [z, x, y]
+	unsigned int volSize[3]; // overall size of data volume [z, x, y]
+	unsigned int sizeSubVols[3]; // overall size of subvolume [z, x, y]
+	unsigned int range[3]; // range of each bin in each direction [z, x, y]
 	int nBins; // number of bins which we use for our histogram
-	float noiseLevel; // noise level in matrix
+	unsigned int noiseLevel; // noise level in matrix
 	float origin[3];
 };
 
@@ -60,9 +60,9 @@ struct cdf_arguments
 
 struct vector3gpu
 {
-	int x;
-	int y;
-	int z;
+	unsigned int x;
+	unsigned int y;
+	unsigned int z;
 };
 
 #endif
@@ -72,7 +72,7 @@ __constant__ eq_arguments inArgsEq_d[1];
 
 
 // returns the indices of the neighbouring subvolumes for a defined position
-__device__ inline neighbour_result get_neighbours_gpu(const int* position)
+__device__ inline neighbour_result get_neighbours_gpu(const unsigned int* position)
 {
 	neighbour_result res;
 	#pragma unroll
@@ -85,7 +85,7 @@ __device__ inline neighbour_result get_neighbours_gpu(const int* position)
 			res.neighbours[iDim * 2] = 0; // left index along current dimension
 			res.neighbours[iDim * 2 + 1] = 0; // right index along current dimension
 		}
-		else if (((float) position[iDim]) >=  inArgsEq_d->end[iDim])
+		else if (position[iDim] >=  inArgsEq_d->end[iDim])
 		{
 			res.ratio[iDim] = 0.0f;
 			res.neighbours[iDim * 2] =  inArgsEq_d->nSubVols[iDim] - 1; // left index along curr dimension
@@ -107,13 +107,13 @@ __device__ inline neighbour_result get_neighbours_gpu(const int* position)
 
 // return bin in which current value is positioned
 __device__ inline float get_icdf_gpu(
-	const int iZ, // index of subvolume we request along z
-	const int iX, // index of subvolume we request along x
-	const int iY, // index of subvolume we request along y
+	const unsigned int iZ, // index of subvolume we request along z
+	const unsigned int iX, // index of subvolume we request along x
+	const unsigned int iY, // index of subvolume we request along y
 	const float currValue)
 {
 	// if we are below noise level, directy return 0
-	const int subVolIdx = iZ + inArgsEq_d->nSubVols[0] * (iX + inArgsEq_d->nSubVols[1] * iY);
+	const unsigned int subVolIdx = iZ + inArgsEq_d->nSubVols[0] * (iX + inArgsEq_d->nSubVols[1] * iY);
 	if (currValue <= inArgsEq_d->minValBin[subVolIdx])
 	{
 		return 0.0;
@@ -121,13 +121,13 @@ __device__ inline float get_icdf_gpu(
 	else
 	{
 		// get index describes the 3d index of the subvolume
-		const int subVolOffset = inArgsEq_d->nBins * subVolIdx;
+		const unsigned int subVolOffset = inArgsEq_d->nBins * subVolIdx;
 		const float vInterp = (currValue - inArgsEq_d->minValBin[subVolIdx]) / 
 			(inArgsEq_d->maxValBin[subVolIdx] - inArgsEq_d->minValBin[subVolIdx]);
 		
 		// it can happen that the voxel value is higher then the max value detected
 		// in the neighbouring histogram. In this case we crop it to the maximum permittable value
-		const int binOffset = (vInterp > 1.0) ? 
+		const unsigned int binOffset = (vInterp > 1.0f) ? 
 			(inArgsEq_d->nBins - 1 + subVolOffset)
 			: fmaf(vInterp, (float) inArgsEq_d->nBins - 1.0f, 0.5f) + subVolOffset;
 
@@ -140,7 +140,7 @@ __device__ inline float get_icdf_gpu(
 __global__ void equalize_kernel(float* dataMatrix)
 {
 	// get index of currently adjusted voxel
-	const int idxVol[3] = {
+	const unsigned int idxVol[3] = {
 		threadIdx.x + blockIdx.x * blockDim.x,
 		threadIdx.y + blockIdx.y * blockDim.y,
 		threadIdx.z + blockIdx.z * blockDim.z
@@ -152,7 +152,7 @@ __global__ void equalize_kernel(float* dataMatrix)
 		(idxVol[2] < inArgsEq_d->volSize[2]))
 	{
 		// get current value to convert
-		const int idxVolLin = idxVol[0] + inArgsEq_d->volSize[0] * 
+		const unsigned int idxVolLin = idxVol[0] + inArgsEq_d->volSize[0] * 
 			(idxVol[1] + inArgsEq_d->volSize[1] * idxVol[2]);
 		const float currValue = dataMatrix[idxVolLin];
 
@@ -250,7 +250,7 @@ __global__ void cdf_kernel(
 		const vector3gpu stopIdx = get_stopIndex(iSub);
 		
 		// index of currently employed subvolume
-		const int idxSubVol = iSub.x + inArgsCdf->nSubVols[0] * (iSub.y + inArgsCdf->nSubVols[1] * iSub.z);
+		const unsigned int idxSubVol = iSub.x + inArgsCdf->nSubVols[0] * (iSub.y + inArgsCdf->nSubVols[1] * iSub.z);
 		float* localCdf = &cdf[inArgsCdf->nBins * idxSubVol]; // histogram of subvolume, only temporarily requried
 		// volume is indexed as iz + ix * nz + iy * nx * nz
 		// cdf is indexed as [iBin, iZSub, iXSub, iYSub]
@@ -263,13 +263,13 @@ __global__ void cdf_kernel(
 			startIdx.x + inArgsCdf->volSize[0] * (startIdx.y + inArgsCdf->volSize[1] * startIdx.z)];
 		float tempMax = firstVal; // temporary variable to reduce data access
 		float tempMin = firstVal;
-		for (int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
+		for (unsigned int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
 		{
-			const int zOffset = iZ * inArgsCdf->volSize[0] * inArgsCdf->volSize[1];
-			for(int iY = startIdx.y; iY <= stopIdx.y; iY++)
+			const unsigned int zOffset = iZ * inArgsCdf->volSize[0] * inArgsCdf->volSize[1];
+			for(unsigned int iY = startIdx.y; iY <= stopIdx.y; iY++)
 			{
-				const int yOffset = iY * inArgsCdf->volSize[0];
-				for(int iX = startIdx.x; iX <= stopIdx.x; iX++)
+				const unsigned int yOffset = iY * inArgsCdf->volSize[0];
+				for(unsigned int iX = startIdx.x; iX <= stopIdx.x; iX++)
 				{
 					const float currVal = dataMatrix[iX + zOffset + yOffset];
 					
@@ -296,19 +296,19 @@ __global__ void cdf_kernel(
 			1.0f : (tempMax - tempMin) / ((float) inArgsCdf->nBins);
 
 		// sort values into bins which are above clipLimit
-		for (int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
+		for (unsigned int iZ = startIdx.z; iZ <= stopIdx.z; iZ++)
 		{
 			const int zOffset = iZ * inArgsCdf->volSize[0] * inArgsCdf->volSize[1];
-			for(int iY = startIdx.y; iY <= stopIdx.y; iY++)
+			for(unsigned int iY = startIdx.y; iY <= stopIdx.y; iY++)
 			{
-				const int yOffset = iY * inArgsCdf->volSize[0];
-				for(int iX = startIdx.x; iX <= stopIdx.x; iX++)
+				const unsigned int yOffset = iY * inArgsCdf->volSize[0];
+				for(unsigned int iX = startIdx.x; iX <= stopIdx.x; iX++)
 				{
 					const float currVal = dataMatrix[iX + yOffset + zOffset]; 
 					// only add to histogram if above clip limit
 					if (currVal >= inArgsCdf->noiseLevel)
 					{
-						const int iBin = (currVal - tempMin) / binRange;
+						const unsigned int iBin = (currVal - tempMin) / binRange;
 
 						// special case for maximum values in subvolume (they gonna end up
 						// one index above)
@@ -328,7 +328,7 @@ __global__ void cdf_kernel(
 		// calculate cummulative sum and scale along y
 		float cdfTemp = 1.0f;
 		const float zeroElem = localCdf[0];
-		for (int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
+		for (unsigned int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 		{
 			cdfTemp += localCdf[iBin];
 			localCdf[iBin] = cdfTemp - zeroElem;
@@ -337,17 +337,17 @@ __global__ void cdf_kernel(
 		// now we scale cdf to max == 1 (first value is 0 anyway)
 		const float cdfMax = localCdf[inArgsCdf->nBins - 1];
 		const float rcdfMax = 1.0f / cdfMax;
-		const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1.0));
+		const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1));
 		if (cdfMax > 0.0f)
 		{
-			for (int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
+			for (unsigned int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
 			{
 				localCdf[iBin] *= rcdfMax;
 			}
 		}
 		else
 		{
-			for (int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
+			for (unsigned int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
 			{
 				localCdf[iBin] = ((float) iBin) * revMaxBin;
 			}

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(USE_CUDA FALSE) # flag to enable and disable GPU support
+set(USE_CUDA TRUE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
