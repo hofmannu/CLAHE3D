@@ -2,6 +2,17 @@
 #include "genfilt.h"
 #include <cmath>
 
+#ifndef GAUSSFILTSETT_H
+#define GAUSSFILTSETT_H
+
+struct gaussfiltsett
+{
+	float sigma = 1;
+	int kernelSize[3] = {5, 5, 5};
+};
+
+#endif
+
 #ifndef GAUSSFILT_H
 #define GAUSSFILT_H
 
@@ -17,6 +28,7 @@ public:
 	void run();
 
 	float* get_psigma() {return &sigma;};
+	void set_sigma(const float _sigma);
 };
 
 #endif

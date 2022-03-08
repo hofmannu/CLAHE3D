@@ -4,6 +4,19 @@
 	Mail: mail@hofmannu.org
 */
 
+#ifndef HISTEQSETTINGS_H
+#define HISTEQSETTINGS_H
+
+struct histeqsett
+{
+	int nBins = 255;
+	float noiseLevel = 0.1;
+	int sizeSubVols[3] = {11, 11, 11};
+	int spacingSubVols[3] = {5, 5, 5};
+};
+
+#endif
+
 #ifndef HISTEQ_H
 #define HISTEQ_H
 

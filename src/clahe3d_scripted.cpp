@@ -24,7 +24,7 @@
 #include <iostream>
 #include "histeq.h"
 #include "vector3.h"
-#include "nifti.h"
+#include "../lib/CVolume/src/volume.h"
 
 using namespace std;
 
@@ -57,8 +57,8 @@ int main(int argc, char** argv)
 
 	// load input file
 	printf("Loading data...\n");
-	nifti niiInput;
-	niiInput.read(pathIn); // reads the entire input file
+	volume niiInput;
+	niiInput.readFromFile(pathIn); // reads the entire input file
 	// niiHandler.print_header();
 
 	// prepare histogram handler
@@ -67,19 +67,16 @@ int main(int argc, char** argv)
 	histHandler.set_noiseLevel(noiseLevel);
 	histHandler.set_sizeSubVols({sv_size, sv_size, sv_size});
 	histHandler.set_spacingSubVols({sv_spacing, sv_spacing, sv_spacing});
-	histHandler.set_data(niiInput.get_pdataMatrix());
-	histHandler.set_volSize(niiInput.get_dim());
+	histHandler.set_data(niiInput.get_pdata());
+	histHandler.set_volSize({niiInput.get_dim(0), niiInput.get_dim(1), niiInput.get_dim(2)});
+	histHandler.set_overwrite(1);
 
 	printf("Running CLAHE3D...\n");
 	histHandler.calculate_cdf();
 	histHandler.equalize();
 
-	nifti niiOutput;
-	niiOutput.set_header(niiInput.get_header());
-	niiOutput.set_dataMatrix(histHandler.get_ptrOutput());
-
 	printf("Saving data...\n");
-	niiOutput.save(pathOut);
+	niiInput.saveToFile(pathOut);
 
 	return 0;
 }

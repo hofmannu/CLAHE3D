@@ -1,5 +1,12 @@
 #include "slicer.h"
 
+
+// constructor and destructor
+slicer::slicer()
+{
+
+}
+
 slicer::~slicer()
 {
 	free_planes();
@@ -27,6 +34,9 @@ void slicer::alloc_planes()
 
 float* slicer::get_plane(const uint8_t iDim)
 {
+	if (~isPlanesAlloc)
+		alloc_planes();
+
 	update_plane(iDim);
 	return planes[iDim];
 }

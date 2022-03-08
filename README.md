@@ -4,7 +4,7 @@ A three dimensional contrast enhancement code written in `C++` and `CUDA`. Works
 
 # Installation / Compiling
 
-The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. 
+The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies to show the images.
 
 # MATLAB
 Change to folder the subfolder `src` and run `mex -O clahe3dmex.cpp gridder.cpp histeq.cpp`. Afterwards you can use the function as:

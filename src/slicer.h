@@ -22,6 +22,7 @@ private:
 
 	
 public:
+	slicer();
 	~slicer();
 
 	void flip(const uint8_t iDim);

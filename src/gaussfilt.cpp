@@ -47,3 +47,10 @@ void gaussfilt::run()
 	conv();
 	return;
 }
+
+// define the standard deviation
+void gaussfilt::set_sigma(const float _sigma)
+{
+	sigma = _sigma;
+	return;
+}

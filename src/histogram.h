@@ -1,3 +1,10 @@
+/*
+	a class describing the histogram of a dataset
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 08.03.2022
+*/
+
 #ifndef HISTOGRAM_H
 #define HISTOGRAM_H
 
@@ -24,7 +31,6 @@ public:
 	histogram(const int _nBins);
 	~histogram();
 
-
 	void calculate(const float* vector, const int nElems);
 
 	// easy get functions
@@ -32,8 +38,8 @@ public:
 	float get_maxVal() const {return maxVal;};
 	float get_minHist() const {return minHist;};
 	float get_maxHist() const {return maxHist;};
-	float* get_pcontainerVal() {return containerVal;};
-	float* get_pcounter() {return counter;};
+	const float* get_pcontainerVal() const {return containerVal;};
+	const float* get_pcounter() const {return counter;};
 	int get_nBins() const {return nBins;};
 
 };

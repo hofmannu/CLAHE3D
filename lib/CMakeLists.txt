@@ -13,7 +13,6 @@ if(${USE_GUI})
 	add_library(ImGuiDraw imgui/imgui_draw.cpp)
 
 	add_library(ImGuiTables imgui/imgui_tables.cpp)
-
-	add_subdirectory(nifti/)
-
 endif()
+
+add_subdirectory(CVolume/)

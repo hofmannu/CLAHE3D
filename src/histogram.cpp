@@ -87,5 +87,6 @@ void histogram::calculate(const float* vector, const int nElems)
 			minHist = counter[iHist];
 	}
 
+	return;
 }
 

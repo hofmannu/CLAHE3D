@@ -1,6 +1,19 @@
 #include "vector3.h"
 #include "genfilt.h"
 
+
+// struct containing all the settings for our mean filter
+#ifndef MEANFILTSETT_H
+#define MEANFILTSETT_H
+
+struct meanfiltsett
+{
+	int kernelSize[3] = {3, 3, 3};
+};
+
+#endif
+
+// actual meanfilter class
 #ifndef MEANFILT_H
 #define MEANFILT_H
 
@@ -13,7 +26,7 @@ private:
 public:
 	meanfilt();
 	~meanfilt();
-	void run();
+	void run(); // runs the actual procesure
 
 };
 

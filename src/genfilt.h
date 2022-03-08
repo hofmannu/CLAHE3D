@@ -56,9 +56,7 @@ public:
 	int get_nData() const {return dataSize.elementMult();};
 	int get_nPadded() const {return paddedSize.elementMult();};
 	float* get_pdataOutput() {return dataOutput;};
-
 	float get_tExec() const {return tExec;};
-
 	int get_dataDim(const uint8_t iDim) const {return dataSize[iDim];};
 };
 

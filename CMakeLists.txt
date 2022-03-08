@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(USE_CUDA TRUE) # flag to enable and disable GPU support
+set(USE_CUDA FALSE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
@@ -43,18 +43,23 @@ endif()
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
+add_subdirectory(utests/)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
+
+# add some flags for profiling
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg") # for profiling of the code using gprof
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
 add_executable(main_exp src/main.cpp)
 target_link_libraries(main_exp PUBLIC Histeq)
 install(TARGETS main_exp DESTINATION bin)
 
 add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
-target_link_libraries(clahe3d_scripted PUBLIC Histeq Nifti) 
+target_link_libraries(clahe3d_scripted PUBLIC Histeq Volume) 
 install(TARGETS clahe3d_scripted DESTINATION bin)
-
 
 # gui specific stuff
 if(${USE_GUI})
@@ -64,22 +69,3 @@ if(${USE_GUI})
 	target_link_libraries(main_gui PUBLIC Gui)
 endif()
 
-# general unit tests
-add_test(NAME test_proc COMMAND UtestProc)
-add_test(NAME test_overwrite COMMAND UtestOverwrite)
-add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
-add_test(NAME test_binarization COMMAND UtestBinarization)
-add_test(NAME test_vector3 COMMAND UtestVector3)
-add_test(NAME test_genfilt COMMAND UtestGenfilt)
-add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
-add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
-
-# gpu specific unit tests
-if(${USE_CUDA})
-	add_test(NAME test_proc_gpu COMMAND UtestProcGpu)
-	add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)
-	add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
-	add_test(NAME test_gpu_full COMMAND UtestGpuFull)
-endif()
-
-enable_testing()
