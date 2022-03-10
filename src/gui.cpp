@@ -121,8 +121,20 @@ void gui::MainDisplayCode()
 
 void gui::Console()
 {
+	const vector<logentry> myLog = proc.get_log();
 	ImGui::Begin("Log");
-	ImGui::Text(proc.get_log().c_str());
+	ImGui::BeginChild("Scrolling");
+	for (uint64_t iElem = 0; iElem < myLog.size(); iElem++)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(125,125,125,255));
+		ImGui::Text(myLog[iElem].tString.c_str());
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+		ImGui::Text(myLog[iElem].message.c_str());
+
+	}
+
+	ImGui::EndChild();
 	ImGui::End();
 	return;
 }

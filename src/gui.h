@@ -23,6 +23,7 @@
 #include "color_mapper.h"
 
 #include "slicer.h"
+#include "log.h"
 
 class gui
 {

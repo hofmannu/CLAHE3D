@@ -8,33 +8,40 @@ std::time_t get_tStamp()
 	return currTime;
 }
 
-void log::new_entry(const std::string message)
+std::string get_tString(const std::time_t tStamp)
+{
+	char buffer [80];
+	struct tm * timeinfo = localtime (&tStamp);
+	strftime (buffer, 80, "%I:%M:%S %p", timeinfo);
+	return std::string(buffer);
+}
+
+void log::new_general(const std::string message, const int type)
 {
 	logentry newEntry;
 	newEntry.message = message;
-	newEntry.type = 0;
+	newEntry.type = type;
 	newEntry.timeStamp = get_tStamp();
+	newEntry.tString = get_tString(newEntry.timeStamp);
 	collection.push_back(newEntry);
+	return;
+}
+
+void log::new_entry(const std::string message)
+{
+	new_general(message, 0);
 	return;
 }
 
 void log::new_warning(const std::string message)
 {
-	logentry newEntry;
-	newEntry.message = message;
-	newEntry.type = 1;
-	newEntry.timeStamp = get_tStamp();
-	collection.push_back(newEntry);
+	new_general(message, 1);
 	return;
 }
 
 void log::new_error(const std::string message)
 {
-	logentry newEntry;
-	newEntry.message = message;
-	newEntry.type = 2;
-	newEntry.timeStamp = get_tStamp();
-	collection.push_back(newEntry);
+	new_general(message, 2);
 	return;
 }
 
@@ -45,14 +52,18 @@ void log::clear_log()
 	return;
 }
 
-std::string log::get_log() const 
+std::string log::get_log_string() const 
 {
 	std::string outputMessage = "";
 	for (int iLog = 0; iLog < collection.size(); iLog++)
 	{
-		outputMessage += std::ctime(&collection[iLog].timeStamp);
+		outputMessage += collection[iLog].tString;
 		outputMessage += " -> " + collection[iLog].message + "\n";
 	}
 	return outputMessage;
 }
 
+const std::vector<logentry> log::get_log() const
+{
+	return collection;
+}
