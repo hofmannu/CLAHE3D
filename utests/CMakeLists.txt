@@ -32,6 +32,10 @@ add_executable(UtestGaussfilt utest_gaussfilt.cpp)
 target_link_libraries(UtestGaussfilt PUBLIC Gaussfilt)
 add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
 
+add_executable(UtestNormalizer utest_normalizer.cpp)
+target_link_libraries(UtestNormalizer PUBLIC Normalizer)
+add_test(NAME test_normalizer COMMAND UtestNormalizer)
+
 # cuda specific test functions
 if(${USE_CUDA})
 
@@ -57,4 +61,3 @@ if(${USE_CUDA})
 
 endif()
 
-enable_testing()

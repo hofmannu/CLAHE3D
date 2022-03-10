@@ -18,6 +18,7 @@
 #include "thresholder.h"
 #include "histeq.h"
 #include "log.h"
+#include "normalizer.h"
 
 class volproc : public log
 {
@@ -38,6 +39,7 @@ private:
 	gaussfilt gaussfilter;
 	thresholder thresfilter;
 	histeq histeqfilter;
+	normalizer<float> normfilter;
 
 public:
 	// class constructor and destructor
@@ -64,6 +66,7 @@ public:
 	void run_gaussfilt(const gaussfiltsett sett);
 	void run_thresholder(const thresholdersett sett);
 	void run_histeq(const histeqsett sett);
+	void run_normalizer(const normalizersett<float> sett);
 
 };
 

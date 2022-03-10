@@ -67,6 +67,7 @@ private:
 	gaussfiltsett sett_gaussfilt;
 	thresholdersett sett_thresholdfilt;
 	histeqsett sett_histeq;
+	normalizersett<float> sett_normalizer;
 
 public:
 	gui();

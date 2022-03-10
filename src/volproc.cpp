@@ -84,6 +84,18 @@ void volproc::run_histeq(const histeqsett sett)
 	return;
 }
 
+void volproc::run_normalizer(const normalizersett<float> sett)
+{
+	new_entry("Running normalization on volume...");
+	normfilter.set_minVal(sett.minVal);
+	normfilter.set_maxVal(sett.maxVal);
+	normfilter.normalize(outputVol.get_pdata(), outputVol.get_nElements());
+
+	new_entry("Recalculating maximum and minimum of output");
+	outputVol.calcMinMax();
+	return;
+}
+
 // load dataset from file
 void volproc::reload()
 {

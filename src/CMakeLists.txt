@@ -37,7 +37,10 @@ add_library(Thresholder thresholder.cpp)
 
 add_library(Histogram histogram.cpp)
 
+# generating log files and console like output with timestamps
 add_library(Log log.cpp)
+
+add_library(Normalizer normalizer.cpp)
 
 # overall volume processing class
 add_library(Volproc volproc.cpp)
@@ -48,6 +51,7 @@ target_link_libraries(Volproc PUBLIC
 	Thresholder
 	Histeq
 	Histogram
+	Normalizer
 	Log)
 
 
