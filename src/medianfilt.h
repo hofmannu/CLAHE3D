@@ -7,7 +7,7 @@
 
 struct medianfiltsett
 {
-	int kernelSize[3];
+	int kernelSize[3] = {3, 3, 3};
 };
 
 #endif

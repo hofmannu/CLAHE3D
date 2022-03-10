@@ -22,11 +22,13 @@ void volproc::run_medianfilt(const medianfiltsett sett)
 		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
 	medianfilter.run();
 	new_entry("Finished mean filter execution");
-	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(), 
+	memcpy(outputVol.get_pdata(), medianfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());
 
 	new_entry("Recalculating maximum and minimum of output");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 	return;
 }
 

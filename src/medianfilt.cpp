@@ -77,5 +77,7 @@ void medianfilt::run()
 	const auto tStop = std::chrono::high_resolution_clock::now();
 	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
 	tExec = tDuration.count();
+
+	delete[] sortArray;
 	return;
 }
