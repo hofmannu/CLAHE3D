@@ -15,6 +15,7 @@
 #include "histogram.h"
 #include "meanfilt.h"
 #include "gaussfilt.h"
+#include "medianfilt.h"
 #include "thresholder.h"
 #include "histeq.h"
 #include "log.h"
@@ -37,6 +38,7 @@ private:
 	// different volume processing tools
 	meanfilt meanfilter;
 	gaussfilt gaussfilter;
+	medianfilt medianfilter;
 	thresholder thresfilter;
 	histeq histeqfilter;
 	normalizer<float> normfilter;
@@ -67,7 +69,7 @@ public:
 	void run_thresholder(const thresholdersett sett);
 	void run_histeq(const histeqsett sett);
 	void run_normalizer(const normalizersett<float> sett);
-
+	void run_medianfilt(const medianfiltsett sett);
 };
 
 #endif

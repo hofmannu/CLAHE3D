@@ -78,7 +78,9 @@ add_test(NAME test_vector3 COMMAND UtestVector3)
 add_test(NAME test_genfilt COMMAND UtestGenfilt)
 add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
 add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
+add_test(NAME test_medianfilt COMMAND UtestMedianfilt)
 add_test(NAME test_normalizer COMMAND UtestNormalizer)
+
 
 if(${USE_CUDA})
 	add_test(NAME test_proc_gpu COMMAND UtestProcGpu)

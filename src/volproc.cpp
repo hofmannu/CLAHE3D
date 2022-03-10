@@ -12,6 +12,25 @@ volproc::~volproc()
 }
 
 // runs a mean filter over our output volume
+void volproc::run_medianfilt(const medianfiltsett sett)
+{
+	new_entry("Running median filter on volume...");
+	medianfilter.set_dataInput(outputVol.get_pdata());
+	medianfilter.set_dataSize(
+		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
+	medianfilter.set_kernelSize(
+		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
+	medianfilter.run();
+	new_entry("Finished mean filter execution");
+	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(), 
+		sizeof(float) * outputVol.get_nElements());
+
+	new_entry("Recalculating maximum and minimum of output");
+	outputVol.calcMinMax();
+	return;
+}
+
+// runs a mean filter over our output volume
 void volproc::run_meanfilt(const meanfiltsett sett)
 {
 	new_entry("Running mean filter on volume...");

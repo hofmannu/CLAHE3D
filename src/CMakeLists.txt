@@ -32,6 +32,9 @@ target_link_libraries(Meanfilt PUBLIC Genfilt)
 add_library(Gaussfilt gaussfilt.cpp)
 target_link_libraries(Gaussfilt PUBLIC Genfilt)
 
+add_library(Medianfilt medianfilt.cpp)
+target_link_libraries(Medianfilt PUBLIC Genfilt)
+
 # simple function like thresholding
 add_library(Thresholder thresholder.cpp)
 
@@ -48,6 +51,7 @@ target_link_libraries(Volproc PUBLIC
 	Genfilt
 	Meanfilt
 	Gaussfilt
+	Medianfilt
 	Thresholder
 	Histeq
 	Histogram

@@ -10,7 +10,7 @@ using namespace std;
 
 class genfilt
 {
-private:
+protected:
 	vector3<int> dataSize;
 	vector3<int> kernelSize;
 	// vector3<int> kernelSizeArray;

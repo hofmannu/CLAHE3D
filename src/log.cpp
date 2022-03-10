@@ -63,6 +63,8 @@ std::string log::get_log_string() const
 	return outputMessage;
 }
 
+
+// returns the full vector containing all our logs
 const std::vector<logentry> log::get_log() const
 {
 	return collection;
