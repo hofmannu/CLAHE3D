@@ -34,7 +34,7 @@ void slicer::alloc_planes()
 
 float* slicer::get_plane(const uint8_t iDim)
 {
-	if (~isPlanesAlloc)
+	if (!isPlanesAlloc)
 		alloc_planes();
 
 	update_plane(iDim);
