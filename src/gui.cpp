@@ -116,6 +116,7 @@ void gui::MainDisplayCode()
 	SettingsWindow();
 	SlicerWindow();
 	Console();
+	ExportData();
 	return;
 }
 
@@ -123,18 +124,51 @@ void gui::Console()
 {
 	const vector<logentry> myLog = proc.get_log();
 	ImGui::Begin("Log");
+	ImGui::Columns(4);
+	if (ImGui::Button("Clear"))
+	{
+		proc.clear_log();
+	}
+	ImGui::SameLine();
+	HelpMarker("Clear console");
+	// TODO add option to save console to file
+	ImGui::NextColumn();
+	ImGui::Checkbox("Log", &showLog);
+	ImGui::NextColumn();
+	ImGui::Checkbox("Warnings", &showWarnings);
+	ImGui::NextColumn();
+	ImGui::Checkbox("Errors", &showErrors);
+	ImGui::NextColumn();
+
+	ImGui::Columns(1);
 	ImGui::BeginChild("Scrolling");
 	for (uint64_t iElem = 0; iElem < myLog.size(); iElem++)
 	{
+		// make date slightly faded out
 		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(125,125,125,255));
 		ImGui::Text(myLog[iElem].tString.c_str());
 		ImGui::PopStyleColor();
+
+		// TODO: ones we have errors and warnings make sure to adapt the font color here
 		ImGui::SameLine();
 		ImGui::Text(myLog[iElem].message.c_str());
-
 	}
 
 	ImGui::EndChild();
+	ImGui::End();
+	return;
+}
+
+void gui::ExportData()
+{
+	ImGui::Begin("Data exporter");
+	ImGui::InputText("Output folder", &outputPath);
+	ImGui::InputText("Output file name", &outputFile);
+
+	if (ImGui::Button("Export"))
+	{
+		outputVol->saveToFile(outputPath + outputFile);
+	}
 	ImGui::End();
 	return;
 }
@@ -287,6 +321,17 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run gaussian filter"))
 			{
 				proc.run_gaussfilt(sett_gaussfilt);
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Median filter"))
+		{
+			ImGui::InputInt3("Kernel size", sett_medianfilt.kernelSize);
+			ImGui::SameLine();
+			HelpMarker("Number of neighbouring voxels taking into account during median filter along x, y, z.");
+			if (ImGui::Button("Run median filter"))
+			{
+				proc.run_medianfilt(sett_medianfilt);
 			}
 		}
 

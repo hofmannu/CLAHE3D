@@ -25,8 +25,10 @@ void volproc::run_meanfilt(const meanfiltsett sett)
 	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());
 
-	new_entry("Recalculating maximum and minimum of output");
+	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 	return;
 }
 
@@ -45,8 +47,10 @@ void volproc::run_gaussfilt(const gaussfiltsett sett)
 	memcpy(outputVol.get_pdata(), gaussfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());
 
-	new_entry("Recalculating maximum and minimum of output");
+	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 		
 	return;
 }
@@ -58,8 +62,10 @@ void volproc::run_thresholder(const thresholdersett sett)
 	thresfilter.set_maxVal(sett.maxVal);
 	thresfilter.threshold(outputVol.get_pdata(), outputVol.get_nElements());
 
-	new_entry("Recalculating maximum and minimum of output");
+	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 	return;
 }
 
@@ -77,8 +83,10 @@ void volproc::run_histeq(const histeqsett sett)
 	histeqfilter.equalize();
 	new_entry("Done with histogram equilization...");
 	
-	new_entry("Recalculating maximum and minimum of output");
+	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 
 
 	return;
@@ -86,13 +94,17 @@ void volproc::run_histeq(const histeqsett sett)
 
 void volproc::run_normalizer(const normalizersett<float> sett)
 {
-	new_entry("Running normalization on volume...");
+	new_entry("Running normalization on volume");
+	new_entry(" - minVal: " + std::to_string(sett.minVal));
+	new_entry(" - maxVal: " + std::to_string(sett.maxVal));
 	normfilter.set_minVal(sett.minVal);
 	normfilter.set_maxVal(sett.maxVal);
 	normfilter.normalize(outputVol.get_pdata(), outputVol.get_nElements());
 
-	new_entry("Recalculating maximum and minimum of output");
+	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
+	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
+	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
 	return;
 }
 
@@ -114,6 +126,7 @@ void volproc::reload()
 // resets the processed volume to the initial input volume
 void volproc::reset()
 {
+	new_entry("Resetting volume to original values...");
 	outputVol = inputVol;
 	return;
 }
