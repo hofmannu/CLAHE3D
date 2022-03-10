@@ -45,6 +45,7 @@ void log::clear_log()
 	return;
 }
 
+// returns the full log as a string
 std::string log::get_log() const 
 {
 	std::string outputMessage = "";
