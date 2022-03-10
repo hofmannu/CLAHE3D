@@ -1,22 +1,26 @@
-
-/* 
-	a simple test validating the performance of the meanfilter
+/*
+	a simple test validating the performance of our median filter
 	Author: Urs Hofmann
 	Mail: mail@hofmannu.org
 	Date: 10.03.2022
 */
 
-#include "../src/meanfilt.h"
+#include "../src/medianfilt.h"
+#include <vector>
+#include <algorithm>
 
 int main()
 {
-	const int nKernel = 11;
+	const int nKernel = 5;
 	const int range = (nKernel - 1) / 2;
 
-	meanfilt myFilt;
+	medianfilt myFilt;
+
+
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
 	myFilt.set_dataSize({100, 110, 120});
-	
+
+	// generate a volume with random values
 	float* inputData = new float[myFilt.get_nData()];
 	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
@@ -24,7 +28,6 @@ int main()
 	}
 	myFilt.set_dataInput(inputData);
 	myFilt.run();
-
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 	
@@ -46,8 +49,9 @@ int main()
 		}
 	}
 
-	// validate mean at a single position
-	float testMean = 0;
+	// validate median at a single position
+	std::vector<float> tempArray;
+	
 	vector3<int> testPos = {40, 40, 40};
 	for (int iz = testPos.z - range; iz <= testPos.z + range; iz++) 
 	{
@@ -55,21 +59,24 @@ int main()
 		{
 			for (int ix = testPos.x - range; ix <= testPos.x + range; ix++) 
 			{
-				int idx = ix + 100 * (iy + 110 * iz);
-				testMean += inputData[idx];
+				const int idxVol = ix + 100 * (iy + 110 * iz); // index of volume
+				tempArray.push_back(inputData[idxVol]);
 			}
 		}
 	}
-	testMean /= ((float) nKernel * (float) nKernel * (float) nKernel);
+	sort(tempArray.begin(), tempArray.end());
+	const int medianIdx = (nKernel * nKernel * nKernel - 1) / 2;
 
 	const float valueProc = outputMatrix[testPos.x + 100 * (testPos.y + 110 * testPos.z)];
-	const float errorVal = fabsf(testMean - valueProc);
+	const float testVal = tempArray[medianIdx];
 
-	if (errorVal > 1e-6)
+	if (valueProc != testVal)
 	{
-		printf("Comparison results differ: %.4f, %.4f\n", testMean, valueProc);
+		printf("Comparison results differ: %.4f, %.4f\n", testVal, valueProc);
 		throw "InvalidValue";
 	}
-	
+
+	delete[] inputData;
+
 	return 0;
 }

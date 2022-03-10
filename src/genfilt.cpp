@@ -113,6 +113,7 @@ void genfilt::conv()
 
 
 #if USE_CUDA
+// TODO: not implemented yet
 void genfilt::conv_gpu()
 {
 

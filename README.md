@@ -2,6 +2,18 @@
 
 A three dimensional contrast enhancement code written in `C++` and `CUDA`. Works as standalone C++ application or through a MATLAB interface specified as a `*.mex` file. Histograms are calculated for subvolumes of definable size. The spacing of the histogram bins can be chosen independently of the bin size. Afterwards, Each histogram is then converted into a normalized cummulative distribution function. By interpolating the inverted distribution function for each subregion, we can enhance the local contrast in a volumetric image.
 
+Beside the basic functionality of CLAHE3D I started implementing a few more volume processing functions which can improve the outcome of CLAHE3D such as
+
+*  meanfiltering of volumes
+*  gaussian filtering
+*  thresholding of volumes (similar to clip limit)
+*  normalization to custom range 
+
+File formats supported for reading so far are
+
+*  `nii`
+*  `h5`
+
 # Installation / Compiling
 
 The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies to show the images.

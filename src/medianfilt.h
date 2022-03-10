@@ -1,5 +1,6 @@
 
 #include "genfilt.h"
+#include "vector3.h"
 
 #ifndef MEDIANFILTSETT_H
 #define MEDIANFILTSETT_H
@@ -15,7 +16,7 @@ struct medianfiltsett
 #ifndef MEDIANFILT_H
 #define MEDIANFILT_H
 
-class medianfilt : public medianfiltsett, public genfilt
+class medianfilt : public genfilt
 {
 private:
 

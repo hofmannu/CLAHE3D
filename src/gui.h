@@ -23,6 +23,7 @@
 #include "color_mapper.h"
 
 #include "slicer.h"
+#include "log.h"
 
 class gui
 {
@@ -67,6 +68,7 @@ private:
 	gaussfiltsett sett_gaussfilt;
 	thresholdersett sett_thresholdfilt;
 	histeqsett sett_histeq;
+	normalizersett<float> sett_normalizer;
 
 public:
 	gui();

@@ -121,8 +121,20 @@ void gui::MainDisplayCode()
 
 void gui::Console()
 {
+	const vector<logentry> myLog = proc.get_log();
 	ImGui::Begin("Log");
-	ImGui::Text(proc.get_log().c_str());
+	ImGui::BeginChild("Scrolling");
+	for (uint64_t iElem = 0; iElem < myLog.size(); iElem++)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(125,125,125,255));
+		ImGui::Text(myLog[iElem].tString.c_str());
+		ImGui::PopStyleColor();
+		ImGui::SameLine();
+		ImGui::Text(myLog[iElem].message.c_str());
+
+	}
+
+	ImGui::EndChild();
 	ImGui::End();
 	return;
 }
@@ -135,7 +147,7 @@ void gui::DataLoaderWindow()
 	if (ImGui::Button("Load data"))
 	{
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
-			"Choose File", ".nii\0.h5\n", ".");
+			"Choose File", ".nii\0.h5\0", ".");
 	}
 
 	if (ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) 
@@ -289,6 +301,17 @@ void gui::SettingsWindow()
 			}
 		}
 
+		// normalize the data range of the volume
+		if (ImGui::CollapsingHeader("Normalizer"))
+		{
+			ImGui::InputFloat("Lower value", &sett_normalizer.minVal);
+			ImGui::InputFloat("Upper value", &sett_normalizer.maxVal);
+			if (ImGui::Button("Run normalizer"))
+			{
+				proc.run_normalizer(sett_normalizer);
+			}
+		}
+
 		ImGui::End();
 	}
 
@@ -373,10 +396,10 @@ void gui::SlicerWindow()
 
 			ImGui::Columns(2);
 			ImGui::SliderFloat("Min Val Raw", 
-				rawMap.get_pminVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.1f");
+				rawMap.get_pminVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
 			ImGui::NextColumn();
 			ImGui::SliderFloat("Max Val Raw", 
-				rawMap.get_pmaxVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.1f");
+				rawMap.get_pmaxVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
 				
 
 			ImGui::NextColumn();
@@ -395,9 +418,9 @@ void gui::SlicerWindow()
 			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
 			
 			ImGui::Columns(2);
-			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), outputVol->get_minVal(), outputVol->get_maxVal(), "%.2f");
+			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), outputVol->get_minVal(), outputVol->get_maxVal(), "%.4f");
 			ImGui::NextColumn();
-			ImGui::SliderFloat("Max Val Proc", procMap.get_pmaxVal(), outputVol->get_minVal(), outputVol->get_maxVal(), "%.2f");
+			ImGui::SliderFloat("Max Val Proc", procMap.get_pmaxVal(), outputVol->get_minVal(), outputVol->get_maxVal(), "%.4f");
 			ImGui::NextColumn();
 			ImGui::ColorEdit4("Min color Proc", procMap.get_pminCol(), ImGuiColorEditFlags_Float);
 			ImGui::NextColumn();
