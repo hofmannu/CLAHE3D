@@ -13,7 +13,7 @@ void medianfilt::run_range(const int iRange)
 	vector<float> sortArray(nKernel);
 	float* localArray = new float [nKernel];
 
-	for (auto iz = zStart[iRange]; iz < zStop[iRange]; iz++)
+	for (auto iz = zStart[iRange]; iz <= zStop[iRange]; iz++)
 	{
 		for (auto iy = 0; iy < dataSize.y; iy++)
 		{
