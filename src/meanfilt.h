@@ -1,7 +1,6 @@
 #include "vector3.h"
 #include "genfilt.h"
 
-
 // struct containing all the settings for our mean filter
 #ifndef MEANFILTSETT_H
 #define MEANFILTSETT_H

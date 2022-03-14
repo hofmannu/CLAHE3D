@@ -1,6 +1,10 @@
 
 #include "genfilt.h"
 #include "vector3.h"
+#include <cstring>
+#include <vector>
+#include <algorithm>
+
 
 #ifndef MEDIANFILTSETT_H
 #define MEDIANFILTSETT_H
@@ -19,7 +23,7 @@ struct medianfiltsett
 class medianfilt : public genfilt
 {
 private:
-
+	void padd();
 public:
 	void run();
 };

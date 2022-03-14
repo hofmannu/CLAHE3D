@@ -13,12 +13,15 @@ int main()
 {
 	const int nKernel = 5;
 	const int range = (nKernel - 1) / 2;
+	const int nx = 100;
+	const int ny = 110;
+	const int nz = 120;
 
 	medianfilt myFilt;
 
 
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
-	myFilt.set_dataSize({100, 110, 120});
+	myFilt.set_dataSize({nx, ny, nz});
 
 	// generate a volume with random values
 	float* inputData = new float[myFilt.get_nData()];
@@ -28,6 +31,7 @@ int main()
 	}
 	myFilt.set_dataInput(inputData);
 	myFilt.run();
+	printf("Median filtering took %.2f sec to execute\n", myFilt.get_tExec() * 1e-3f);
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 	
@@ -59,7 +63,7 @@ int main()
 		{
 			for (int ix = testPos.x - range; ix <= testPos.x + range; ix++) 
 			{
-				const int idxVol = ix + 100 * (iy + 110 * iz); // index of volume
+				const int idxVol = ix + nx * (iy + ny * iz); // index of volume
 				tempArray.push_back(inputData[idxVol]);
 			}
 		}
@@ -67,7 +71,7 @@ int main()
 	sort(tempArray.begin(), tempArray.end());
 	const int medianIdx = (nKernel * nKernel * nKernel - 1) / 2;
 
-	const float valueProc = outputMatrix[testPos.x + 100 * (testPos.y + 110 * testPos.z)];
+	const float valueProc = outputMatrix[testPos.x + nx * (testPos.y + ny * testPos.z)];
 	const float testVal = tempArray[medianIdx];
 
 	if (valueProc != testVal)
@@ -75,6 +79,7 @@ int main()
 		printf("Comparison results differ: %.4f, %.4f\n", testVal, valueProc);
 		throw "InvalidValue";
 	}
+
 
 	delete[] inputData;
 
