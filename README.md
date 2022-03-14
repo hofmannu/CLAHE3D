@@ -4,7 +4,7 @@ A three dimensional contrast enhancement code written in `C++` and `CUDA`. Works
 
 Beside the basic functionality of CLAHE3D I started implementing a few more volume processing functions which can improve the outcome of CLAHE3D such as
 
-*  meanfiltering of volumes
+*  meanfiltering of volumes running on multiple cores on the CPU
 *  gaussian filtering
 *  thresholding of volumes (similar to clip limit)
 *  normalization to custom range 

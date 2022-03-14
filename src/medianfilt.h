@@ -29,7 +29,7 @@ struct medianfiltsett
 class medianfilt : public genfilt
 {
 private:
-	int nThreads = 1;
+	// int nThreads = 1;
 	vector<int> zStart; // start line for each thread
 	vector<int> zStop; // stop line for each thread
 	int nKernel; // number of elements in kernel

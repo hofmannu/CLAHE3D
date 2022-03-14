@@ -1,5 +1,12 @@
 #include "genfilt.h"
 
+// class constructor and destructor
+genfilt::genfilt()
+{
+	nThreads = std::thread::hardware_concurrency();
+	printf("Running on %d threads\n", nThreads);
+}
+
 genfilt::~genfilt()
 {
 	if (isDataOutputAlloc)
@@ -64,12 +71,10 @@ void genfilt::padd()
 	return;
 }
 
-void genfilt::conv()
-{	
-	padd();
-	alloc_output();
-	const auto tStart = std::chrono::high_resolution_clock::now();
-	for (int iz = 0; iz < dataSize.z; iz++)
+// convolution procedure for subrange of volume along z
+void genfilt::conv_range(const int iRange)
+{
+	for (int iz = zStart[iRange]; iz <= zStop[iRange]; iz++)
 	{
 		for (int iy = 0; iy < dataSize.y; iy++)
 		{
@@ -79,21 +84,19 @@ void genfilt::conv()
 				float tempVal = 0;
 				for (int zrel = 0; zrel < kernelSize.z; zrel++)
 				{
+					const int zAbs = iz + zrel;
 					for (int yrel = 0; yrel < kernelSize.y; yrel++)
 					{
+						const int yAbs = iy + yrel;
 						for (int xrel = 0; xrel < kernelSize.x; xrel++)
 						{
-							// get current index in padding
-							const int xAbs = ix + xrel;
-							const int yAbs = iy + yrel;
-							const int zAbs = iz + zrel;
+							
+							const int xAbs = ix + xrel; // get current index in padding
 
 							// index in padded volume
-							const int idxPadd = xAbs + 
-								paddedSize.x * (yAbs + paddedSize.y * zAbs);
+							const int idxPadd = xAbs + paddedSize.x * (yAbs + paddedSize.y * zAbs);
 
-							const int idxKernel = xrel + 
-								kernelSize.x * (yrel + kernelSize.y * zrel);
+							const int idxKernel = xrel + kernelSize.x * (yrel + kernelSize.y * zrel);
 
 							tempVal = fmaf(
 								dataPadded[idxPadd], kernel[idxKernel], tempVal);
@@ -105,8 +108,45 @@ void genfilt::conv()
 			}
 		}
 	}
+}
+
+void genfilt::conv()
+{
+	padd();
+	alloc_output();
+	const auto tStart = std::chrono::high_resolution_clock::now();
+
+	const int zRange = dataSize.z / nThreads;
+	zStart.clear(); zStop.clear();
+	for(int iThread = 0; iThread < nThreads; iThread++)
+	{
+		zStart.push_back(iThread * zRange);
+		if (iThread < (nThreads - 1))
+		{
+			zStop.push_back((iThread + 1) * zRange - 1);
+		}
+		else
+		{
+			zStop.push_back(dataSize.z - 1);
+		}
+	}
+
+	// create a container for our multithread processing units
+	std::vector<thread> runners;
+	
+	// launch all threads
+	for (int iThread = 0; iThread < nThreads; iThread++)
+	{
+		std::thread currThread(&genfilt::conv_range, this, iThread); 
+		runners.push_back(std::move(currThread));
+	}
+
+	// collect all threads
+	for (int iThread = 0; iThread < nThreads; iThread++)
+		runners[iThread].join();
+
 	const auto tStop = std::chrono::high_resolution_clock::now();
-	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
+	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop - tStart);
 	tExec = tDuration.count();
 	return;
 }

@@ -27,8 +27,8 @@ void gaussfilt::run()
 			{
 				const float dx = (float) ix - kernelRange.x;
 				const float dr = pow(dx * dx + dy * dy + dz * dz, 0.5f);
-				const float currVal = exp(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
-					/ (sigma * pow(2.0f * M_PI, 0.5f));
+				const float currVal = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
+					/ (sigma * powf(2.0f * M_PI, 0.5f));
 				const int idxLin = ix + kernelSize.x * (iy + kernelSize.y * iz);
 				gaussKernel[idxLin] = currVal;
 			}

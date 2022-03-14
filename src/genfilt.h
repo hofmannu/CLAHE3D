@@ -1,7 +1,14 @@
+/*
+	a class to run a volumetric kernel over a volume
+
+*/
+
 #include "vector3.h"
 #include <iostream>
 #include <cmath>
 #include <chrono>
+#include <thread>
+#include <vector>
 
 using namespace std;
 
@@ -18,6 +25,11 @@ protected:
 	vector3<int> range;
 	float* dataInput;
 
+	// stuff required for multicore
+	int nThreads = 1;
+	vector<int> zStart;
+	vector<int> zStop;
+
 	// padded version of input data
 	float* dataPadded;
 	bool isDataPaddedAlloc = 0;
@@ -28,7 +40,10 @@ protected:
 	float* kernel;
 	float tExec; // execution time in ms
 
+	void conv_range(const int iRange);
+
 public:
+	genfilt();
 	~genfilt();
 
 	// execution

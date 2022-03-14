@@ -2,8 +2,7 @@
 
 medianfilt::medianfilt()
 {
-	nThreads = std::thread::hardware_concurrency();
-	// printf("Found a total of %d processing units\n", nThreads);
+
 }
 
 // runs the median filter over a specified range
@@ -11,7 +10,7 @@ void medianfilt::run_range(const int iRange)
 {
 	// temprary array used for sorting
 	vector<float> sortArray(nKernel);
-	float* localArray = new float [nKernel];
+	vector<float> localArray(nKernel);
 
 	for (auto iz = zStart[iRange]; iz <= zStop[iRange]; iz++)
 	{
@@ -24,18 +23,16 @@ void medianfilt::run_range(const int iRange)
 				for (int zrel = 0; zrel < kernelSize.z; zrel++)
 				{
 					const int zAbs = iz + zrel;
-
 					const int idxPadd = iy + paddedSize.y * (zAbs + paddedSize.z * xAbs);
 					const int idxKernel = kernelSize.y * (zrel + kernelSize.z * xrel);
 					memcpy(&localArray[idxKernel], &dataPadded[idxPadd], kernelSize.y * sizeof(float));
-					
 				}
 			}
 
-			memcpy(sortArray.data(), localArray, sizeKernel);
+			sortArray = localArray;
 			std::nth_element(sortArray.begin(), sortArray.begin() + nKernel / 2, sortArray.end());
 			const int idxOut1 = dataSize.x * (iy + dataSize.y * iz);
-			dataOutput[idxOut1] = sortArray[nKernel / 2];
+			dataOutput[idxOut1] = sortArray[centerIdx];
 
 			// now we start overwriting planes of memory
 			for (auto ix = 1; ix < dataSize.x; ix++)
@@ -54,15 +51,14 @@ void medianfilt::run_range(const int iRange)
 					memcpy(&localArray[idxKernel], &dataPadded[idxPadd], kernelSize.y * sizeof(float));
 				}
 
-				memcpy(sortArray.data(), localArray, sizeKernel);
+				sortArray = localArray;
 				std::nth_element(sortArray.begin(), sortArray.begin() + nKernel / 2, sortArray.end());
 
 				const int idxOut2 = ix + dataSize.x * (iy + dataSize.y * iz);
-				dataOutput[idxOut2] = sortArray[nKernel / 2];
+				dataOutput[idxOut2] = sortArray[centerIdx];
 			}
 		}
 	}
-	delete[] localArray;
 
 	return;
 }
