@@ -56,8 +56,8 @@ public:
 	const char* get_inputPath() const {return inputPath.c_str();};
 
 	// pointers to all volumes and datasets
-	const volume* get_pinputVol() const {return &inputVol;};
-	const volume* get_poutputVol() const {return &outputVol;};
+	volume* get_pinputVol() {return &inputVol;};
+	volume* get_poutputVol() {return &outputVol;};
 	const histogram* get_pinputHist() const {return &inputHist;};
 	const histogram* get_poutputHist() const {return &outputHist;};
 

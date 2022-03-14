@@ -36,8 +36,8 @@ private:
 	
 	// image processing parts
 	volproc proc;
-	const volume* inputVol;
-	const volume* outputVol;
+	volume* inputVol;
+	volume* outputVol;
 	const histogram* inputHist;
 	const histogram* outputHist;
 

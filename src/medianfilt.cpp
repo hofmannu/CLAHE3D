@@ -1,22 +1,19 @@
 #include "medianfilt.h"
 
-
-// performs median filtering
-void medianfilt::run()
+medianfilt::medianfilt()
 {
-	padd();
-	alloc_output();
-	const auto tStart = std::chrono::high_resolution_clock::now();
-	
-	const auto nKernel = kernelSize.x * kernelSize.y * kernelSize.z;
-	const auto sizeKernel = nKernel * sizeof(float);
-	const auto centerIdx = (nKernel - 1) / 2;
+	nThreads = std::thread::hardware_concurrency();
+	// printf("Found a total of %d processing units\n", nThreads);
+}
 
+// runs the median filter over a specified range
+void medianfilt::run_range(const int iRange)
+{
 	// temprary array used for sorting
 	vector<float> sortArray(nKernel);
 	float* localArray = new float [nKernel];
 
-	for (auto iz = 0; iz < dataSize.z; iz++)
+	for (auto iz = zStart[iRange]; iz < zStop[iRange]; iz++)
 	{
 		for (auto iy = 0; iy < dataSize.y; iy++)
 		{
@@ -65,18 +62,64 @@ void medianfilt::run()
 			}
 		}
 	}
+	delete[] localArray;
+
+	return;
+}
+
+// performs median filtering
+void medianfilt::run()
+{
+	padd();
+	alloc_output();
+
+	nKernel = kernelSize.x * kernelSize.y * kernelSize.z;
+	centerIdx = (nKernel - 1) / 2;
+	sizeKernel = nKernel * sizeof(float);
+
+	const auto tStart = std::chrono::high_resolution_clock::now();
+	
+	// define the range our threads need to calculate
+	const int zRange = dataSize.z / nThreads;
+	zStart.clear(); zStop.clear();
+	for(int iThread = 0; iThread < nThreads; iThread++)
+	{
+		zStart.push_back(iThread * zRange);
+		if (iThread < (nThreads - 1))
+		{
+			zStop.push_back((iThread + 1) * zRange - 1);
+		}
+		else
+		{
+			zStop.push_back(dataSize.z - 1);
+		}
+	}
+
+	// create a container for our multithread processing units
+	std::vector<thread> runners;
+	
+	// launch all threads
+	for (int iThread = 0; iThread < nThreads; iThread++)
+	{
+		std::thread currThread(&medianfilt::run_range, this, iThread); 
+		runners.push_back(std::move(currThread));
+	}
+
+	// collect all threads
+	for (int iThread = 0; iThread < nThreads; iThread++)
+		runners[iThread].join();
+	
 	const auto tStop = std::chrono::high_resolution_clock::now();
 	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
 	tExec = tDuration.count();
 
-	delete[] localArray;
 	return;
 }
 
 // creates a padded version of the input volume, order for median: y, z, x
 void medianfilt::padd()
 {
-	printf("Padding of median filter is running\n");
+	// printf("Padding of median filter is running\n");
 	paddedSize = get_paddedSize();
 	alloc_padded();
 	for (int iz = 0; iz < paddedSize.z; iz++)
