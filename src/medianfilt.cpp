@@ -1,72 +1,5 @@
 #include "medianfilt.h"
 
-// /* Function to sort an array using insertion sort*/
-// template<typename T>
-// inline void insertion_sort(T* arr, const int n)
-// {
-//   int i;
-//   T key;
-//   int j;
-//   for (i = 1; i < n; i++)
-//   {
-//     key = arr[i];
-//     j = i - 1;
-
-//     /* Move elements of arr[0..i-1], that are
-//     greater than key, to one position ahead
-//     of their current position */
-//     while (j >= 0 && arr[j] > key)
-//     {
-//       arr[j + 1] = arr[j];
-//       j = j - 1;
-//     }
-//     arr[j + 1] = key;
-//   }
-//   return;
-// }
-
-// template<typename T>
-// inline void swap(T* arr , int pos1, int pos2){
-// 	T temp;
-// 	temp = arr[pos1];
-// 	arr[pos1] = arr[pos2];
-// 	arr[pos2] = temp;
-// 	return;
-// }
-
-// template<typename T>
-// inline int partition(T* arr, int low, int high, T pivot){
-// 	int i = low;
-// 	int j = low;
-// 	while( i <= high)
-// 	{
-// 		if(arr[i] > pivot)
-// 		{
-// 			i++;
-// 		}
-// 		else
-// 		{
-// 			swap(arr,i,j);
-// 			i++;
-// 			j++;
-// 		}
-// 	}
-// 	return j-1;
-// }
-
-// template<typename T>
-// inline void quick_sort(T* arr, int low, const int high){
-// 	if(low < high)
-// 	{
-// 		T pivot = arr[high];
-// 		int pos = partition<T>(arr, low, high, pivot);
-		
-// 		quick_sort(arr, low, pos-1);
-// 		quick_sort(arr, pos+1, high);
-// 	}
-// 	return;
-// }
-
 
 // performs median filtering
 void medianfilt::run()
@@ -109,7 +42,7 @@ void medianfilt::run()
 
 			// now we start overwriting planes of memory
 			for (auto ix = 1; ix < dataSize.x; ix++)
-			{				
+			{
 				// current plane we overwrite
 				const int xkernel = (ix - 1) % kernelSize.x;
 				const int xAbs = ix + kernelSize.x - 1;

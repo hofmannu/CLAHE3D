@@ -32,7 +32,7 @@ void genfilt::alloc_padded()
 	return;
 }
 
-// creates a padded version of the input volume
+// creates a padded version of the input volume  for now we simply pad with zeros
 void genfilt::padd()
 {
 	paddedSize = get_paddedSize();

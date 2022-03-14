@@ -11,6 +11,9 @@
 #include <SDL2/SDL.h>
 #include <GL/glew.h>
 
+#include "../lib/imgui/imgui.h"
+#include "../lib/imgui/misc/cpp/imgui_stdlib.h"
+
 // all the imgui stuff goes here
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
@@ -43,6 +46,7 @@ private:
 	void SettingsWindow();
 	void SlicerWindow();
 	void Console();
+	void ExportData();
 
 	bool showRaw = 1;
 	bool flagGpu = 1; // should we process on the GPU
@@ -65,10 +69,18 @@ private:
 
 	// all settings stucts for different procedures go here
 	meanfiltsett sett_meanfilt;
+	medianfiltsett sett_medianfilt;
 	gaussfiltsett sett_gaussfilt;
 	thresholdersett sett_thresholdfilt;
 	histeqsett sett_histeq;
 	normalizersett<float> sett_normalizer;
+
+	std::string outputPath;
+	std::string outputFile;
+
+	bool showLog = 1;
+	bool showWarnings = 1;
+	bool showErrors = 1;
 
 public:
 	gui();

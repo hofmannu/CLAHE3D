@@ -89,6 +89,7 @@ if(${USE_GUI})
 	target_link_libraries(Gui PUBLIC
 		ImGuiFileDialog
 		ImGuiImplOpenGL3
+		ImGuiStdlib
 		GLEW
 		ImGuiImplSdl
 		OpenGL::GL
