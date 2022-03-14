@@ -4,7 +4,7 @@
 genfilt::genfilt()
 {
 	nThreads = std::thread::hardware_concurrency();
-	printf("Running on %d threads\n", nThreads);
+	// printf("Running on %d threads\n", nThreads);
 }
 
 genfilt::~genfilt()
