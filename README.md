@@ -14,6 +14,8 @@ File formats supported for reading so far are
 *  `nii`
 *  `h5`
 
+![Preview of GUI](https://hofmannu.org/wp-content/uploads/2022/03/Screenshot_2022-03-10_16-15-58-768x426.png)
+
 # Installation / Compiling
 
 The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies to show the images.
