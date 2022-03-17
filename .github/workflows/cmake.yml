@@ -26,7 +26,7 @@ jobs:
         
     - name: Install dependencies
       run:
-        sudo apt-get install libsdl2-2.0
+        sudo apt-get install libsdl2-2.0 nvidia-cuda-toolkit
       
     - uses: actions/checkout@v2
 
