@@ -58,8 +58,7 @@ To run a throughout test of the procedures, run `ctest` from the `Debug` subfold
 
 # Feature request / bug report
 
-Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is going to be a `CUDA` capable parallelized version of the code.
-
+Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is to enable the simultaneous processing of multiple volume pipelines using a simple scripting language. Other feature requests and processing functions are listed in the issues section.
 
 # Literature
 *  Karen Lucknavalai, Jürgen P. Schulze: [Real-Time Contrast Enhancement for 3D Medical Images Using Histogram Equalization](https://link.springer.com/chapter/10.1007/978-3-030-64556-4_18) in ISVC 2020: Advances in Visual Computing pp 224-235 --> describes a layer wise processing but does not use volumetric tiling
