@@ -28,7 +28,10 @@ To use the GUI or CUDA support, there are a few more things to install
 *  `git`: obviously
 *  `nvidia-cuda-toolkit`: ships nvcc and other tools required to compile CUDA code
 *  `cmake`: required for compilation
-*  `libsdl2-2.0-0`: required to display stuff
+*  `g++`: compiler of choice
+*  `libsdl2-dev`: required to display stuff
+*  `libhdf5-dev`: required to save and load from h5 file format
+*  `libglfw3-dev`: also for display stuff
 
 ## ArchLinux
 
