@@ -24,6 +24,7 @@ struct histeqsett
 #include <cstdint>
 #include <cmath>
 #include <chrono>
+#include <thread>
 #include "gridder.h"
 #include "vector3.h"
 

@@ -159,17 +159,39 @@ void gui::Console()
 	return;
 }
 
+// small helper function which checks the limits agains maximum and minimum of dataset and adapts
+void gui::check_mapLimits()
+{
+	if (rawMap.get_maxVal() > inputVol->get_maxVal())
+		rawMap.set_maxVal(inputVol->get_maxVal());
+
+	if (rawMap.get_minVal() < inputVol->get_minVal())
+		rawMap.set_minVal(inputVol->get_minVal());
+
+	if (procMap.get_maxVal() > outputVol->get_maxVal())
+		procMap.set_maxVal(outputVol->get_maxVal());
+
+	if (procMap.get_minVal() < outputVol->get_minVal())
+		procMap.set_minVal(outputVol->get_minVal());
+
+	return;
+}
+
+// dialog to export our dataset to a file
 void gui::ExportData()
 {
-	ImGui::Begin("Data exporter");
-	ImGui::InputText("Output folder", &outputPath);
-	ImGui::InputText("Output file name", &outputFile);
-
-	if (ImGui::Button("Export"))
+	if (proc.get_isDataLoaded())
 	{
-		outputVol->saveToFile(outputPath + outputFile);
+		ImGui::Begin("Data exporter");
+		ImGui::InputText("Output folder", &outputPath);
+		ImGui::InputText("Output file name", &outputFile);
+
+		if (ImGui::Button("Export"))
+		{
+			outputVol->saveToFile(outputPath + outputFile);
+		}
+		ImGui::End();
 	}
-	ImGui::End();
 	return;
 }
 
@@ -189,9 +211,17 @@ void gui::DataLoaderWindow()
 		if (ImGuiFileDialog::Instance()->IsOk == true)
 		{
 			proc.load(ImGuiFileDialog::Instance()->GetFilepathName());
+
+			// also set all the color bar limits now to the range of the dataset
+			rawMap.set_minVal(inputVol->get_minVal());
+			rawMap.set_maxVal(inputVol->get_maxVal());
+			procMap.set_minVal(inputVol->get_minVal());
+			procMap.set_maxVal(inputVol->get_maxVal());
+
 			mySlice.set_sizeArray(
 				{inputVol->get_dim(0), inputVol->get_dim(1), inputVol->get_dim(2)});
 			mySlice.set_dataMatrix(inputVol->get_pdata());
+
 		}
 		ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
 	}
@@ -268,8 +298,8 @@ void gui::DataLoaderWindow()
 			conf.scale.max = inputHist->get_maxHist();
 			conf.tooltip.show = true;
 			conf.tooltip.format = "x=%.2f, y=%.2f";
-			conf.grid_x.show = false;
-			conf.grid_y.show = false;
+			conf.grid_x.show = true;
+			conf.grid_y.show = true;
 			conf.frame_size = ImVec2(400, 200);
 			conf.line_thickness = 2.f;
 			ImGui::Plot("Histogram input volume", conf);
@@ -298,6 +328,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("CLAHE it!"))
 			{
 				proc.run_histeq(sett_histeq);
+				check_mapLimits();
 			}
 		}
 
@@ -310,6 +341,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run mean filter"))
 			{
 				proc.run_meanfilt(sett_meanfilt);
+				check_mapLimits();
 			}
 		}
 
@@ -321,6 +353,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run gaussian filter"))
 			{
 				proc.run_gaussfilt(sett_gaussfilt);
+				check_mapLimits();
 			}
 		}
 
@@ -332,6 +365,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run median filter"))
 			{
 				proc.run_medianfilt(sett_medianfilt);
+				check_mapLimits();
 			}
 		}
 
@@ -343,6 +377,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run thresholding"))
 			{
 				proc.run_thresholder(sett_thresholdfilt);
+				check_mapLimits();
 			}
 		}
 
@@ -354,6 +389,7 @@ void gui::SettingsWindow()
 			if (ImGui::Button("Run normalizer"))
 			{
 				proc.run_normalizer(sett_normalizer);
+				check_mapLimits();
 			}
 		}
 

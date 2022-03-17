@@ -174,7 +174,7 @@ void genfilt::set_kernel(float* _kernel)
 	return;
 }
 
-
+// define the size of the input dataset
 void genfilt::set_dataSize(const vector3<int> _dataSize)
 {
 	#pragma unroll
@@ -190,6 +190,7 @@ void genfilt::set_dataSize(const vector3<int> _dataSize)
 	return;
 }
 
+// define the size of the convolution kernel
 void genfilt::set_kernelSize(const vector3<int> _kernelSize)
 {
 	#pragma unroll

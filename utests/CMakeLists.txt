@@ -30,6 +30,9 @@ target_link_libraries(UtestMedianfilt PUBLIC Medianfilt)
 add_executable(UtestNormalizer utest_normalizer.cpp)
 target_link_libraries(UtestNormalizer PUBLIC Normalizer)
 
+add_executable(UtestLexer utest_lexer.cpp)
+target_link_libraries(UtestLexer PUBLIC Lexer)
+
 # cuda specific test functions
 if(${USE_CUDA})
 

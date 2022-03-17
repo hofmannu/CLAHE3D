@@ -1,5 +1,6 @@
 #include "medianfilt.h"
 
+// class constructor
 medianfilt::medianfilt()
 {
 
@@ -78,7 +79,7 @@ void medianfilt::run()
 	// define the range our threads need to calculate
 	const int zRange = dataSize.z / nThreads;
 	zStart.clear(); zStop.clear();
-	for(int iThread = 0; iThread < nThreads; iThread++)
+	for(std::size_t iThread = 0; iThread < nThreads; iThread++)
 	{
 		zStart.push_back(iThread * zRange);
 		if (iThread < (nThreads - 1))
@@ -95,15 +96,17 @@ void medianfilt::run()
 	std::vector<thread> runners;
 	
 	// launch all threads
-	for (int iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nThreads; iThread++)
 	{
 		std::thread currThread(&medianfilt::run_range, this, iThread); 
 		runners.push_back(std::move(currThread));
 	}
 
 	// collect all threads
-	for (int iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nThreads; iThread++)
+	{
 		runners[iThread].join();
+	}
 	
 	const auto tStop = std::chrono::high_resolution_clock::now();
 	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
@@ -118,20 +121,20 @@ void medianfilt::padd()
 	// printf("Padding of median filter is running\n");
 	paddedSize = get_paddedSize();
 	alloc_padded();
-	for (int iz = 0; iz < paddedSize.z; iz++)
+	for (std::size_t iz = 0; iz < paddedSize.z; iz++)
 	{
 		const bool isZRange = ((iz >= range.z) && (iz <= (paddedSize.z - range.z - 1)));
-		for (int iy = 0; iy < paddedSize.y; iy++)
+		for (std::size_t iy = 0; iy < paddedSize.y; iy++)
 		{
 			const bool isYRange = ((iy >= range.y) && (iy <= (paddedSize.y - range.y - 1)));
-			for (int ix = 0; ix < paddedSize.x; ix++)
+			for (std::size_t ix = 0; ix < paddedSize.x; ix++)
 			{
 				const bool isXRange = ((ix >= range.x) && (ix <= (paddedSize.x - range.x - 1)));
 				// if we are in valid volume, set to value, otherwise padd to 0 for now
-				const int idxPad = iy + paddedSize.y * (iz + paddedSize.z * ix);
+				const std::size_t idxPad = iy + paddedSize.y * (iz + paddedSize.z * ix);
 				if (isZRange && isXRange && isYRange)
 				{
-					const int idxInput = (ix - range.x) + dataSize.x * ((iy - range.y) + dataSize.y * (iz - range.z));
+					const std::size_t idxInput = (ix - range.x) + dataSize.x * ((iy - range.y) + dataSize.y * (iz - range.z));
 					// (iz - range.z)
 					dataPadded[idxPad] = dataInput[idxInput];
 				} 

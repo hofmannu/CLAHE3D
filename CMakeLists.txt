@@ -49,7 +49,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # add some flags for profiling
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg") # for profiling of the code using gprof
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -lpthread") # for profiling of the code using gprof
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
@@ -80,6 +80,7 @@ add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
 add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
 add_test(NAME test_medianfilt COMMAND UtestMedianfilt)
 add_test(NAME test_normalizer COMMAND UtestNormalizer)
+add_test(NAME test_lexer COMMAND UtestLexer)
 
 
 if(${USE_CUDA})

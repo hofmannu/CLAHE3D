@@ -82,6 +82,9 @@ private:
 	bool showWarnings = 1;
 	bool showErrors = 1;
 
+	// helper functions
+	void check_mapLimits();
+
 public:
 	gui();
 	~gui();

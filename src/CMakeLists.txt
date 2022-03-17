@@ -58,6 +58,8 @@ target_link_libraries(Volproc PUBLIC
 	Normalizer
 	Log)
 
+add_library(Lexer lexer.cpp)
+
 
 if(${USE_GUI})
 	add_library(ImGuiFileDialog ImGuiFileDialog.cpp)
