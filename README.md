@@ -6,50 +6,28 @@ Beside the basic functionality of CLAHE3D I started implementing a few more volu
 
 *  meanfiltering of volumes running on multiple cores on the CPU
 *  gaussian filtering
+*  volumetric medianfiltering
 *  thresholding of volumes (similar to clip limit)
 *  normalization to custom range 
-
-File formats supported for reading so far are
-
-*  `nii`
-*  `h5`
 
 ![Preview of the effect CLAHE3D has on a medical volume](https://hofmannu.org/wp-content/uploads/2022/03/clahe3d-768x406.png)
 
 # Installation / Compiling
 
-The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies to show the images.
-
-# MATLAB
-Change to folder the subfolder `src` and run `mex -O clahe3dmex.cpp gridder.cpp histeq.cpp`. Afterwards you can use the function as:
-`clahe3dmex(interpVol, subVolSize, spacingSubVols, clipLimit, binSize);`
-where 
-
-*  `vol` is the three dimensional volume of type `single`,
-*  `subVolSize` is the container size used to create the histograms subvolume size specified as a 3 element vector of type `uint64`
-*  `spacingSubVols` is the spacing vector between the histograms specified as `uint64`
-*  `clipLimit` is the clipping threshold specified as `single`
-*  and `binSize` is the number of histogram bins specified as `uint64`. 
-
-Tested using `MATLAB 2019 A` and `MATLAB 2019 B`. The function `utest_bone.m` serves as an illustration.
-
-# C++
-
-The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device). To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`.
+The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies. The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device). To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`. Same is true if you want to use the ImGui based graphical user interface (basically a simple slicing and execution interface).
 
 ```bash
 mkdir Debug
 cd Debug 
 cmake ..
-
 make all
-ctest
+ctest 
+./main_gui
 ```
 
-An example of how to use the main class can be found in `src/main.cpp`. To run a throughout test of the procedures, run `ctest` from the `Debug` subfolder after compilation. The software ships with an ImGUI based user interface.
+To run a throughout test of the procedures, run `ctest` from the `Debug` subfolder after compilation.
 
 ![Preview of GUI](https://hofmannu.org/wp-content/uploads/2022/03/Screenshot_2022-03-10_16-15-58-768x426.png)
-
 
 # Feature request / bug report
 
