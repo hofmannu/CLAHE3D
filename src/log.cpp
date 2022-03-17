@@ -63,9 +63,25 @@ std::string log::get_log_string() const
 	return outputMessage;
 }
 
-
-// returns the full vector containing all our logs
+// returns the full vector containing all our logs filtered according to our flags
 const std::vector<logentry> log::get_log() const
 {
-	return collection;
+	std::vector<logentry> returnVec;
+	for (logentry elem: collection)
+	{
+		if (elem.type == 0)
+		{
+			if (flagLog) returnVec.push_back(elem);
+		}
+		else if (elem.type == 1)
+		{
+			if (flagLog) returnVec.push_back(elem);
+		}
+		else if (elem.type == 2)
+		{
+			if (flagLog) returnVec.push_back(elem);
+		}
+	}
+	return returnVec;
 }
+

@@ -133,11 +133,11 @@ void gui::Console()
 	HelpMarker("Clear console");
 	// TODO add option to save console to file
 	ImGui::NextColumn();
-	ImGui::Checkbox("Log", &showLog);
+	ImGui::Checkbox("Log", proc.get_pflagLog());
 	ImGui::NextColumn();
-	ImGui::Checkbox("Warnings", &showWarnings);
+	ImGui::Checkbox("Warnings", proc.get_pflagWarning());
 	ImGui::NextColumn();
-	ImGui::Checkbox("Errors", &showErrors);
+	ImGui::Checkbox("Errors", proc.get_pflagError());
 	ImGui::NextColumn();
 
 	ImGui::Columns(1);
