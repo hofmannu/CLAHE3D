@@ -20,8 +20,8 @@ jobs:
     steps:
     - name: Initialize submodules
       run:
-        cd /home/runner/work/CLAHE3D/CLAHE3D/
-        git submodule init
+        cd /home/runner/work/CLAHE3D/CLAHE3D/ && 
+        git submodule init &&
         git submodule update
         
     - name: Install dependencies
