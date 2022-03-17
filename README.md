@@ -14,7 +14,7 @@ File formats supported for reading so far are
 *  `nii`
 *  `h5`
 
-![Preview of GUI](https://hofmannu.org/wp-content/uploads/2022/03/Screenshot_2022-03-10_16-15-58-768x426.png)
+![Preview of the effect CLAHE3D has on a medical volume](https://hofmannu.org/wp-content/uploads/2022/03/clahe3d-768x406.png)
 
 # Installation / Compiling
 
@@ -46,7 +46,10 @@ make all
 ctest
 ```
 
-An example of how to use the main class can be found in `src/main.cpp`. To run a throughout test of the procedures, run `ctest` from the `Debug` subfolder after compilation.
+An example of how to use the main class can be found in `src/main.cpp`. To run a throughout test of the procedures, run `ctest` from the `Debug` subfolder after compilation. The software ships with an ImGUI based user interface.
+
+![Preview of GUI](https://hofmannu.org/wp-content/uploads/2022/03/Screenshot_2022-03-10_16-15-58-768x426.png)
+
 
 # Feature request / bug report
 
