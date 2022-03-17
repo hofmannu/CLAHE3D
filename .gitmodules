@@ -1,6 +1,6 @@
 [submodule "lib/imgui"]
 	path = lib/imgui
-	url = git@github.com:ocornut/imgui.git
+	url = https://github.com/ocornut/imgui.git
 [submodule "lib/CVolume"]
 	path = lib/CVolume
-	url = git@github.com:hofmannu/CVolume.git
+	url = https://github.com/hofmannu/CVolume.git
