@@ -12,7 +12,29 @@ Beside the basic functionality of CLAHE3D I started implementing a few more volu
 
 ![Preview of the effect CLAHE3D has on a medical volume](https://hofmannu.org/wp-content/uploads/2022/03/clahe3d-768x406.png)
 
+# Cloning and Dependencies
+
+```bash
+git clone git@github.com:hofmannu/CLAHE3D.git
+cd CLAHE3D
+git submodule init
+git submodule update
+```
+
+To use the GUI or CUDA support, there are a few more things to install
+
+## Ubuntu
+
+*  `git`: obviously
+*  `nvidia-cuda-toolkit`: ships nvcc and other tools required to compile CUDA code
+*  `cmake`: required for compilation
+*  `libsdl2-2.0-0`: required to display stuff
+
+## ArchLinux
+
 # Installation / Compiling
+
+*  `cuda`: CUDA toolkit
 
 The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies. The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device). To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`. Same is true if you want to use the ImGui based graphical user interface (basically a simple slicing and execution interface).
 
