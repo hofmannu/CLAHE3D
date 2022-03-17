@@ -18,6 +18,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Initialize submodules
+      run:
+        cd /home/runner/work/CLAHE3D/CLAHE3D/
+        git submodule init
+        git submodule update
+        
     - name: Install dependencies
       run:
         sudo apt-get install libsdl2-2.0
