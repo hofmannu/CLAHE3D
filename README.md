@@ -33,6 +33,8 @@ To use the GUI or CUDA support, there are a few more things to install
 *  `libhdf5-dev`: required to save and load from h5 file format
 *  `libglfw3-dev`: also for display stuff
 
+With those libraries installed it should work. A few libraries might not be matching with your OS path to them (e.g. not finding header files).
+
 ## ArchLinux
 
 # Installation / Compiling
