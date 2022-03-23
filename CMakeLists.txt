@@ -49,13 +49,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # add some flags for profiling
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg -lpthread") # for profiling of the code using gprof
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg -lpthread") # for profiling of the code using gprof
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
-
-add_executable(main_exp src/main.cpp)
-target_link_libraries(main_exp PUBLIC Histeq)
-install(TARGETS main_exp DESTINATION bin)
 
 add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
 target_link_libraries(clahe3d_scripted PUBLIC Histeq Volume) 

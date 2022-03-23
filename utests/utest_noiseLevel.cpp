@@ -19,19 +19,19 @@ int main()
 {
 
 	// define grid dimensions for testing
-	const vector3<int> volSize(600, 500, 400);
-	const vector3<int> subVolSize(31, 31, 31);
-	const vector3<int> subVolSpacing(20, 20, 20);
+	const vector3<std::size_t> volSize(600, 500, 400);
+	const vector3<std::size_t> subVolSize(31, 31, 31);
+	const vector3<std::size_t> subVolSpacing(20, 20, 20);
 	const float clipLimit = 2.0;
-	const int binSize = 250;
+	const std::size_t binSize = 250;
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.elementMult()];
-	for(int iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
+	for(std::size_t iIdx = 0; iIdx < volSize.elementMult(); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
 
-	const int iBin = rand() % binSize;
+	const std::size_t iBin = rand() % binSize;
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
@@ -48,7 +48,7 @@ int main()
 	histHandler.equalize();
 
 	float* outputVolCpu = histHandler.get_ptrOutput();
-	for (int iElem = 0; iElem < (volSize.elementMult()); iElem++)
+	for (std::size_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
 		if (!(outputVolCpu[iElem] == 0))
 		{

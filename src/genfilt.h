@@ -1,6 +1,8 @@
 /*
 	a class to run a volumetric kernel over a volume
-
+	Author : Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 
 */
 
 #include "vector3.h"
@@ -18,17 +20,17 @@ using namespace std;
 class genfilt
 {
 protected:
-	vector3<int> dataSize;
-	vector3<int> kernelSize;
+	vector3<std::size_t> dataSize;
+	vector3<std::size_t> kernelSize;
 	// vector3<int> kernelSizeArray;
-	vector3<int> paddedSize;
-	vector3<int> range;
+	vector3<std::size_t> paddedSize;
+	vector3<std::size_t> range;
 	float* dataInput;
 
 	// stuff required for multicore
-	int nThreads = 1;
-	vector<int> zStart;
-	vector<int> zStop;
+	std::size_t nThreads = 1;
+	vector<std::size_t> zStart;
+	vector<std::size_t> zStop;
 
 	// padded version of input data
 	float* dataPadded;
@@ -40,7 +42,7 @@ protected:
 	float* kernel;
 	float tExec; // execution time in ms
 
-	void conv_range(const int iRange);
+	void conv_range(const std::size_t iRange);
 
 public:
 	genfilt();
@@ -58,21 +60,21 @@ public:
 	// set functions
 	void set_dataInput(float* _dataInput);
 	void set_kernel(float* _kernel);
-	void set_dataSize(const vector3<int> _dataSize);
-	void set_kernelSize(const vector3<int> _kernelSize);
+	void set_dataSize(const vector3<std::size_t> _dataSize);
+	void set_kernelSize(const vector3<std::size_t> _kernelSize);
 
-	int* get_pkernelSize() {return &kernelSize.x;};
-	vector3<int> get_kernelSize() const {return kernelSize;};
+	std::size_t* get_pkernelSize() {return &kernelSize.x;};
+	vector3<std::size_t> get_kernelSize() const {return kernelSize;};
 
 	// get functions
-	vector3<int> get_range() const {return range;};
-	vector3<int> get_paddedSize() const {return (dataSize + range * 2);};
-	int get_nKernel() const {return kernelSize.elementMult();};
-	int get_nData() const {return dataSize.elementMult();};
-	int get_nPadded() const {return paddedSize.elementMult();};
+	vector3<std::size_t> get_range() const {return range;};
+	vector3<std::size_t> get_paddedSize() const {return (dataSize + range * 2);};
+	std::size_t get_nKernel() const {return kernelSize.elementMult();};
+	std::size_t get_nData() const {return dataSize.elementMult();};
+	std::size_t get_nPadded() const {return paddedSize.elementMult();};
 	float* get_pdataOutput() {return dataOutput;};
 	float get_tExec() const {return tExec;};
-	int get_dataDim(const uint8_t iDim) const {return dataSize[iDim];};
+	std::size_t get_dataDim(const uint8_t iDim) const {return dataSize[iDim];};
 };
 
 #endif

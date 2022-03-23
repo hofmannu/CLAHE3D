@@ -17,7 +17,7 @@ int main()
 
 	// define the kernel size
 	myFilt.set_kernelSize({5, 7, 9});
-	vector3<int> range = myFilt.get_range();
+	vector3<std::size_t> range = myFilt.get_range();
 	if ((range.x != 2) || (range.y != 3) || (range.z != 4))
 	{
 		printf("The range calculaiton somehow went wrong\n");
@@ -31,7 +31,7 @@ int main()
 	}
 
 	myFilt.set_dataSize({100, 110, 120});
-	vector3<int> paddedSize = myFilt.get_paddedSize();
+	vector3<std::size_t> paddedSize = myFilt.get_paddedSize();
 	if ((paddedSize.x != 104) || (paddedSize.y != 116) || (paddedSize.z != 128))
 	{
 		printf("Padded size calculation went wrong\n");
@@ -40,14 +40,14 @@ int main()
 
 	// generate an input array of 1s
 	float* inputData = new float[myFilt.get_nData()];
-	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
+	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		inputData[iElem] = 1;
 	}
 
 	// generate a kernel array of 1s
 	float* kernel = new float[myFilt.get_nKernel()];
-	for (int iElem = 0; iElem < myFilt.get_nKernel(); iElem++)
+	for (std::size_t iElem = 0; iElem < myFilt.get_nKernel(); iElem++)
 	{
 		kernel[iElem] = 1;
 	}	
@@ -59,7 +59,7 @@ int main()
 
 	// in this case all values should be between 0 and nKernel
 	float* outputMatrix = myFilt.get_pdataOutput();
-	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
+	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
 		if (currVal < 0.0)

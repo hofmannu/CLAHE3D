@@ -1,7 +1,7 @@
 #include "gridder.h"
 
 // defines the size of the individual subvolumes (lets make this uneven)
-void gridder::set_sizeSubVols(const vector3<int>& _subVolSize)
+void gridder::set_sizeSubVols(const vector3<std::size_t>& _subVolSize)
 {
 	
 	#pragma unroll
@@ -20,7 +20,7 @@ void gridder::set_sizeSubVols(const vector3<int>& _subVolSize)
 }
 
 // defines the spacing of the individual histogram samples
-void gridder::set_spacingSubVols(const vector3<int>& _spacingSubVols)
+void gridder::set_spacingSubVols(const vector3<std::size_t>& _spacingSubVols)
 {
 	if (_spacingSubVols.any(0))
 	{
@@ -32,7 +32,7 @@ void gridder::set_spacingSubVols(const vector3<int>& _spacingSubVols)
 }
 
 // size of full three dimensional volume
-void gridder::set_volSize(const vector3<int>& _volSize)
+void gridder::set_volSize(const vector3<std::size_t>& _volSize)
 {
 	if (_volSize.any(0))
 	{
@@ -57,7 +57,7 @@ void gridder::calculate_nsubvols()
 	// 	nSubVols[iDim] = (lastIdx - origin[iDim]) / spacingSubVols[iDim] + 1;
 	// 	endIdx[iDim] = origin[iDim] + (nSubVols[iDim] - 1) * spacingSubVols[iDim];
 	// }
-	vector3<int> lastIdx = volSize - 1;
+	vector3<std::size_t> lastIdx = volSize - 1;
 	nSubVols = (lastIdx - origin) / spacingSubVols + 1;
 	endIdx = origin + (nSubVols - 1) * spacingSubVols;
 
@@ -66,21 +66,21 @@ void gridder::calculate_nsubvols()
 
 //
 void gridder::get_neighbours(
-	const vector3<int>& position,
-	int* neighbours,
+	const vector3<std::size_t>& position,
+	std::size_t* neighbours,
 	float* ratio) const
 {
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
 	{
 		// let see if we hit the lower limit
-		if (((float) position[iDim]) <= origin[iDim])
+		if (position[iDim] <= origin[iDim])
 		{
 			ratio[iDim] = 0;
 			neighbours[iDim * 2] = 0; // left index along current dimension
 			neighbours[iDim * 2 + 1] = 0; // right index along current dimension
 		}
-		else if (((float) position[iDim]) >= endIdx[iDim])
+		else if (position[iDim] >= endIdx[iDim])
 		{
 			ratio[iDim] = 0;
 			neighbours[iDim * 2] =  nSubVols[iDim] - 1; // left index along curr dimension
@@ -88,21 +88,21 @@ void gridder::get_neighbours(
 		} 
 		else // we are actually in between!
 		{
-			const float offsetDistance = ((float) position[iDim]) - (float) origin[iDim];
-			neighbours[iDim * 2] = (int) (offsetDistance / spacingSubVols[iDim]);
+			const std::size_t offsetDistance = position[iDim] - origin[iDim];
+			neighbours[iDim * 2] = offsetDistance / spacingSubVols[iDim];
 			neighbours[iDim * 2 + 1] = neighbours[iDim * 2] + 1;
-			const float leftDistance = offsetDistance - ((float) neighbours[iDim * 2]) * 
-				((float) spacingSubVols[iDim]);
-			ratio[iDim] = leftDistance / ((float) spacingSubVols[iDim]);
+			const std::size_t leftDistance = offsetDistance - neighbours[iDim * 2] * 
+				spacingSubVols[iDim];
+			ratio[iDim] = (float) leftDistance / ((float) spacingSubVols[iDim]);
 		}
 	}
 	return;
 }
 
-vector3<int> gridder::get_startIdxSubVol(const vector3<int> iSub) const 
+vector3<std::size_t> gridder::get_startIdxSubVol(const vector3<std::size_t>& iSub) const 
 {
-	const vector3<int> centerPos = iSub * spacingSubVols + origin;
-	vector3<int> startIdx = centerPos - (sizeSubVols - 1) / 2; 
+	const vector3<std::size_t> centerPos = iSub * spacingSubVols + origin;
+	vector3<std::size_t> startIdx = centerPos - (sizeSubVols - 1) / 2; 
 	
 	if (startIdx.x < 0)
 		startIdx.x = 0;
@@ -113,14 +113,14 @@ vector3<int> gridder::get_startIdxSubVol(const vector3<int> iSub) const
 	if (startIdx.z < 0)
 			startIdx.z = 0;
 
-	return startIdx;
+	return std::move(startIdx);
 }
 
-vector3<int> gridder::get_stopIdxSubVol(const vector3<int> iSub) const
-{
-	const vector3<int> centerPos = iSub * spacingSubVols + origin;
-	vector3<int> stopIdx = centerPos + (sizeSubVols - 1) / 2; 
 
+vector3<std::size_t> gridder::get_stopIdxSubVol(const vector3<std::size_t>& iSub) const
+{
+	const vector3<std::size_t> centerPos = iSub * spacingSubVols + origin;
+	vector3<std::size_t> stopIdx = centerPos + (sizeSubVols - 1) / 2; 
 	
 	if (stopIdx.x >= volSize.x)
 		stopIdx.x = volSize.x - 1;
@@ -131,11 +131,11 @@ vector3<int> gridder::get_stopIdxSubVol(const vector3<int> iSub) const
 	if (stopIdx.z >= volSize.z)
 			stopIdx.z = volSize.z - 1;
 
-	return stopIdx;
+	return std::move(stopIdx);
 }
 
 // returns number of element in the volume
-int gridder::get_nElements() const
+std::size_t gridder::get_nElements() const
 {
 	return nElements;
 }

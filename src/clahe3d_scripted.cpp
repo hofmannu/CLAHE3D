@@ -40,10 +40,10 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	const int sv_spacing = atoi(argv[1]);
-	const int sv_size = atoi(argv[2]);
+	const std::size_t sv_spacing = atoi(argv[1]);
+	const std::size_t sv_size = atoi(argv[2]);
 	const float noiseLevel = atof(argv[3]);
-	const int nBins = atoi(argv[4]);
+	const std::size_t nBins = atoi(argv[4]);
 	const string pathIn = argv[5];
 	const string pathOut = argv[6];
 

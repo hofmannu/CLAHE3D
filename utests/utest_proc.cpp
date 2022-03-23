@@ -17,23 +17,20 @@ using namespace std;
 
 int main()
 {
-
-
 	// define testing parameters
-	const vector3<int> volSize(600, 500, 300);
+	const vector3<std::size_t> volSize(400, 200, 300);
 	const float clipLimit = 0.01;
-	const int binSize = 20;
-	const vector3<int> subVolSize(31, 31, 31);
-	const vector3<int> subVolSpacing(20, 20, 20);
+	const std::size_t binSize = 20;
+	const vector3<std::size_t> subVolSize(31, 31, 31);
+	const vector3<std::size_t> subVolSpacing(20, 20, 20);
 	
 	srand(1);
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.x * volSize.y * volSize.z];
-	for(int iIdx = 0; iIdx < (volSize.x * volSize.y * volSize.z); iIdx ++)
+	for(std::size_t iIdx = 0; iIdx < (volSize.x * volSize.y * volSize.z); iIdx ++)
 		inputVol[iIdx] = ((float) rand()) / ((float) RAND_MAX);
 		// this should generate a random number between 0 and 1
-
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
@@ -48,7 +45,7 @@ int main()
 
 	printf("Printing example bins\n");
 	float oldBinVal = 0;
-	for (int iBin = 1; iBin < binSize; iBin++)
+	for (std::size_t iBin = 1; iBin < binSize; iBin++)
 	{
 		const float delta = histHandler.get_cdf(iBin) - oldBinVal;
 		printf("iBin = %d, Value = %.1f, Delta = %.4f\n", (int) iBin, histHandler.get_cdf(iBin), delta);
@@ -56,7 +53,7 @@ int main()
 	}
 
 	// first bin must be zero and last bin must be one
-	for (int iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
+	for (std::size_t iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
 	{
 		if (histHandler.get_cdf(0, iSub) != 0.0)
 		{
@@ -73,6 +70,9 @@ int main()
 	}
 
 	histHandler.equalize();
+
+	printf("CDF calculation took %.2f ms\n", histHandler.get_tCdf());
+	printf("EQ calculation took %.2f ms\n", histHandler.get_tEq());
 	
 	delete[] inputVol;
 		

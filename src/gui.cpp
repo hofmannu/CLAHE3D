@@ -1,5 +1,28 @@
 #include "gui.h"
 
+// small helper functions to read size_t values
+namespace ImGui
+{
+	void InputInt(const char* message, std::size_t* value)
+	{
+		int tempVal = *value;
+		ImGui::InputInt(message, &tempVal);
+		*value = tempVal;
+		return;
+	}
+
+	void InputInt3(const char* message, std::size_t* value)
+	{
+		int tempVal[3] = {(int) value[0], (int)value[1], (int)value[2]};
+		ImGui::InputInt3(message, &tempVal[0]);
+		value[0] = tempVal[0];
+		value[1] = tempVal[1];
+		value[2] = tempVal[2];
+		return;
+	}
+}
+
+
 gui::gui()
 {
 	inputVol = proc.get_pinputVol();

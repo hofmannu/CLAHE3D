@@ -44,20 +44,20 @@ void genfilt::padd()
 {
 	paddedSize = get_paddedSize();
 	alloc_padded();
-	for (int iz = 0; iz < paddedSize.z; iz++)
+	for (std::size_t iz = 0; iz < paddedSize.z; iz++)
 	{
 		const bool isZRange = ((iz >= range.z) && (iz <= (paddedSize.z - range.z - 1)));
-		for (int iy = 0; iy < paddedSize.y; iy++)
+		for (std::size_t iy = 0; iy < paddedSize.y; iy++)
 		{
 			const bool isYRange = ((iy >= range.y) && (iy <= (paddedSize.y - range.y - 1)));
-			for (int ix = 0; ix < paddedSize.x; ix++)
+			for (std::size_t ix = 0; ix < paddedSize.x; ix++)
 			{
 				const bool isXRange = ((ix >= range.x) && (ix <= (paddedSize.x - range.x - 1)));
 				// if we are in valid volume, set to value, otherwise padd to 0 for now
-				const int idxPad = ix + paddedSize.x * (iy + paddedSize.y * iz);
+				const std::size_t idxPad = ix + paddedSize.x * (iy + paddedSize.y * iz);
 				if (isZRange && isXRange && isYRange)
 				{
-					const int idxInput = (ix - range.x) + dataSize.x * ((iy - range.y) + dataSize.y * (iz - range.z));
+					const std::size_t idxInput = (ix - range.x) + dataSize.x * ((iy - range.y) + dataSize.y * (iz - range.z));
 					// (iz - range.z)
 					dataPadded[idxPad] = dataInput[idxInput];
 				} 
@@ -72,31 +72,31 @@ void genfilt::padd()
 }
 
 // convolution procedure for subrange of volume along z
-void genfilt::conv_range(const int iRange)
+void genfilt::conv_range(const std::size_t iRange)
 {
-	for (int iz = zStart[iRange]; iz <= zStop[iRange]; iz++)
+	for (std::size_t iz = zStart[iRange]; iz <= zStop[iRange]; iz++)
 	{
-		for (int iy = 0; iy < dataSize.y; iy++)
+		for (std::size_t iy = 0; iy < dataSize.y; iy++)
 		{
-			for (int ix = 0; ix < dataSize.x; ix++)
+			for (std::size_t ix = 0; ix < dataSize.x; ix++)
 			{
 				// for each output element we do the sum with the local kernel
 				float tempVal = 0;
-				for (int zrel = 0; zrel < kernelSize.z; zrel++)
+				for (std::size_t zrel = 0; zrel < kernelSize.z; zrel++)
 				{
-					const int zAbs = iz + zrel;
-					for (int yrel = 0; yrel < kernelSize.y; yrel++)
+					const std::size_t zAbs = iz + zrel;
+					for (std::size_t yrel = 0; yrel < kernelSize.y; yrel++)
 					{
-						const int yAbs = iy + yrel;
-						for (int xrel = 0; xrel < kernelSize.x; xrel++)
+						const std::size_t yAbs = iy + yrel;
+						for (std::size_t xrel = 0; xrel < kernelSize.x; xrel++)
 						{
 							
-							const int xAbs = ix + xrel; // get current index in padding
+							const std::size_t xAbs = ix + xrel; // get current index in padding
 
 							// index in padded volume
-							const int idxPadd = xAbs + paddedSize.x * (yAbs + paddedSize.y * zAbs);
+							const std::size_t idxPadd = xAbs + paddedSize.x * (yAbs + paddedSize.y * zAbs);
 
-							const int idxKernel = xrel + kernelSize.x * (yrel + kernelSize.y * zrel);
+							const std::size_t idxKernel = xrel + kernelSize.x * (yrel + kernelSize.y * zrel);
 
 							tempVal = fmaf(
 								dataPadded[idxPadd], kernel[idxKernel], tempVal);
@@ -135,14 +135,14 @@ void genfilt::conv()
 	std::vector<thread> runners;
 	
 	// launch all threads
-	for (int iThread = 0; iThread < nThreads; iThread++)
+	for (uint8_t iThread = 0; iThread < nThreads; iThread++)
 	{
 		std::thread currThread(&genfilt::conv_range, this, iThread); 
 		runners.push_back(std::move(currThread));
 	}
 
 	// collect all threads
-	for (int iThread = 0; iThread < nThreads; iThread++)
+	for (uint8_t iThread = 0; iThread < nThreads; iThread++)
 		runners[iThread].join();
 
 	const auto tStop = std::chrono::high_resolution_clock::now();
@@ -175,7 +175,7 @@ void genfilt::set_kernel(float* _kernel)
 }
 
 // define the size of the input dataset
-void genfilt::set_dataSize(const vector3<int> _dataSize)
+void genfilt::set_dataSize(const vector3<std::size_t> _dataSize)
 {
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)
@@ -191,7 +191,7 @@ void genfilt::set_dataSize(const vector3<int> _dataSize)
 }
 
 // define the size of the convolution kernel
-void genfilt::set_kernelSize(const vector3<int> _kernelSize)
+void genfilt::set_kernelSize(const vector3<std::size_t> _kernelSize)
 {
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)

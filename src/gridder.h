@@ -19,32 +19,34 @@ class gridder
 private:
 public:
 	// variables
-	vector3<int> volSize; // size of full three dimensional volume [z, x, y]
-	vector3<int> nSubVols; // number of subvolumes in zxy
-	vector3<int> sizeSubVols = {11, 11, 11}; // size of each subvolume in zxy (should be uneven)
-	vector3<int> spacingSubVols = {5, 5, 5}; // spacing of subvolumes (they can overlap)
-	vector3<int> origin; // position of the very first element [0, 0, 0]
-	vector3<int> endIdx; // terminal value
-	int nElements; // total number of elements
+	vector3<std::size_t> volSize; // size of full three dimensional volume [z, x, y]
+	vector3<std::size_t> nSubVols; // number of subvolumes in zxy
+	vector3<std::size_t> sizeSubVols = {11, 11, 11}; // size of each subvolume in zxy (should be uneven)
+	vector3<std::size_t> spacingSubVols = {5, 5, 5}; // spacing of subvolumes (they can overlap)
+	vector3<std::size_t> origin; // position of the very first element [0, 0, 0]
+	vector3<std::size_t> endIdx; // terminal value
+	std::size_t nElements; // total number of elements
 	
 	// calculations
 	void calculate_nsubvols();
 
 	// set functions
-	void set_volSize(const vector3<int>& _volSize); // overall size of the volume [z, x, y]
-	void set_sizeSubVols(const vector3<int>& _subVolSize); // size of each subvolume [z, x, y]
-	void set_spacingSubVols(const vector3<int>& _spacingSubVols); // space between subvolumes
+	void set_volSize(const vector3<std::size_t>& _volSize); // overall size of the volume [z, x, y]
+	void set_sizeSubVols(const vector3<std::size_t>& _subVolSize); // size of each subvolume [z, x, y]
+	void set_spacingSubVols(const vector3<std::size_t>& _spacingSubVols); // space between subvolumes
 	
-	int* get_pspacingSubVols() { return &spacingSubVols.x;};
-	int* get_psizeSubVols() { return &sizeSubVols.x;};
+	std::size_t* get_pspacingSubVols() { return &spacingSubVols.x;};
+	std::size_t* get_psizeSubVols() { return &sizeSubVols.x;};
 
 	// get functions
-	int get_nSubVols(const uint8_t iDim) const {return nSubVols[iDim];};
-	int get_nSubVols() const {return nSubVols.x * nSubVols.y * nSubVols.z;};
-	void get_neighbours(const vector3<int>& position, int* neighbours, float* ratio) const;
-	vector3<int> get_startIdxSubVol(const vector3<int> iSub) const;
-	vector3<int> get_stopIdxSubVol(const vector3<int> iSub) const;
-	int get_nElements() const;
+	std::size_t get_nSubVols(const uint8_t iDim) const {return nSubVols[iDim];};
+	std::size_t get_nSubVols() const {return nSubVols.x * nSubVols.y * nSubVols.z;};
+	void get_neighbours(const vector3<std::size_t>& position, std::size_t* neighbours, float* ratio) const;
+	
+	vector3<std::size_t> get_startIdxSubVol(const vector3<std::size_t>& iSub) const;
+		vector3<std::size_t> get_stopIdxSubVol(const vector3<std::size_t>& iSub) const;
+	
+	std::size_t get_nElements() const;
 
 };
 

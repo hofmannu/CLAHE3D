@@ -60,7 +60,6 @@ target_link_libraries(Volproc PUBLIC
 
 add_library(Lexer lexer.cpp)
 
-
 if(${USE_GUI})
 	add_library(ImGuiFileDialog ImGuiFileDialog.cpp)
 	target_link_libraries(ImGuiFileDialog PUBLIC ImGui)
