@@ -25,19 +25,21 @@ To use the GUI or CUDA support, there are a few more things to install
 
 ## Ubuntu
 
-*  `git`: obviously
-*  `nvidia-cuda-toolkit`: ships nvcc and other tools required to compile CUDA code
-*  `cmake`: required for compilation
-*  `g++`: compiler of choice
-*  `libsdl2-dev`: required to display stuff
-*  `libhdf5-dev`: required to save and load from h5 file format
-*  `libglfw3-dev`: also for display stuff
+*  Compilation tools and helpers: `git`, `cmake`, `g++`
+*  GPU: `nvidia-cuda-toolkit`
+*  Stuff to display things using the GUI: `libsdl2-dev`, `libglfw3-dev`
+*  Saving and reading from h5 files: `libhdf5-dev`
+
+With those libraries installed it should work. A few libraries might not be matching with your OS path to them (e.g. not finding header files).
 
 ## ArchLinux
 
-# Installation / Compiling
+*  Compilation tools and helpers: `git`, `cmake`, `g++`
+*  GPU: `cuda`
+*  Stuff to display things using the GUI: `sdl2`, `glfw-x11` or `glfw-wayland`, `glew`
+*  Saving and reading from h5 files: `hdf5`
 
-*  `cuda`: CUDA toolkit
+# Installation / Compiling
 
 The `CPU` code does not depend on any library. For the `GPU` version you need to have `CUDA` installed on your system. For the GUI there come a few additional dependencies. The code is compiled using `cmake`. You can use the code also with GPU support and the functions will then be accelerated on the GPU (requires CUDA and CUDA capable device). To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.txt` to `TRUE`. Same is true if you want to use the ImGui based graphical user interface (basically a simple slicing and execution interface).
 
@@ -56,8 +58,7 @@ To run a throughout test of the procedures, run `ctest` from the `Debug` subfold
 
 # Feature request / bug report
 
-Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is going to be a `CUDA` capable parallelized version of the code.
-
+Feel free to contact me if you need the addition of a feature or if you want to report a bug. Next step of this project is to enable the simultaneous processing of multiple volume pipelines using a simple scripting language. Other feature requests and processing functions are listed in the issues section.
 
 # Literature
 *  Karen Lucknavalai, Jürgen P. Schulze: [Real-Time Contrast Enhancement for 3D Medical Images Using Histogram Equalization](https://link.springer.com/chapter/10.1007/978-3-030-64556-4_18) in ISVC 2020: Advances in Visual Computing pp 224-235 --> describes a layer wise processing but does not use volumetric tiling
