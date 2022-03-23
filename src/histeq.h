@@ -109,7 +109,6 @@ public gridder
 		template<typename T>
 		float get_icdf(const T ix, const T iy, const T iz, const float value) const;
 
-
 		// return values from cdf array
 		float get_cdf(const std::size_t _iBin, 
 			const std::size_t iXSub, const std::size_t iYSub, const std::size_t iZSub) const;
