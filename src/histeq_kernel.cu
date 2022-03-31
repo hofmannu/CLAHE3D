@@ -49,8 +49,8 @@ struct cdf_arguments
 	unsigned int sizeSubVols[3]; // overall size of subvolume [z, x, y]
 	unsigned int range[3]; // range of each bin in each direction [z, x, y]
 	int nBins; // number of bins which we use for our histogram
-	unsigned int noiseLevel; // noise level in matrix
-	float origin[3];
+	float noiseLevel; // noise level in matrix
+	unsigned int origin[3];
 };
 
 #endif
@@ -218,9 +218,12 @@ __device__ inline vector3gpu get_stopIndex(const vector3gpu iSub)
 	};
 	const vector3gpu stopIdx = 
 	{
-		((centerIdx.x + inArgsCdf->range[0]) < inArgsCdf->volSize[0]) ? (centerIdx.x + inArgsCdf->range[0]) : (inArgsCdf->volSize[0] - 1),
-		((centerIdx.y + inArgsCdf->range[1]) < inArgsCdf->volSize[1]) ? (centerIdx.y + inArgsCdf->range[1]) : (inArgsCdf->volSize[1] - 1),
-		((centerIdx.z + inArgsCdf->range[2]) < inArgsCdf->volSize[2]) ? (centerIdx.z + inArgsCdf->range[2]) : (inArgsCdf->volSize[2] - 1)
+		((centerIdx.x + inArgsCdf->range[0]) < inArgsCdf->volSize[0]) ? 
+			(centerIdx.x + inArgsCdf->range[0]) : (inArgsCdf->volSize[0] - 1),
+		((centerIdx.y + inArgsCdf->range[1]) < inArgsCdf->volSize[1]) ? 
+			(centerIdx.y + inArgsCdf->range[1]) : (inArgsCdf->volSize[1] - 1),
+		((centerIdx.z + inArgsCdf->range[2]) < inArgsCdf->volSize[2]) ? 
+			(centerIdx.z + inArgsCdf->range[2]) : (inArgsCdf->volSize[2] - 1)
 	};
 	return stopIdx;
 }
@@ -250,7 +253,8 @@ __global__ void cdf_kernel(
 		const vector3gpu stopIdx = get_stopIndex(iSub);
 		
 		// index of currently employed subvolume
-		const unsigned int idxSubVol = iSub.x + inArgsCdf->nSubVols[0] * (iSub.y + inArgsCdf->nSubVols[1] * iSub.z);
+		const unsigned int idxSubVol = iSub.x + 
+			inArgsCdf->nSubVols[0] * (iSub.y + inArgsCdf->nSubVols[1] * iSub.z);
 		float* localCdf = &cdf[inArgsCdf->nBins * idxSubVol]; // histogram of subvolume, only temporarily requried
 		// volume is indexed as iz + ix * nz + iy * nx * nz
 		// cdf is indexed as [iBin, iZSub, iXSub, iYSub]
@@ -326,27 +330,28 @@ __global__ void cdf_kernel(
 		}
 
 		// calculate cummulative sum and scale along y
-		float cdfTemp = 1.0f;
-		const float zeroElem = localCdf[0];
+		float cdfTemp = 0.0f;
 		for (unsigned int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 		{
 			cdfTemp += localCdf[iBin];
-			localCdf[iBin] = cdfTemp - zeroElem;
+			localCdf[iBin] = cdfTemp;
 		}
 
 		// now we scale cdf to max == 1 (first value is 0 anyway)
-		const float cdfMax = localCdf[inArgsCdf->nBins - 1];
-		const float rcdfMax = 1.0f / cdfMax;
-		const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1));
-		if (cdfMax > 0.0f)
+		const float zeroElem = localCdf[0];
+		const float valRange = localCdf[inArgsCdf->nBins - 1] - zeroElem;;
+		const float rvalRange = 1.0f / valRange;
+
+		if (localCdf[inArgsCdf->nBins - 1] > 0.0f)
 		{
-			for (unsigned int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
+			for (unsigned int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 			{
-				localCdf[iBin] *= rcdfMax;
+				localCdf[iBin] = (localCdf[iBin] - zeroElem) * rvalRange;
 			}
 		}
 		else
 		{
+			const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1));
 			for (unsigned int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
 			{
 				localCdf[iBin] = ((float) iBin) * revMaxBin;

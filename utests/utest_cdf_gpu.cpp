@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <fstream>
 #include <chrono>
+#include <math.h>
 #include "../src/vector3.h"
 
 using namespace std;
@@ -21,9 +22,9 @@ int main(){
 	// initialize some parameters
 	const float clipLimit = 0.1;
 	const int binSize = 10;
-	const vector3<int> subVolSpacing = {20, 20, 20};
-	const vector3<int> volSize = {600, 500, 400};
-	const vector3<int> subVolSize(11, 11, 11);
+	const vector3<std::size_t> subVolSpacing = {20, 20, 20};
+	const vector3<std::size_t> volSize = {600, 500, 400};
+	const vector3<std::size_t> subVolSize(11, 11, 11);
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize[0] * volSize[1] * volSize[2]];
@@ -59,8 +60,8 @@ int main(){
 	int countNotSame = 0;
 	for (int iElem = 0; iElem < histHandler.get_ncdf(); iElem++)
 	{
-		const float deltaVal = abs(cdf_bk[iElem] - histHandler.get_cdf(iElem));
-		if (cdf_bk[iElem] != histHandler.get_cdf(iElem))
+		const float deltaVal = fabsf(cdf_bk[iElem] - histHandler.get_cdf(iElem));
+		if (deltaVal >= 1e-6)
 		{
 			isSame = 0;
 			countNotSame++;

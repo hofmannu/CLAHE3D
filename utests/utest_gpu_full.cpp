@@ -19,11 +19,11 @@ int main(){
 	srand(1);
 
 	// define grid dimensions for testing
-	const vector3<int> volSize = {600, 500, 400};
+	const vector3<std::size_t> volSize = {600, 500, 400};
 	const float clipLimit = 0.1;
 	const int binSize = 10;
-	const vector3<int> subVolSize = {31, 31, 31};
-	const vector3<int> subVolSpacing = {10, 10, 10};
+	const vector3<std::size_t> subVolSize = {31, 31, 31};
+	const vector3<std::size_t> subVolSpacing = {10, 10, 10};
 	
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.elementMult()];
@@ -57,7 +57,8 @@ int main(){
 	const auto durationEq = std::chrono::duration_cast<std::chrono::milliseconds>
 		(stopTimeEq - startTimeEq);
 
-	printf("Time required for CDF: %d ms, EQ: %d ms\n", duractionCdf.count(), durationEq.count());
+	printf("Time required for CDF: %lu ms, EQ: %lu ms\n", 
+		duractionCdf.count(), durationEq.count());
 	
 	// backup the version of the CDF calculated with
 	float* output_bk = new float[histHandler.get_nElements()];

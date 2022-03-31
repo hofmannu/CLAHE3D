@@ -12,12 +12,20 @@
 #include <algorithm>
 #include <thread>
 
+#if USE_CUDA
+	#include <cuda.h>
+	#include <cuda_runtime.h>
+	#include <cuda_runtime_api.h>
+	#include "cudaTools.cuh"
+#endif
+
 #ifndef MEDIANFILTSETT_H
 #define MEDIANFILTSETT_H
 
 struct medianfiltsett
 {
 	int kernelSize[3] = {3, 3, 3};
+	bool flagGpu = 0;
 };
 
 #endif
@@ -26,7 +34,11 @@ struct medianfiltsett
 #ifndef MEDIANFILT_H
 #define MEDIANFILT_H
 
-class medianfilt : public genfilt
+class medianfilt : 
+#if USE_CUDA
+	public cudaTools,
+#endif
+public genfilt
 {
 private:
 	// int nThreads = 1;
@@ -36,12 +48,13 @@ private:
 	int centerIdx; // center index of linearized kernel
 	int sizeKernel; // size of kernel in bytes
 	
-	void padd(); // function to apply padding to dataset
+	// void padd(); // function to apply padding to dataset
 	void run_range(const int iRange); // run for a certain z range (multithread)
 public:
 	medianfilt(); // class constructor
 
 	void run();
+	void run_gpu();
 };
 
 #endif

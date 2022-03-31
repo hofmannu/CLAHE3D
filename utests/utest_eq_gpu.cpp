@@ -18,10 +18,10 @@ using namespace std;
 int main(){
 
 	// define grid dimensions for testing
-	const vector3<int> volSize = {600, 500, 400};
+	const vector3<std::size_t> volSize = {600, 500, 400};
 	// initialize some parameters
-	const vector3<int> subVolSize = {31, 31, 31};
-	const vector3<int> subVolSpacing = {20, 20, 20};
+	const vector3<std::size_t> subVolSize = {31, 31, 31};
+	const vector3<std::size_t> subVolSpacing = {20, 20, 20};
 
 	// generate input volume matrix and assign random values between 0.0 and 1.0
 	float* inputVol = new float[volSize.elementMult()];

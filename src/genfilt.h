@@ -33,10 +33,10 @@ protected:
 	vector<std::size_t> zStop;
 
 	// padded version of input data
-	float* dataPadded;
+	float* dataPadded = nullptr;
 	bool isDataPaddedAlloc = 0;
 	
-	float* dataOutput; // cannot be same as dataInput
+	float* dataOutput = nullptr; // cannot be same as dataInput
 	bool isDataOutputAlloc = 0;
 
 	float* kernel;
@@ -72,7 +72,10 @@ public:
 	std::size_t get_nKernel() const {return kernelSize.elementMult();};
 	std::size_t get_nData() const {return dataSize.elementMult();};
 	std::size_t get_nPadded() const {return paddedSize.elementMult();};
+	
 	float* get_pdataOutput() {return dataOutput;};
+	float* get_pdataPadded() {return dataPadded;};
+
 	float get_tExec() const {return tExec;};
 	std::size_t get_dataDim(const uint8_t iDim) const {return dataSize[iDim];};
 };

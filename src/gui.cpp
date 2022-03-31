@@ -22,7 +22,6 @@ namespace ImGui
 	}
 }
 
-
 gui::gui()
 {
 	inputVol = proc.get_pinputVol();
@@ -383,6 +382,9 @@ void gui::SettingsWindow()
 		if (ImGui::CollapsingHeader("Median filter"))
 		{
 			ImGui::InputInt3("Kernel size", sett_medianfilt.kernelSize);
+#if USE_CUDA
+			ImGui::Checkbox("GPU", &sett_medianfilt.flagGpu);
+#endif
 			ImGui::SameLine();
 			HelpMarker("Number of neighbouring voxels taking into account during median filter along x, y, z.");
 			if (ImGui::Button("Run median filter"))

@@ -1,5 +1,6 @@
 #include "vector3.h"
 #include "genfilt.h"
+#include "cudaTools.cuh"
 
 // struct containing all the settings for our mean filter
 #ifndef MEANFILTSETT_H
@@ -16,7 +17,11 @@ struct meanfiltsett
 #ifndef MEANFILT_H
 #define MEANFILT_H
 
-class meanfilt : public genfilt
+class meanfilt : 
+#if USE_CUDA
+	public cudaTools,
+#endif
+public genfilt
 {
 private:
 	float* meanKernel;

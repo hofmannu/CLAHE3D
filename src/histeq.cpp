@@ -34,7 +34,7 @@ void histeq::calculate_cdf_gpu()
 	calculate_nsubvols();
 	
 	// define grid and block size
-	const dim3 blockSize(32, 2, 2);
+	const dim3 blockSize(4, 4, 4);
 	const dim3 gridSize(
 		(nSubVols[0] + blockSize.x - 1) / blockSize.x,
 		(nSubVols[1] + blockSize.y - 1) / blockSize.y,
@@ -101,8 +101,6 @@ void histeq::calculate_cdf_gpu()
 	const auto duractionCdf = std::chrono::duration_cast<std::chrono::milliseconds>
 		(stopTimeCdf - startTimeCdf);
 	printf("Time required for CDF kernels: %d ms\n", duractionCdf.count());
-
-
 
 	// check if there was any problem during kernel execution
 	cErr = cudaGetLastError();
@@ -296,7 +294,8 @@ void histeq::calculate_sub_cdf(
 		minValBin[idxSubVol] = tempMin;
 
 		// calculate size of each bin
-		const float binRange = (tempMin == tempMax) ? 1.0f : (tempMax - tempMin) / ((float) nBins);
+		const float binRange = (tempMin == tempMax) ? 
+			1.0f : (tempMax - tempMin) / ((float) nBins);
 
 		// sort values into bins which are above clipLimit
 		for (std::size_t iElem = 0; iElem < nDataLocal; iElem++)

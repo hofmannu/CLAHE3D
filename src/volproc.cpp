@@ -20,7 +20,14 @@ void volproc::run_medianfilt(const medianfiltsett sett)
 		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
 	medianfilter.set_kernelSize(
 		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
-	medianfilter.run();
+
+#if USE_CUDA
+	if (sett.flagGpu)
+		medianfilter.run_gpu();
+	else
+#endif
+		medianfilter.run();
+
 	new_entry("Finished mean filter execution");
 	memcpy(outputVol.get_pdata(), medianfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());

@@ -18,8 +18,6 @@ int main()
 	const int nz = 120;
 
 	medianfilt myFilt;
-
-
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
 	myFilt.set_dataSize({nx, ny, nz});
 
@@ -79,7 +77,6 @@ int main()
 		printf("Comparison results differ: %.4f, %.4f\n", testVal, valueProc);
 		throw "InvalidValue";
 	}
-
 
 	delete[] inputData;
 

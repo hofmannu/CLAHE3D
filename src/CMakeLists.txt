@@ -1,10 +1,12 @@
 # prepare for cuda compilation
 if (${USE_CUDA})
+	find_package(CUDA REQUIRED)
+	INCLUDE_DIRECTORIES(/opt/cuda/include include)
+
 	set(CUDA_SEPARABLE_COMPILATION ON)
 	set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 	set(BUILD_SHARED_LIBS OFF)
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-	# set(CMAKE_CUDA_FLAGS "${CUDA_CUDA_FLAGS} -rdc=true -ftz=false -prec-div=true -prec-sqrt=true")
 	set(CMAKE_CUDA_FLAGS "${CUDA_CUDA_FLAGS} -rdc=true --ptxas-options=-v -O2")
 endif()
 
@@ -13,7 +15,7 @@ add_library(Gridder gridder.cpp)
 add_library(Histeq histeq.cpp)
 if (${USE_CUDA})
 	set_property(TARGET Histeq PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-	target_link_libraries(Histeq PUBLIC Gridder CudaTools)
+	target_link_libraries(Histeq PUBLIC Gridder CudaTools ${CUDA_LIBRARY})
 	set_source_files_properties(histeq.cpp PROPERTIES LANGUAGE CUDA)
 else()
 	target_link_libraries(Histeq PUBLIC Gridder)
@@ -28,12 +30,22 @@ add_library(Genfilt genfilt.cpp)
 
 add_library(Meanfilt meanfilt.cpp)
 target_link_libraries(Meanfilt PUBLIC Genfilt)
+if (${USE_CUDA})
+	target_link_libraries(Meanfilt PUBLIC CudaTools ${CUDA_LIBRARY})
+	set_property(TARGET Meanfilt PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	set_source_files_properties(meanfilt.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 
 add_library(Gaussfilt gaussfilt.cpp)
 target_link_libraries(Gaussfilt PUBLIC Genfilt)
 
 add_library(Medianfilt medianfilt.cpp)
 target_link_libraries(Medianfilt PUBLIC Genfilt)
+if (${USE_CUDA})
+	target_link_libraries(Medianfilt PUBLIC CudaTools ${CUDA_LIBRARY})
+	set_property(TARGET Medianfilt PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	set_source_files_properties(medianfilt.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 
 # simple function like thresholding
 add_library(Thresholder thresholder.cpp)
@@ -46,7 +58,13 @@ add_library(Log log.cpp)
 add_library(Normalizer normalizer.cpp)
 
 # overall volume processing class
+
 add_library(Volproc volproc.cpp)
+if (${USE_CUDA})
+	set_source_files_properties(volproc.cpp PROPERTIES LANGUAGE CUDA)
+	set_property(TARGET Volproc PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	# set_source_files_properties(volproc.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 target_link_libraries(Volproc PUBLIC
 	Genfilt
 	Meanfilt

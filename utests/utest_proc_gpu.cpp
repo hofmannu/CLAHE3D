@@ -18,11 +18,11 @@ int main()
 {
 
 	// define grid dimensions for testing
-	const vector3<int> volSize(600, 500, 400);
+	const vector3<std::size_t> volSize(600, 500, 400);
 	const float clipLimit = 0.1;
 	const int binSize = 20;
-	const vector3<int> subVolSize(31, 31, 31);
-	const vector3<int> subVolSpacing(20, 20, 20);
+	const vector3<std::size_t> subVolSize(31, 31, 31);
+	const vector3<std::size_t> subVolSpacing(20, 20, 20);
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.elementMult()];

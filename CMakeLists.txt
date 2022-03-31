@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(USE_CUDA FALSE) # flag to enable and disable GPU support
+set(USE_CUDA TRUE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
@@ -19,8 +19,7 @@ endif()
 
 if(${USE_CUDA})
 	enable_language(CUDA)
-	find_package(CUDA REQUIRED QUIET)
-	INCLUDE(FindCUDA)
+	find_package(CUDA REQUIRED)
 	INCLUDE_DIRECTORIES(/opt/cuda/include include)
 
 	set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
@@ -72,6 +71,7 @@ add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
 add_test(NAME test_binarization COMMAND UtestBinarization)
 add_test(NAME test_vector3 COMMAND UtestVector3)
 add_test(NAME test_genfilt COMMAND UtestGenfilt)
+add_test(NAME test_padding COMMAND UtestPadding)
 add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
 add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
 add_test(NAME test_medianfilt COMMAND UtestMedianfilt)
@@ -84,6 +84,7 @@ if(${USE_CUDA})
 	add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)
 	add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
 	add_test(NAME test_gpu_full COMMAND UtestGpuFull)
+	add_test(NAME test_medianfilt_gpu COMMAND UtestMedianfiltGpu)
 endif()
 
 enable_testing() # this cannot be in subdirectory!
