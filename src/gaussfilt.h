@@ -9,6 +9,7 @@ struct gaussfiltsett
 {
 	float sigma = 1;
 	int kernelSize[3] = {5, 5, 5};
+	bool flagGpu = 0;
 };
 
 #endif
@@ -26,6 +27,9 @@ public:
 	gaussfilt();
 	~gaussfilt();
 	void run();
+	#if USE_CUDA
+	void run_gpu();
+	#endif
 
 	float* get_psigma() {return &sigma;};
 	void set_sigma(const float _sigma);

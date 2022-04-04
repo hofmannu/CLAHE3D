@@ -18,6 +18,7 @@ add_executable(UtestVector3 utest_vector3.cpp)
 add_executable(UtestGenfilt utest_genfilt.cpp)
 target_link_libraries(UtestGenfilt PUBLIC Genfilt)
 
+
 add_executable(UtestPadding utest_padding.cpp)
 target_link_libraries(UtestPadding PUBLIC Genfilt)
 
@@ -55,6 +56,10 @@ if(${USE_CUDA})
 	target_link_libraries(UtestMedianfiltGpu PUBLIC Medianfilt)
 	set_property(TARGET UtestMedianfiltGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
+	add_executable(UtestGenfiltGpu utest_genfilt_gpu.cpp)
+	target_link_libraries(UtestGenfiltGpu PUBLIC Genfilt)
+	set_property(TARGET UtestGenfiltGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+		
 	add_executable(UtestGpuFull utest_gpu_full.cpp)
 	target_link_libraries(UtestGpuFull PUBLIC Histeq)
 	set_property(TARGET UtestGpuFull PROPERTY CUDA_SEPARABLE_COMPILATION ON)

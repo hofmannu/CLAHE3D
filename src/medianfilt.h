@@ -34,11 +34,7 @@ struct medianfiltsett
 #ifndef MEDIANFILT_H
 #define MEDIANFILT_H
 
-class medianfilt : 
-#if USE_CUDA
-	public cudaTools,
-#endif
-public genfilt
+class medianfilt : public genfilt
 {
 private:
 	// int nThreads = 1;

@@ -48,7 +48,12 @@ void volproc::run_meanfilt(const meanfiltsett sett)
 		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
 	meanfilter.set_kernelSize(
 		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
-	meanfilter.run();
+	#if USE_CUDA
+	if (sett.flagGpu)
+		meanfilter.run_gpu();
+	else
+	#endif
+		meanfilter.run();
 	new_entry("Finished mean filter execution");
 	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());
@@ -70,7 +75,12 @@ void volproc::run_gaussfilt(const gaussfiltsett sett)
 	gaussfilter.set_kernelSize(
 		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
 	gaussfilter.set_sigma(sett.sigma);
-	gaussfilter.run();
+	#if USE_CUDA
+	if (sett.flagGpu)
+		gaussfilter.run_gpu();
+	else
+	#endif
+		gaussfilter.run();
 	new_entry("Finished gauss filter execution");
 	memcpy(outputVol.get_pdata(), gaussfilter.get_pdataOutput(), 
 		sizeof(float) * outputVol.get_nElements());

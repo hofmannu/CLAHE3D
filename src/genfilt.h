@@ -12,12 +12,22 @@
 #include <thread>
 #include <vector>
 
+#if USE_CUDA
+	#include <cuda.h>
+	#include <cuda_runtime.h>
+	#include <cuda_runtime_api.h>
+	#include "cudaTools.cuh"
+#endif
+
 using namespace std;
 
 #ifndef GENFILT_H
 #define GENFILT_H
 
 class genfilt
+#if USE_CUDA
+	: public cudaTools
+#endif
 {
 protected:
 	vector3<std::size_t> dataSize;

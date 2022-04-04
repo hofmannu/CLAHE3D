@@ -27,6 +27,11 @@ endif()
 
 # general spatial domain filter class and all its variants (kernel convolutions)
 add_library(Genfilt genfilt.cpp)
+if (${USE_CUDA})
+	target_link_libraries(Genfilt PUBLIC CudaTools ${CUDA_LIBRARY})
+	set_property(TARGET Genfilt PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	set_source_files_properties(genfilt.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 
 add_library(Meanfilt meanfilt.cpp)
 target_link_libraries(Meanfilt PUBLIC Genfilt)
@@ -38,6 +43,11 @@ endif()
 
 add_library(Gaussfilt gaussfilt.cpp)
 target_link_libraries(Gaussfilt PUBLIC Genfilt)
+if (${USE_CUDA})
+	target_link_libraries(Gaussfilt PUBLIC CudaTools ${CUDA_LIBRARY})
+	set_property(TARGET Gaussfilt PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+	set_source_files_properties(gaussfilt.cpp PROPERTIES LANGUAGE CUDA)
+endif()
 
 add_library(Medianfilt medianfilt.cpp)
 target_link_libraries(Medianfilt PUBLIC Genfilt)

@@ -360,6 +360,9 @@ void gui::SettingsWindow()
 			ImGui::InputInt3("Kernel size", sett_meanfilt.kernelSize);
 			ImGui::SameLine();
 			HelpMarker("Number of neighbouring voxels taking into account during mean filter along x, y, z.");
+#if USE_CUDA
+			ImGui::Checkbox("GPU", &sett_meanfilt.flagGpu);
+#endif
 			if (ImGui::Button("Run mean filter"))
 			{
 				proc.run_meanfilt(sett_meanfilt);
@@ -372,6 +375,9 @@ void gui::SettingsWindow()
 		{
 			ImGui::InputInt3("Kernel size", sett_gaussfilt.kernelSize);
 			ImGui::InputFloat("Sigma", &sett_gaussfilt.sigma);
+#if USE_CUDA
+			ImGui::Checkbox("GPU", &sett_gaussfilt.flagGpu);
+#endif
 			if (ImGui::Button("Run gaussian filter"))
 			{
 				proc.run_gaussfilt(sett_gaussfilt);

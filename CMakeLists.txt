@@ -85,6 +85,7 @@ if(${USE_CUDA})
 	add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
 	add_test(NAME test_gpu_full COMMAND UtestGpuFull)
 	add_test(NAME test_medianfilt_gpu COMMAND UtestMedianfiltGpu)
+	add_test(NAME test_genfilt_gpu COMMAND UtestGenfiltGpu)
 endif()
 
 enable_testing() # this cannot be in subdirectory!

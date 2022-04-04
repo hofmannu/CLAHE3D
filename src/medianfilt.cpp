@@ -56,11 +56,10 @@ void medianfilt::run_range(const int iRange)
 				}
 
 				sortArray = localArray;
+
+				// note: we do not need to sort the entire array and nth element can be used to simply
+				// get the element at that certain position in the array
 				std::nth_element(sortArray.begin(), sortArray.begin() + nKernel / 2, sortArray.end());
-				// sort(sortArray.begin(), sortArray.end());
-				// const int medianIdx = (kernelSize.x * kernelSize.y * nKernel - 1) / 2;
-
-
 
 				const int idxOut2 = ix + dataSize.x * (iy + dataSize.y * zAbs);
 				dataOutput[idxOut2] = sortArray[centerIdx];

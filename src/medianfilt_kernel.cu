@@ -106,7 +106,6 @@ __global__ void medianfilt_cuda(float* outputData, const medianfilt_args args)
 					// localV
 					xAbs = ix + idxVol[0];
 					localIdx = ix + args.kernelSize[0] * (iy + args.kernelSize[1] * iz);
-					const unsigned int globalIdx = xAbs + yOffset + zOffset;
 					localVec[localIdx] = args.inputData[xAbs + yOffset + zOffset];
 				}
 			}

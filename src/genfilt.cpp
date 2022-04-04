@@ -1,5 +1,8 @@
 #include "genfilt.h"
 
+#if USE_CUDA
+	#include "genfilt_kernel.cu"
+#endif
 // class constructor and destructor
 genfilt::genfilt()
 {
@@ -110,6 +113,97 @@ void genfilt::conv_range(const std::size_t iRange)
 	}
 }
 
+#if USE_CUDA
+// runs the kernel convolution on the GPU
+void genfilt::conv_gpu()
+{
+	padd();
+	alloc_output();
+
+	const auto tStart = std::chrono::high_resolution_clock::now();
+
+	genfilt_args args;
+	for (uint8_t iDim = 0; iDim < 3; iDim++)
+	{
+		args.volSize[iDim] = (unsigned int)  dataSize[iDim]; 
+		args.volSizePadded[iDim] = (unsigned int) paddedSize[iDim];
+		args.kernelSize[iDim] = (unsigned int) kernelSize[iDim];
+	}
+	args.nKernel = get_nKernel();
+
+	// memory allocation
+	const std::size_t memRequired = (get_nPadded() + get_nKernel() + get_nData()) * sizeof(float);
+	cudaDeviceProp props = get_devProps(0);
+	if (props.totalGlobalMem < memRequired)
+	{
+		printf("There is insufficient space on the device to allocate stuff\n");
+		throw "InvalidValue";
+	}
+
+	cudaError_t err = cudaMalloc((void**) &args.inputData, get_nPadded() * sizeof(float));
+	checkCudaErr(err, "COuld not allocate memory for input dataset on GPU");
+
+	err = cudaMalloc((void**) &args.kernel, get_nKernel() * sizeof(float));
+	checkCudaErr(err, "Could not allocate memory for kernel");
+
+	float* outData_dev;
+	err = cudaMalloc((void**) &outData_dev, get_nData() * sizeof(float));
+	checkCudaErr(err, "Could not allocate memory for output array on device");
+
+	// copy memory to device
+	err = cudaMemcpy(args.inputData, dataPadded, get_nPadded() * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(err, "Could not copy input dataset to device");
+
+	err = cudaMemcpy(args.kernel, kernel, get_nKernel() * sizeof(float), cudaMemcpyHostToDevice);
+	checkCudaErr(err, "Could not copy kernel to device");
+	
+
+	const dim3 blockSize(8, 8, 8);
+
+	args.localSize[0] = blockSize.x + args.kernelSize[0] - 1;
+	args.localSize[1] = blockSize.y + args.kernelSize[1] - 1;
+	args.localSize[2] = blockSize.z + args.kernelSize[2] - 1;
+	
+	const std::size_t sizeSlice = args.localSize[0] * args.localSize[1] * sizeof(float);
+	const std::size_t nBytesShared = get_nKernel() * sizeof(float) + sizeSlice;
+	if (nBytesShared > props.sharedMemPerBlock)
+	{
+		printf("Amount of shared memory required for this: %lu bytes\n", nBytesShared);
+		printf("Even smallest block size won't fit on shared\n");
+		throw "InvalidValue";
+	} 
+
+
+	// prepare launch parameters
+	const dim3 gridSize(
+		(dataSize.x + blockSize.x - 1) / blockSize.x,
+		(dataSize.y + blockSize.y - 1) / blockSize.y,
+		(dataSize.z + blockSize.z - 1) / blockSize.z);
+
+	// launch kernel
+	genfilt_cuda<<<gridSize, blockSize, nBytesShared>>>(outData_dev, args);
+	cudaDeviceSynchronize();
+
+	err = cudaGetLastError();
+	checkCudaErr(err, "Kernel crashed");
+
+	// copy memory back from device
+	err = cudaMemcpy(dataOutput, outData_dev, get_nData() * sizeof(float), cudaMemcpyDeviceToHost);
+	checkCudaErr(err, "Could not copy data back from GPU");
+
+	const auto tStop = std::chrono::high_resolution_clock::now();
+	const auto tDuration = std::chrono::duration_cast<std::chrono::milliseconds>(tStop- tStart);
+	tExec = tDuration.count();
+
+	cudaFree(args.inputData);
+	cudaFree(args.kernel);
+	cudaFree(outData_dev);
+	return;
+
+}
+#endif
+
+// performs the convolution of the dataset with the kernel on the CPU
 void genfilt::conv()
 {
 	padd();
@@ -151,15 +245,6 @@ void genfilt::conv()
 	return;
 }
 
-
-#if USE_CUDA
-// TODO: not implemented yet
-void genfilt::conv_gpu()
-{
-
-	return;
-}
-#endif
 
 // set functions
 void genfilt::set_dataInput(float* _dataInput)

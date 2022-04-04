@@ -9,6 +9,7 @@
 struct meanfiltsett
 {
 	int kernelSize[3] = {3, 3, 3};
+	bool flagGpu = 0;
 };
 
 #endif
@@ -31,6 +32,9 @@ public:
 	meanfilt();
 	~meanfilt();
 	void run(); // runs the actual procesure
+	#if USE_CUDA
+	void run_gpu();
+	#endif
 
 };
 
