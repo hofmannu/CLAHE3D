@@ -480,7 +480,7 @@ void gui::SlicerWindow()
 		ImGui::NextColumn();
 		ImGui::SliderInt("z", &intedPos.z, 0, sizeArray.z - 1);
 		ImGui::Columns(1);
-		mySlice.set_slicePoint(slicePos);
+		mySlice.set_slicePoint(intedPos.x, intedPos.y, intedPos.z);
 
 		ImGui::Text("Value at current position (raw): %f", 
 			(showRaw) ? 

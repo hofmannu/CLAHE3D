@@ -38,7 +38,10 @@ public:
 	float* get_plane(const uint8_t iDim);
 
 	void set_sizeArray(const vector3<std::size_t> _sizeArray);
+
 	void set_slicePoint(const vector3<std::size_t> _slicePoint);
+	void set_slicePoint(const std::size_t ix, const std::size_t iy, const std::size_t iz);
+	
 	void set_dataMatrix(const float* _dataMatrix);
 	vector3<std::size_t> get_slicePoint() const {return slicePoint;};
 	vector3<std::size_t> get_sizeArray() const {return sizeArray;};

@@ -103,6 +103,7 @@ void slicer::set_sizeArray(const vector3<std::size_t> _sizeArray)
 	return;
 }
 
+// define slice point through a vector
 void slicer::set_slicePoint(const vector3<std::size_t> _slicePoint)
 {
 	#pragma unroll
@@ -112,6 +113,23 @@ void slicer::set_slicePoint(const vector3<std::size_t> _slicePoint)
 			reqUpdate[iDim] = 1;
 	}
 	slicePoint = _slicePoint;
+	return;
+}
+
+// define through three individual values
+void slicer::set_slicePoint(const std::size_t ix, const std::size_t iy, const std::size_t iz)
+{
+	if (slicePoint[0] != ix)
+		reqUpdate[0] = 1;
+	slicePoint.x = ix;
+
+	if (slicePoint[1] != iy)
+		reqUpdate[1] = 1;
+	slicePoint.y = iy;
+
+	if (slicePoint[2] != iz)
+		reqUpdate[2] = 1;
+	slicePoint.z = iz;
 	return;
 }
 
