@@ -10,12 +10,14 @@ if(${USE_CUDA})
 		LANGUAGES CUDA CXX)
 	add_compile_definitions(USE_CUDA)
 else()
-	message("Compiling wihtout GPU support")
+	message("Compiling without GPU support")
 	project(clahe3d VERSION 0.1
 		DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
 		LANGUAGES CXX)
 endif()
 
+message("Compiler Version: ${CMAKE_CXX_COMPILER_ID}")
+message("Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
 
 if(${USE_CUDA})
 	enable_language(CUDA)
@@ -52,9 +54,15 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg -lpthread") # for profiling of t
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
+# small exec to run clahe3d from command line
 add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
 target_link_libraries(clahe3d_scripted PUBLIC Histeq Volume) 
 install(TARGETS clahe3d_scripted DESTINATION bin)
+
+# small exec to run histogram analysis from command line
+add_executable(histogram_scripted src/histogram_scripted.cpp)
+target_link_libraries(histogram_scripted PUBLIC Histogram Volume) 
+install(TARGETS histogram_scripted DESTINATION bin)
 
 # gui specific stuff
 if(${USE_GUI})

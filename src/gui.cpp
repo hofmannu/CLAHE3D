@@ -314,7 +314,8 @@ void gui::DataLoaderWindow()
 			// plot histogram of input data 
 			ImGui::PlotConfig conf;
 			conf.values.xs = inputHist->get_pcontainerVal(); // this line is optional
-			conf.values.ys = inputHist->get_pcounter(); // this line is optional
+			std::vector<float> yVec = inputHist->get_counter();
+			conf.values.ys = &yVec[0]; // this line is optional
 			conf.values.count = inputHist->get_nBins();
 			conf.scale.min = inputHist->get_minHist();
 			conf.scale.max = inputHist->get_maxHist();
