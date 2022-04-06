@@ -17,7 +17,7 @@ All operations support multithreading on CPUs. Some are already pushed to the GP
 # Cloning and Dependencies
 
 ```bash
-git clone git@github.com:hofmannu/CLAHE3D.git
+git clone https://github.com/hofmannu/CLAHE3D.git
 cd CLAHE3D
 git submodule init
 git submodule update
