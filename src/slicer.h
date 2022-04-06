@@ -1,3 +1,12 @@
+/*
+	a class used to generate slices from a volume
+
+	Author: Urs Hofmann
+	Mail: mail@hofmannu.org
+	Date: 06.04.2022
+
+*/
+
 #ifndef SLICER_H
 #define SLICER_H
 
@@ -8,8 +17,8 @@ class slicer
 
 private:
 	const float*  dataMatrix;
-	vector3<int> sizeArray;
-	vector3<int> slicePoint;
+	vector3<std::size_t> sizeArray;
+	vector3<std::size_t> slicePoint;
 
 	float* planes[3]; // x normal, y normal, z normal
 	bool isPlanesAlloc = 0;
@@ -28,11 +37,11 @@ public:
 	void flip(const uint8_t iDim);
 	float* get_plane(const uint8_t iDim);
 
-	void set_sizeArray(const vector3<int> _sizeArray);
-	void set_slicePoint(const vector3<int> _slicePoint);
+	void set_sizeArray(const vector3<std::size_t> _sizeArray);
+	void set_slicePoint(const vector3<std::size_t> _slicePoint);
 	void set_dataMatrix(const float* _dataMatrix);
-	vector3<int> get_slicePoint() const {return slicePoint;};
-	vector3<int> get_sizeArray() const {return sizeArray;};
+	vector3<std::size_t> get_slicePoint() const {return slicePoint;};
+	vector3<std::size_t> get_sizeArray() const {return sizeArray;};
 
 	bool* get_pflipFlag(const uint8_t iDim) {return &flipFlag[iDim];};
 	bool get_flipFlag(const uint8_t iDim) const {return flipFlag[iDim];};

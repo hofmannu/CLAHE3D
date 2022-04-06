@@ -47,14 +47,14 @@ void slicer::update_plane(const uint8_t iDim)
 	{
 		if (iDim == 0) // lets update along yz plane [iy, iz]
 		{
-			for (int iz = 0; iz < sizeArray.z; iz++)
+			for (std::size_t iz = 0; iz < sizeArray.z; iz++)
 			{
-				const int zOut = (flipFlag[2]) ? (sizeArray.z - 1 - iz) : iz;
-				const int zOffset = iz * sizeArray.x * sizeArray.y;
-				for (int iy = 0; iy < sizeArray.y; iy++)
+				const std::size_t zOut = (flipFlag[2]) ? (sizeArray.z - 1 - iz) : iz;
+				const std::size_t zOffset = iz * sizeArray.x * sizeArray.y;
+				for (std::size_t iy = 0; iy < sizeArray.y; iy++)
 				{
-					const int yOut = (flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
-					const int yOffset = iy * sizeArray.x;
+					const std::size_t yOut = (flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
+					const std::size_t yOffset = iy * sizeArray.x;
 					planes[iDim][yOut + zOut * sizeArray.y] = 
 						dataMatrix[slicePoint.x + yOffset + zOffset];
 				}
@@ -62,14 +62,14 @@ void slicer::update_plane(const uint8_t iDim)
 		}
 		else if (iDim == 1) // lets update along xz plane [ix, iz]
 		{
-			const int yOffset = slicePoint.y * sizeArray.x;
-			for (int iz = 0; iz < sizeArray.z; iz++)
+			const std::size_t yOffset = slicePoint.y * sizeArray.x;
+			for (std::size_t iz = 0; iz < sizeArray.z; iz++)
 			{
-				const int zOut = (flipFlag[2]) ? (sizeArray.z - 1 - iz) : iz;
-				const int zOffset = iz * sizeArray.x * sizeArray.y;
-				for (int ix = 0; ix < sizeArray.x; ix++)
+				const std::size_t zOut = (flipFlag[2]) ? (sizeArray.z - 1 - iz) : iz;
+				const std::size_t zOffset = iz * sizeArray.x * sizeArray.y;
+				for (std::size_t ix = 0; ix < sizeArray.x; ix++)
 				{
-					const int xOut = (flipFlag[0]) ? (sizeArray.x - 1 - ix) : ix;
+					const std::size_t xOut = (flipFlag[0]) ? (sizeArray.x - 1 - ix) : ix;
 					planes[iDim][zOut * sizeArray.x + xOut] = 
 						dataMatrix[ix + yOffset + zOffset];			
 				}
@@ -77,14 +77,14 @@ void slicer::update_plane(const uint8_t iDim)
 		}
 		else if (iDim == 2) // let update along xy plane [ix, iy]
 		{
-			const int zOffset = slicePoint.z * sizeArray.x * sizeArray.y;
-			for (int iy = 0; iy < sizeArray.y; iy++)
+			const std::size_t zOffset = slicePoint.z * sizeArray.x * sizeArray.y;
+			for (std::size_t iy = 0; iy < sizeArray.y; iy++)
 			{
-				const int yOut = (!flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
-				const int yOffset = iy * sizeArray.x;
-				for (int ix = 0; ix < sizeArray.x; ix++)
+				const std::size_t yOut = (!flipFlag[1]) ? (sizeArray.y - 1 - iy) : iy;
+				const std::size_t yOffset = iy * sizeArray.x;
+				for (std::size_t ix = 0; ix < sizeArray.x; ix++)
 				{
-					const int xOut = (flipFlag[0]) ? (sizeArray.x - 1 - ix) : ix;
+					const std::size_t xOut = (flipFlag[0]) ? (sizeArray.x - 1 - ix) : ix;
 					planes[iDim][xOut + yOut * sizeArray.x] = 
 						dataMatrix[ix + yOffset + zOffset];			
 				}
@@ -95,7 +95,7 @@ void slicer::update_plane(const uint8_t iDim)
 	}
 }
 
-void slicer::set_sizeArray(const vector3<int> _sizeArray)
+void slicer::set_sizeArray(const vector3<std::size_t> _sizeArray)
 {
 	sizeArray = _sizeArray;
 	reqUpdate[0] = 1; reqUpdate[1] = 1; reqUpdate[2] = 1;
@@ -103,7 +103,7 @@ void slicer::set_sizeArray(const vector3<int> _sizeArray)
 	return;
 }
 
-void slicer::set_slicePoint(const vector3<int> _slicePoint)
+void slicer::set_slicePoint(const vector3<std::size_t> _slicePoint)
 {
 	#pragma unroll
 	for (uint8_t iDim = 0; iDim < 3; iDim++)

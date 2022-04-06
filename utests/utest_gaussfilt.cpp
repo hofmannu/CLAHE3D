@@ -11,7 +11,7 @@ int main()
 {
 
 	srand(time(0));
-	int nKernel = 11;
+	std::size_t nKernel = 11;
 	float sigma = 1.1f;
 
 	gaussfilt myFilt;
@@ -20,7 +20,7 @@ int main()
 	myFilt.set_sigma(sigma);
 	
 	float* inputData = new float[myFilt.get_nData()];
-	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
+	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		inputData[iElem] = ((float) rand()) / ((float) RAND_MAX);
 	}
@@ -31,7 +31,7 @@ int main()
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 
-	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
+	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
 		if (currVal < 0.0)
@@ -49,21 +49,21 @@ int main()
 	}
 
 	// generate an example kernel
-	const int range = (nKernel - 1) / 2;
+	const std::size_t range = (nKernel - 1) / 2;
 	float* testKernel = new float [nKernel * nKernel * nKernel];
-	for (int zrel = -range; zrel <= range; zrel++)
+	for (std::size_t zrel = -range; zrel <= range; zrel++)
 	{
-		const int zAbs = range + zrel;
-		for (int yrel = -range; yrel <= range; yrel++)
+		const std::size_t zAbs = range + zrel;
+		for (std::size_t yrel = -range; yrel <= range; yrel++)
 		{
-			const int yAbs = range + yrel;
-			for (int xrel = -range; xrel <= range; xrel++)
+			const std::size_t yAbs = range + yrel;
+			for (std::size_t xrel = -range; xrel <= range; xrel++)
 			{
-				const int xAbs = range + xrel;
+				const std::size_t xAbs = range + xrel;
 				const float dr = powf(xrel * xrel + yrel * yrel + zrel * zrel, 0.5f);
 				const float gaussval = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
 					/ (sigma * powf(2.0f * M_PI, 0.5f));
-				const int dataIdx = xAbs + nKernel * (yAbs + nKernel * zAbs);
+				const std::size_t dataIdx = xAbs + nKernel * (yAbs + nKernel * zAbs);
 				testKernel[dataIdx] = gaussval;
 			}
 		}
@@ -71,26 +71,26 @@ int main()
 
 	// normalize kernel to have a total value of 1
 	float kernelSum = 0;
-	for (int iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
+	for (std::size_t iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
 		kernelSum += testKernel[iElem];
 	
-	for (int iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
+	for (std::size_t iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
 		testKernel[iElem] = testKernel[iElem] / kernelSum;
 
 	// make a small test for an output element
-	vector3<int> testPos = {42, 32, 43};
+	vector3<std::size_t> testPos = {42, 32, 43};
 	float testVal = 0;
-	for (int zrel = 0; zrel < nKernel; zrel++)
+	for (std::size_t zrel = 0; zrel < nKernel; zrel++)
 	{
-		const int zAbs = testPos.z + zrel - range;
-		for (int yrel = 0; yrel < nKernel; yrel++)
+		const std::size_t zAbs = testPos.z + zrel - range;
+		for (std::size_t yrel = 0; yrel < nKernel; yrel++)
 		{
-			const int yAbs = testPos.y + yrel - range;
-			for (int xrel = 0; xrel < nKernel; xrel++)
+			const std::size_t yAbs = testPos.y + yrel - range;
+			for (std::size_t xrel = 0; xrel < nKernel; xrel++)
 			{
-				const int xAbs = testPos.x + xrel - range;
-				const int dataIdx = xAbs + 100 * (yAbs + 110 * zAbs);
-				const int kernelIdx = xrel + nKernel * (yrel + nKernel * zrel); 
+				const std::size_t xAbs = testPos.x + xrel - range;
+				const std::size_t dataIdx = xAbs + 100 * (yAbs + 110 * zAbs);
+				const std::size_t kernelIdx = xrel + nKernel * (yrel + nKernel * zrel); 
 				testVal = fmaf(testKernel[kernelIdx], inputData[dataIdx], testVal);
 			}
 		}

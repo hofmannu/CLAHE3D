@@ -470,14 +470,15 @@ void gui::SlicerWindow()
 		}
 
 		ImGui::Columns(1);
-		vector3<int> slicePos = mySlice.get_slicePoint();
-		vector3<int> sizeArray = mySlice.get_sizeArray();
+		vector3<std::size_t> slicePos = mySlice.get_slicePoint();
+		vector3<std::size_t> sizeArray = mySlice.get_sizeArray();
 		ImGui::Columns(3);
-		ImGui::SliderInt("x", &slicePos.x, 0, sizeArray.x - 1);
+		vector3<int> intedPos = {(int) slicePos[0], (int) slicePos[1], (int) slicePos[2]};
+		ImGui::SliderInt("x", &intedPos.x, 0, sizeArray.x - 1);
 		ImGui::NextColumn();
-		ImGui::SliderInt("y", &slicePos.y, 0, sizeArray.y - 1);
+		ImGui::SliderInt("y", &intedPos.y, 0, sizeArray.y - 1);
 		ImGui::NextColumn();
-		ImGui::SliderInt("z", &slicePos.z, 0, sizeArray.z - 1);
+		ImGui::SliderInt("z", &intedPos.z, 0, sizeArray.z - 1);
 		ImGui::Columns(1);
 		mySlice.set_slicePoint(slicePos);
 

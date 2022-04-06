@@ -1,3 +1,4 @@
+
 #ifndef LEXER_H
 #define LEXER_H
 
@@ -5,6 +6,7 @@
 #include <string>
 #include <cctype>
 #include <algorithm>
+#include <vector>
 
 class lexer
 {
