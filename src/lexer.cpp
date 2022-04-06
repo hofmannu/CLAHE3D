@@ -18,7 +18,7 @@ void lexer::split_lines()
 		
 		if (pos == std::string::npos)
 			break;
-		string subString = inputString.substr(0, pos);
+		std::string subString = inputString.substr(0, pos);
 		splitString.push_back(subString);
 		inputString.erase(0, pos + 1);
 		// cout << subString << endl;
@@ -28,10 +28,10 @@ void lexer::split_lines()
 
 void lexer::split_tokens()
 {
-	for (string currLine: splitString)
+	for (std::string currLine: splitString)
 	{
 
-		cout << currLine << endl;
+		std::cout << currLine << std::endl;
 	}
 }
 
@@ -39,12 +39,12 @@ void lexer::split_tokens()
 
 void lexer::parse(const std::string _inputString)
 {
-	cout << "input string:\n" << _inputString << endl;
+	std::cout << "input string:\n" << _inputString << std::endl;
 	inputString = _inputString;
 
 	// removing all whitespace
 	remove_whitespace();
-	cout << "after whitespace removal: " << inputString << endl;
+	std::cout << "after whitespace removal: " << inputString << std::endl;
 
 	// divide into substrings (for each semicolon one line)
 	split_tokens();

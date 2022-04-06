@@ -6,14 +6,12 @@
 #include <cctype>
 #include <algorithm>
 
-using namespace std;
-
 class lexer
 {
 private:
-	string inputString;
-	vector<string> splitString;
-	vector<vector<string>> tokenList;
+	std::string inputString;
+	std::vector<std::string> splitString;
+	std::vector<std::vector<std::string>> tokenList;
 
 	void remove_whitespace();
 	void split_lines();

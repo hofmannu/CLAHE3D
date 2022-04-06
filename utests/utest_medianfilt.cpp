@@ -88,11 +88,9 @@ int main()
 			for (std::size_t ix = testPos.x - range; ix <= (testPos.x + range); ix++) 
 			{
 				const std::size_t idxVol = ix + nx * (iy + ny * iz); // index of volume
-				// printf("Index: %lu, Value: %.2f\n", idxVol, inputData[idxVol]);
 				tempArray.push_back(inputData[idxVol]);
 			}
 		}
-		// printf("\n");
 	}
 	sort(tempArray.begin(), tempArray.end());
 	const std::size_t medianIdx = (nKernel * nKernel * nKernel - 1) / 2;
