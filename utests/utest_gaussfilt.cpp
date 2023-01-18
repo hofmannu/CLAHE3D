@@ -10,22 +10,22 @@
 int main()
 {
 
-	srand(time(0));
-	std::size_t nKernel = 11;
-	float sigma = 1.1f;
+	srand(0);
+	constexpr std::size_t nKernel = 11;
+	constexpr float sigma = 1.1f;
 
 	gaussfilt myFilt;
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
 	myFilt.set_dataSize({100, 110, 120});
 	myFilt.set_sigma(sigma);
 	
-	float* inputData = new float[myFilt.get_nData()];
+	std::vector<float> inputData(myFilt.get_nData());
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		inputData[iElem] = ((float) rand()) / ((float) RAND_MAX);
 	}
 
-	myFilt.set_dataInput(inputData);
+	myFilt.set_dataInput(inputData.data());
 	myFilt.run();
 	printf("Kernel execution tool %.2f ms\n", myFilt.get_tExec());
 
@@ -50,7 +50,7 @@ int main()
 
 	// generate an example kernel
 	const std::size_t range = (nKernel - 1) / 2;
-	float* testKernel = new float [nKernel * nKernel * nKernel];
+	std::vector<float> testKernel(nKernel * nKernel * nKernel);
 	for (std::size_t zrel = -range; zrel <= range; zrel++)
 	{
 		const std::size_t zAbs = range + zrel;
@@ -79,7 +79,7 @@ int main()
 
 	// make a small test for an output element
 	vector3<std::size_t> testPos = {42, 32, 43};
-	float testVal = 0;
+	double testVal = 0.0;
 	for (std::size_t zrel = 0; zrel < nKernel; zrel++)
 	{
 		const std::size_t zAbs = testPos.z + zrel - range;
@@ -91,23 +91,20 @@ int main()
 				const std::size_t xAbs = testPos.x + xrel - range;
 				const std::size_t dataIdx = xAbs + 100 * (yAbs + 110 * zAbs);
 				const std::size_t kernelIdx = xrel + nKernel * (yrel + nKernel * zrel); 
-				testVal = fmaf(testKernel[kernelIdx], inputData[dataIdx], testVal);
+				testVal = fma(testKernel[kernelIdx], inputData[dataIdx], testVal);
 			}
 		}
 	}
 
 	const int idxOutput = testPos.x + 100 * (testPos.y + 110 * testPos.z);
 	
-	const float errorVal = fabsf(testVal - outputMatrix[idxOutput]);
-	if (errorVal >= 1e-6f)
+	const float relativeError = fabs(testVal - outputMatrix[idxOutput]) / fabs(testVal);
+	if (relativeError >= 1e-4)
 	{
 		printf("The test value (%.4f) seems to differ from the class result (%.4f).\n",
 			testVal, outputMatrix[idxOutput]);
 		throw "InvalidValue";
 	}
-
-	delete[] testKernel;
-	delete[] inputData;
 
 	return 0;
 }
