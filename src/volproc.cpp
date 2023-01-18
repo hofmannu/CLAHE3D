@@ -17,9 +17,12 @@ void volproc::run_medianfilt(const medianfiltsett sett)
 	new_entry("Running median filter on volume...");
 	medianfilter.set_dataInput(outputVol.get_pdata());
 	medianfilter.set_dataSize(
-		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
+	{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
 	medianfilter.set_kernelSize(
-		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
+	{	static_cast<std::size_t>(sett.kernelSize[0]),
+		static_cast<std::size_t>(sett.kernelSize[1]),
+		static_cast<std::size_t>(sett.kernelSize[2])
+	});
 
 #if USE_CUDA
 	if (sett.flagGpu)
@@ -29,8 +32,8 @@ void volproc::run_medianfilt(const medianfiltsett sett)
 		medianfilter.run();
 
 	new_entry("Finished mean filter execution");
-	memcpy(outputVol.get_pdata(), medianfilter.get_pdataOutput(), 
-		sizeof(float) * outputVol.get_nElements());
+	memcpy(outputVol.get_pdata(), medianfilter.get_pdataOutput(),
+	       sizeof(float) * outputVol.get_nElements());
 
 	new_entry("Recalculating maximum and minimum of output");
 	outputVol.calcMinMax();
@@ -45,18 +48,21 @@ void volproc::run_meanfilt(const meanfiltsett sett)
 	new_entry("Running mean filter on volume...");
 	meanfilter.set_dataInput(outputVol.get_pdata());
 	meanfilter.set_dataSize(
-		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
+	{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
 	meanfilter.set_kernelSize(
-		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
-	#if USE_CUDA
+	{	static_cast<std::size_t>(sett.kernelSize[0]),
+		static_cast<std::size_t>(sett.kernelSize[1]),
+		static_cast<std::size_t>(sett.kernelSize[2])
+	});
+#if USE_CUDA
 	if (sett.flagGpu)
 		meanfilter.run_gpu();
 	else
-	#endif
+#endif
 		meanfilter.run();
 	new_entry("Finished mean filter execution");
-	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(), 
-		sizeof(float) * outputVol.get_nElements());
+	memcpy(outputVol.get_pdata(), meanfilter.get_pdataOutput(),
+	       sizeof(float) * outputVol.get_nElements());
 
 	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
@@ -71,25 +77,28 @@ void volproc::run_gaussfilt(const gaussfiltsett sett)
 	new_entry("Running gauss filter on volume...");
 	gaussfilter.set_dataInput(outputVol.get_pdata());
 	gaussfilter.set_dataSize(
-		{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
+	{outputVol.get_dim(0), outputVol.get_dim(1), outputVol.get_dim(2)});
 	gaussfilter.set_kernelSize(
-		{sett.kernelSize[0], sett.kernelSize[1], sett.kernelSize[2]});
+	{	static_cast<std::size_t>(sett.kernelSize[0]),
+		static_cast<std::size_t>(sett.kernelSize[1]),
+		static_cast<std::size_t>(sett.kernelSize[2])
+	});
 	gaussfilter.set_sigma(sett.sigma);
-	#if USE_CUDA
+#if USE_CUDA
 	if (sett.flagGpu)
 		gaussfilter.run_gpu();
 	else
-	#endif
+#endif
 		gaussfilter.run();
 	new_entry("Finished gauss filter execution");
-	memcpy(outputVol.get_pdata(), gaussfilter.get_pdataOutput(), 
-		sizeof(float) * outputVol.get_nElements());
+	memcpy(outputVol.get_pdata(), gaussfilter.get_pdataOutput(),
+	       sizeof(float) * outputVol.get_nElements());
 
 	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-		
+
 	return;
 }
 
@@ -120,7 +129,7 @@ void volproc::run_histeq(const histeqsett sett)
 	histeqfilter.calculate_cdf();
 	histeqfilter.equalize();
 	new_entry("Done with histogram equilization...");
-	
+
 	new_entry("Recalculating maximum and minimum of output...");
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
