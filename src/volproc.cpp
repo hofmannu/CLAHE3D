@@ -39,7 +39,6 @@ void volproc::run_medianfilt(const medianfiltsett sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-	return;
 }
 
 // runs a mean filter over our output volume
@@ -68,7 +67,6 @@ void volproc::run_meanfilt(const meanfiltsett sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-	return;
 }
 
 // runs a gaussian filter over our output volume
@@ -98,8 +96,6 @@ void volproc::run_gaussfilt(const gaussfiltsett sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-
-	return;
 }
 
 void volproc::run_thresholder(const thresholdersett sett)
@@ -113,7 +109,6 @@ void volproc::run_thresholder(const thresholdersett sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-	return;
 }
 
 void volproc::run_histeq(const histeqsett sett)
@@ -134,9 +129,6 @@ void volproc::run_histeq(const histeqsett sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-
-
-	return;
 }
 
 void volproc::run_normalizer(const normalizersett<float> sett)
@@ -152,7 +144,6 @@ void volproc::run_normalizer(const normalizersett<float> sett)
 	outputVol.calcMinMax();
 	new_entry(" - minVal: " + std::to_string(outputVol.get_minVal()));
 	new_entry(" - maxVal: " + std::to_string(outputVol.get_maxVal()));
-	return;
 }
 
 // load dataset from file
@@ -160,14 +151,16 @@ void volproc::reload()
 {
 	new_entry("Loading dataset from " + inputPath);
 	inputVol.readFromFile(inputPath);
+	
 	status += "Calculating minimum and maximum of datset\n";
 	inputVol.calcMinMax();
+	
 	new_entry("Calculating histogram of input dataset");
 	inputHist.calculate(inputVol.get_pdata(), inputVol.get_nElements());
-	isDataLoaded = 1;
+	
+	isDataLoaded = true;
 
 	outputVol = inputVol;
-	return;
 }
 
 // resets the processed volume to the initial input volume
@@ -175,7 +168,6 @@ void volproc::reset()
 {
 	new_entry("Resetting volume to original values...");
 	outputVol = inputVol;
-	return;
 }
 
 // load a dataset from a defined path
@@ -183,5 +175,4 @@ void volproc::load(const string _filePath)
 {
 	inputPath = _filePath;
 	reload();
-	return;
 }

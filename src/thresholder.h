@@ -5,8 +5,8 @@
 
 struct thresholdersett
 {
-	float minVal = 0;
-	float maxVal = 1;
+	float minVal = 0.0f;
+	float maxVal = 1.0f;
 };
 
 #endif
@@ -17,14 +17,15 @@ struct thresholdersett
 
 class thresholder
 {
-private:
-	float minVal = 0;
-	float maxVal = 1;
 public:
 
-	void threshold(float* array, const uint64_t nElements);
-	void set_minVal(const float _minVal);
-	void set_maxVal(const float _maxVal);
+	void threshold(float* array, uint64_t nElements);
+	void set_minVal(float _minVal) noexcept;
+	void set_maxVal(float _maxVal) noexcept;
+private:
+	float minVal = 0.0f;
+	float maxVal = 1.0f;
+
 
 };
 

@@ -18,27 +18,8 @@
 
 class histogram
 {
-private:
-	std::size_t nBins = 256;
-	
-	float minVal = 0; // minimum of dataset
-	float maxVal = 1; // maximum of dataset
-	// note: represent the x axis of the histogram
 
-	std::size_t maxHist = 0; // maximum occurance in dataset (i.e. peak value)
-	std::size_t minHist = 0; // minimum occurance in dataset (i.e. peak value)
-	std::size_t idxPeak = 0;// index of m
-
-	std::vector<float> containerVal; // center value of containers (x axis)
-	std::vector<std::size_t> counter; // number of elements found (y axis)
-
-	void alloc_mem();
-	void free_mem();
-
-	inline float get_binSize() const {return ((maxVal - minVal) / ((float) nBins));}; 
 public:
-
-
 	// basic constructors and desctructors
 	histogram();
 	histogram(const std::size_t _nBins);
@@ -47,18 +28,33 @@ public:
 	void calculate(const float* vector, const std::size_t nElems);
 
 	// easy get functions
-	float get_minVal() const {return minVal;};
-	float get_maxVal() const {return maxVal;};
-	std::size_t get_minHist() const {return minHist;};
-	std::size_t get_maxHist() const {return maxHist;};
-	std::size_t get_idxPeak() const {return idxPeak;};
-	const float* get_pcontainerVal() const {return &containerVal[0];};
-	const std::size_t* get_pcounter() const {return &counter[0];};
-	std::vector<float> get_counter() const {std::vector<float> floatVec(counter.begin(), counter.end());return std::move(floatVec);};
-	int get_nBins() const {return nBins;};
+	[[nodiscard]] float get_minVal() const noexcept {return minVal;};
+	[[nodiscard]] float get_maxVal() const noexcept {return maxVal;};
+	[[nodiscard]] std::size_t get_minHist() const noexcept {return minHist;};
+	[[nodiscard]] std::size_t get_maxHist() const noexcept {return maxHist;};
+	[[nodiscard]] std::size_t get_idxPeak() const noexcept {return idxPeak;};
+	[[nodiscard]] const float* get_pcontainerVal() const {return &containerVal[0];};
+	[[nodiscard]] const std::size_t* get_pcounter() const {return &counter[0];};
+	[[nodiscard]] std::vector<float> get_counter() const {std::vector<float> floatVec(counter.begin(), counter.end());return std::move(floatVec);};
+	[[nodiscard]] int get_nBins() const {return nBins;};
 
-	void print_to_file(const std::string fileName);
+	/// \brief prints the histogram result to a simple text file
+	/// \param fileName name of file to be written
+	void print_to_file(const std::string& fileName);
+private:
+	std::size_t nBins = 256;
+	float minVal = 0.0f; //!< minimum of dataset
+	float maxVal = 1.0f; //!< maximum of dataset
+	std::size_t maxHist = 0; // maximum occurance in dataset (i.e. peak value)
+	std::size_t minHist = 0; // minimum occurance in dataset (i.e. peak value)
+	std::size_t idxPeak = 0;// index of m
+	std::vector<float> containerVal; // center value of containers (x axis)
+	std::vector<std::size_t> counter; // number of elements found (y axis)
 
+	void alloc_mem();
+	void free_mem();
+
+	inline float get_binSize() const {return ((maxVal - minVal) / ((float) nBins));}; 
 };
 
 #endif

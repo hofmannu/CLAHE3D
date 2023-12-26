@@ -23,15 +23,43 @@
 
 class volproc : public log
 {
+public:
+	// class constructor and destructor
+	volproc();
+	~volproc();
+
+	void reload();
+	void reset();
+	void load(const string _inputPath);
+
+	[[nodiscard]] bool get_isDataLoaded() const {return isDataLoaded;};
+	[[nodiscard]] const char* get_inputPath() const {return inputPath.c_str();};
+
+	// pointers to all volumes and datasets
+	[[nodiscard]] volume* get_pinputVol() {return &inputVol;};
+	[[nodiscard]] volume* get_poutputVol() {return &outputVol;};
+	[[nodiscard]] const histogram* get_pinputHist() const {return &inputHist;};
+	[[nodiscard]] const histogram* get_poutputHist() const {return &outputHist;};
+
+	[[nodiscard]] const char* get_status() const {return status.c_str();};
+
+	// all processing functions go here
+	void run_meanfilt(const meanfiltsett sett);
+	void run_gaussfilt(const gaussfiltsett sett);
+	void run_thresholder(const thresholdersett sett);
+	void run_histeq(const histeqsett sett);
+	void run_normalizer(const normalizersett<float> sett);
+	void run_medianfilt(const medianfiltsett sett);
+
 private:
-	volume inputVol;
-	volume outputVol;
+	volume inputVol; //!< the input volume as stored before any processing
+	volume outputVol; //!< the output volume after applying the processing
 
 	histogram inputHist;
 	histogram outputHist;
 
-	string inputPath;
-	bool isDataLoaded = 0;
+	std::string inputPath;
+	bool isDataLoaded = false;
 
 	string status;
 
@@ -43,33 +71,7 @@ private:
 	histeq histeqfilter;
 	normalizer<float> normfilter;
 
-public:
-	// class constructor and destructor
-	volproc();
-	~volproc();
 
-	void reload();
-	void reset();
-	void load(const string _inputPath);
-
-	bool get_isDataLoaded() const {return isDataLoaded;};
-	const char* get_inputPath() const {return inputPath.c_str();};
-
-	// pointers to all volumes and datasets
-	volume* get_pinputVol() {return &inputVol;};
-	volume* get_poutputVol() {return &outputVol;};
-	const histogram* get_pinputHist() const {return &inputHist;};
-	const histogram* get_poutputHist() const {return &outputHist;};
-
-	const char* get_status() const {return status.c_str();};
-
-	// all processing functions go here
-	void run_meanfilt(const meanfiltsett sett);
-	void run_gaussfilt(const gaussfiltsett sett);
-	void run_thresholder(const thresholdersett sett);
-	void run_histeq(const histeqsett sett);
-	void run_normalizer(const normalizersett<float> sett);
-	void run_medianfilt(const medianfiltsett sett);
 };
 
 #endif

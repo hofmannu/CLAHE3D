@@ -1,8 +1,9 @@
 #include "vector3.h"
 #include "genfilt.h"
+#include <vector>
 
 #if USE_CUDA
-	#include "cudaTools.cuh"
+#include "cudaTools.cuh"
 #endif
 
 // struct containing all the settings for our mean filter
@@ -12,7 +13,7 @@
 struct meanfiltsett
 {
 	int kernelSize[3] = {3, 3, 3};
-	bool flagGpu = 0;
+	bool flagGpu = false;
 };
 
 #endif
@@ -21,23 +22,22 @@ struct meanfiltsett
 #ifndef MEANFILT_H
 #define MEANFILT_H
 
-class meanfilt : 
+class meanfilt :
 #if USE_CUDA
 	public cudaTools,
 #endif
-public genfilt
+	public genfilt
 {
-private:
-	float* meanKernel;
-	bool isKernelAlloc = 0;
-
 public:
 	meanfilt();
-	~meanfilt();
 	void run(); // runs the actual procesure
-	#if USE_CUDA
+#if USE_CUDA
 	void run_gpu();
-	#endif
+#endif
+private:
+	std::vector<float> meanKernel;
+
+
 
 };
 

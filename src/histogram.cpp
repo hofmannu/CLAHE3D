@@ -22,14 +22,12 @@ void histogram::alloc_mem()
 {
 	containerVal.resize(nBins);
 	counter.resize(nBins);
-	return;
 }
 
 void histogram::free_mem()
 {
 	containerVal.clear();
 	counter.clear();
-	return;
 }
 
 void histogram::calculate(const float* vector, const std::size_t nElems)
@@ -41,15 +39,8 @@ void histogram::calculate(const float* vector, const std::size_t nElems)
 	maxVal = vector[0];
 	for (std::size_t iElem = 0; iElem < nElems; iElem++)
 	{
-		if (vector[iElem] < minVal)
-		{
-			minVal = vector[iElem];
-		}
-		if (vector[iElem] > maxVal)
-		{
-			maxVal = vector[iElem];
-		}
-	
+		if (vector[iElem] < minVal) minVal = vector[iElem];
+		if (vector[iElem] > maxVal) maxVal = vector[iElem];
 	}
 
 	// set bins all to zero
@@ -57,7 +48,7 @@ void histogram::calculate(const float* vector, const std::size_t nElems)
 	for (std::size_t iBin = 0; iBin < nBins; iBin ++)
 	{
 		counter[iBin] = 0; // reset all counters to 0
-		containerVal[iBin] = minVal + (0.5 + ((float ) iBin)) * binSize; 
+		containerVal[iBin] = minVal + (0.5f + static_cast<float>(iBin)) * binSize; 
 	}
 	
 	for (std::size_t iElem = 0; iElem < nElems; iElem++) 
@@ -87,13 +78,10 @@ void histogram::calculate(const float* vector, const std::size_t nElems)
 			minHist = counter[iHist];
 		}
 	}
-
-	return;
 }
 
-void histogram::print_to_file(const std::string fileName)
+void histogram::print_to_file(const std::string& fileName)
 {
-
 	const float binSize = get_binSize();
 	std::ofstream myfile;
   myfile.open (fileName.c_str());
@@ -115,5 +103,4 @@ void histogram::print_to_file(const std::string fileName)
   }
 
   myfile.close();
-	return;
 }
