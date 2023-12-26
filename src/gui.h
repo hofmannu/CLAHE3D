@@ -48,8 +48,8 @@ private:
 	void Console();
 	void ExportData();
 
-	bool showRaw = 1;
-	bool flagGpu = 1; // should we process on the GPU
+	bool showRaw = true;
+	bool flagGpu = true; // should we process on the GPU
 
 	// helper function to display stuff
 	void ImImagesc(
@@ -78,9 +78,9 @@ private:
 	std::string outputPath;
 	std::string outputFile;
 
-	bool showLog = 1;
-	bool showWarnings = 1;
-	bool showErrors = 1;
+	bool showLog = true;
+	bool showWarnings = true;
+	bool showErrors = true;
 
 	// helper functions
 	void check_mapLimits();
