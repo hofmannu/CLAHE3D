@@ -16,7 +16,7 @@ std::string get_tString(const std::time_t tStamp)
 	return std::move(std::string(buffer));
 }
 
-void log::new_general(const std::string message, const int type)
+void log::new_general(const std::string message, const LogType type)
 {
 	logentry newEntry;
 	newEntry.message = message;
@@ -24,35 +24,30 @@ void log::new_general(const std::string message, const int type)
 	newEntry.timeStamp = get_tStamp();
 	newEntry.tString = get_tString(newEntry.timeStamp);
 	collection.push_back(std::move(newEntry));
-	return;
 }
 
 // adds a normal log entry
 void log::new_entry(const std::string message)
 {
-	new_general(std::move(message), LOG);
-	return;
+	new_general(std::move(message), LogType::LOG);
 }
 
 // adds a new warning to our journal
 void log::new_warning(const std::string message)
 {
-	new_general(std::move(message), WARNING);
-	return;
+	new_general(std::move(message), LogType::WARNING);
 }
 
 // adds a new error log to our journal
 void log::new_error(const std::string message)
 {
-	new_general(std::move(message), ERROR);
-	return;
+	new_general(std::move(message), LogType::ERROR);
 }
 
 // emties the entire log
 void log::clear_log()
 {
 	collection.clear();
-	return;
 }
 
 std::string log::get_log_string() const 
@@ -69,30 +64,10 @@ std::string log::get_log_string() const
 // helper functions to check if element is wanted
 bool log::isEntryWanted(const logentry& entry) const
 {
-	bool isWanted = 0;
-	if (entry.type == LOG)
-	{
-		if (flagLog)
-		{
-			isWanted = 1;
-		}
-	}
-	else if (entry.type == WARNING)
-	{
-		if (flagWarning)
-			isWanted = 1;
-	}
-	else if (entry.type == ERROR)
-	{
-		if (flagError)
-			isWanted = 1;
-	}
-	else
-	{
-		printf("An invalid argument was passed to this function\n");
-		throw "InvalidArgument";
-	}
-	return isWanted;
+	if (entry.type == LogType::LOG && flagLog) return true;
+	if (entry.type == LogType::WARNING && flagWarning) return true;
+	if (entry.type == LogType::ERROR && flagError) return true;
+	return false;
 }
 
 // returns the full vector containing all our logs filtered according to our flags

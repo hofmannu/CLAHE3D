@@ -17,9 +17,12 @@
 #ifndef LOGENTRY_H
 #define LOGENTRY_H
 
+enum class LogType {LOG, WARNING, ERROR};
+
+
 struct logentry
 {
-	int type; // 0 - normal entry, 1 - warning, 2 - error
+	LogType type; // 0 - normal entry, 1 - warning, 2 - error
 	std::string message; // the message passed to our log system from volproc
 	std::string tString; // timepoint of log message as a string
 	std::time_t timeStamp; // timestamp when log message arrived
@@ -30,23 +33,11 @@ struct logentry
 #ifndef LOG_H
 #define LOG_H
 
-enum log_type {LOG, WARNING, ERROR};
 
 class log
 {
-	std::string fullLog;
-	std::vector<logentry> collection;
-
-	// defines which logs will be returned
-	bool flagLog = 1;
-	bool flagWarning = 1;
-	bool flagError = 1;
-
-
-	bool isEntryWanted(const logentry& entry) const;
-
 public:
-	void new_general(const std::string message, const int type);
+	void new_general(const std::string message, const LogType type);
 	void new_entry(const std::string message);
 	void new_warning(const std::string warning);
 	void new_error(const std::string warning);
@@ -60,6 +51,14 @@ public:
 	bool* get_pflagLog() {return &flagLog;};
 	bool* get_pflagWarning() {return &flagWarning;};
 	bool* get_pflagError() {return &flagError;};
+private:
+	std::string fullLog;
+	std::vector<logentry> collection;
+	bool flagLog = true; //!< if true, normal logs will be returned
+	bool flagWarning = true; //!< if true, warnings will be returned
+	bool flagError = true; //!< if true, errors will be returned
+	bool isEntryWanted(const logentry& entry) const;
+
 };
 
 #endif
