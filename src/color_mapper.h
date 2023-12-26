@@ -15,10 +15,10 @@
 class color_mapper
 {
 	private:
-		float minVal = -1; // minimum value in colormap
-		float maxVal = 1; // maximum value in colormap
-		float maxAbsVal = 1;
-		float span = 2;
+		float minVal = -1.0f; // minimum value in colormap
+		float maxVal = 1.0f; // maximum value in colormap
+		float maxAbsVal = 1.0f;
+		float span = 2.0f;
 
 		float minCol[4] = {0.0f, 0.0f, 0.0f, 0.00f}; // color assigned to min
 		float maxCol[4] = {1.0f, 1.0f, 1.0f, 1.00f}; // color assigned to max
@@ -39,12 +39,12 @@ class color_mapper
 		void set_mapType(const uint8_t _mapType);
 
 		// get pointer to min and max value
-		float* get_pmaxVal() {return &maxVal;};
-		float* get_pminVal() {return &minVal;};
-		float get_maxVal() const {return maxVal;};
-		float get_minVal() const {return minVal;};
-		float* get_pminCol() {return &minCol[0];};
-		float* get_pmaxCol() {return &maxCol[0];};
+		[[nodiscard]] float* get_pmaxVal() noexcept {return &maxVal;};
+		[[nodiscard]] float* get_pminVal() noexcept {return &minVal;};
+		[[nodiscard]] float get_maxVal() const noexcept {return maxVal;};
+		[[nodiscard]] float get_minVal() const noexcept {return minVal;};
+		[[nodiscard]] float* get_pminCol() noexcept {return &minCol[0];};
+		[[nodiscard]] float* get_pmaxCol() noexcept {return &maxCol[0];};
 
 		// transfer function
 		void convert_to_map(const float* dataIn, const uint64_t nElem, unsigned char* dataOut) const;
