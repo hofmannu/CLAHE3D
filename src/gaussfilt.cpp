@@ -5,16 +5,9 @@ gaussfilt::gaussfilt()
 	set_kernelSize({9, 9, 9});
 }
 
-gaussfilt::~gaussfilt()
-{
-	if (isKernelAlloc)
-		delete[] gaussKernel;
-}
-
 void gaussfilt::run()
 {
-
-	gaussKernel = new float[get_nKernel()];
+	gaussKernel.resize(get_nKernel());
 	const vector3<std::size_t> kernelSize = get_kernelSize();
 	const vector3<std::size_t> kernelRange = (kernelSize - 1) / 2;
 	for (std::size_t iz = 0; iz < kernelSize.z; iz++)
@@ -36,23 +29,22 @@ void gaussfilt::run()
 	}
 
 	// normalize kernel to have a total value of 1
-	float kernelSum = 0;
+	float kernelSum = 0.0f;
 	for (std::size_t iElem = 0 ; iElem < get_nKernel(); iElem++)
 		kernelSum += gaussKernel[iElem];
 	
 	for (std::size_t iElem = 0 ; iElem < get_nKernel(); iElem++)
 		gaussKernel[iElem] = gaussKernel[iElem] / kernelSum;
 
-	set_kernel(gaussKernel);
+	set_kernel(gaussKernel.data());
 	conv();
-	return;
 }
 
 #if USE_CUDA
 void gaussfilt::run_gpu()
 {
 
-	gaussKernel = new float[get_nKernel()];
+	gaussKernel.resize(get_nKernel());
 	const vector3<std::size_t> kernelSize = get_kernelSize();
 	const vector3<std::size_t> kernelRange = (kernelSize - 1) / 2;
 	for (std::size_t iz = 0; iz < kernelSize.z; iz++)
@@ -81,9 +73,8 @@ void gaussfilt::run_gpu()
 	for (std::size_t iElem = 0 ; iElem < get_nKernel(); iElem++)
 		gaussKernel[iElem] = gaussKernel[iElem] / kernelSum;
 
-	set_kernel(gaussKernel);
+	set_kernel(gaussKernel.data());
 	conv_gpu();
-	return;
 }
 #endif
 
@@ -92,5 +83,4 @@ void gaussfilt::run_gpu()
 void gaussfilt::set_sigma(const float _sigma)
 {
 	sigma = _sigma;
-	return;
 }
