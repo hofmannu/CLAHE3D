@@ -1,3 +1,5 @@
 Debug/*
 *.sublime-project
 *.log
+build/*
+lib/*
