@@ -1,25 +1,21 @@
 cmake_minimum_required(VERSION 3.12)
 
+project(clahe3d 
+	VERSION 0.1
+	DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
+	LANGUAGES CXX
+)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED true)
+set(CMAKE_BUILD_TYPE Debug)
+
 set(USE_CUDA FALSE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
 	message("Compiling with GPU support")
-	project(clahe3d VERSION 0.1
-		DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
-		LANGUAGES CUDA CXX)
 	add_compile_definitions(USE_CUDA)
-else()
-	message("Compiling without GPU support")
-	project(clahe3d VERSION 0.1
-		DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
-		LANGUAGES CXX)
-endif()
-
-message("Compiler Version: ${CMAKE_CXX_COMPILER_ID}")
-message("Compiler Version: ${CMAKE_CXX_COMPILER_VERSION}")
-
-if(${USE_CUDA})
 	enable_language(CUDA)
 	find_package(CUDA REQUIRED)
 	INCLUDE_DIRECTORIES(/opt/cuda/include include)
@@ -39,15 +35,18 @@ if(${USE_CUDA})
 
 	# please adapt this to the correct architecture for your device
 	SET(CMAKE_CUDA_ARCHITECTURES 75)
-
+else()
+	message("Compiling without GPU support")
 endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
+find_package(ImGUI REQUIRED)
+find_package(ImGUIFileDialog REQUIRED)
+find_package(ImPlot REQUIRED)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
 add_subdirectory(utests/)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED true)
 
 # add some flags for profiling
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -pg -lpthread") # for profiling of the code using gprof

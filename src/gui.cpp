@@ -1,26 +1,31 @@
 #include "gui.h"
 
+
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_internal.h"
+
 // small helper functions to read size_t values
 namespace ImGui
 {
-	void InputInt(const char* message, std::size_t* value)
-	{
-		int tempVal = *value;
-		ImGui::InputInt(message, &tempVal);
-		*value = tempVal;
-		return;
-	}
-
-	void InputInt3(const char* message, std::size_t* value)
-	{
-		int tempVal[3] = {(int) value[0], (int)value[1], (int)value[2]};
-		ImGui::InputInt3(message, &tempVal[0]);
-		value[0] = tempVal[0];
-		value[1] = tempVal[1];
-		value[2] = tempVal[2];
-		return;
-	}
+/// \brief reads a std::size_t in by routing it throught the InputInt field
+void InputInt(const char* message, std::size_t* value)
+{
+	int tempVal = *value;
+	ImGui::InputInt(message, &tempVal);
+	*value = tempVal;
+	return;
 }
+
+void InputInt3(const char* message, std::size_t* value)
+{
+	int tempVal[3] = {(int) value[0], (int)value[1], (int)value[2]};
+	ImGui::InputInt3(message, &tempVal[0]);
+	value[0] = tempVal[0];
+	value[1] = tempVal[1];
+	value[2] = tempVal[2];
+}
+} // end of namespace ImGui
 
 gui::gui()
 {
@@ -28,11 +33,6 @@ gui::gui()
 	outputVol = proc.get_poutputVol();
 	inputHist = proc.get_pinputHist();
 	outputHist = proc.get_poutputHist();
-}
-
-gui::~gui()
-{
-
 }
 
 // displays a small help marker next to the text
@@ -50,85 +50,133 @@ static void HelpMarker(const char* desc)
 	return;
 }
 
+static void glfw_error_callback(int error, const char* description)
+{
+	fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+}
+
+
+void gui::SetupWorkspace(ImGuiID& dockspace_id) {
+	ImGui::DockBuilderRemoveNode(dockspace_id);
+	ImGuiDockNodeFlags dockSpaceFlags = 0;
+	ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+	ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+
+	m_dockTools = ImGui::DockBuilderSplitNode(
+	                dockspace_id, ImGuiDir_Right, 0.20f, NULL, &dockspace_id);
+	m_dockToolsAnalyze = ImGui::DockBuilderSplitNode(
+	                       m_dockTools, ImGuiDir_Up, 0.40f, NULL, &m_dockTools);
+	m_dockLogs = ImGui::DockBuilderSplitNode(
+	               dockspace_id, ImGuiDir_Down, 0.20f, NULL, &dockspace_id);
+
+	ImGui::DockBuilderDockWindow("Data loader", m_dockTools);
+	ImGui::DockBuilderDockWindow("Processing", m_dockToolsAnalyze);
+	ImGui::DockBuilderDockWindow("Logger", m_dockLogs);
+	ImGui::DockBuilderDockWindow("Slicer", dockspace_id);
+	ImGui::DockBuilderDockWindow("Data exporter", m_dockTools);
+}
+
 void gui::InitWindow(int *argcp, char**argv)
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0)
-	{
-	  printf("Error: %s\n", SDL_GetError());
-		return;
-	}
-	// main_display_function goes somewhere here
-	const char* glsl_version = "#version 140";
-	// to find out which glsl version you are using, run glxinfo from terminal
-	// and look for "OpenGL shading language version string"
-	// https://en.wikipedia.org/wiki/OpenGL_Shading_Language
-
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-
-	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-	SDL_Window* window = SDL_CreateWindow(windowTitle, 
-		SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1900, 1080, window_flags);
-	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
-	SDL_GL_MakeCurrent(window, gl_context);
-	SDL_GL_SetSwapInterval(1); // Enable vsync
-
-	bool err = glewInit() != GLEW_OK;
-	if (err)
-	{
-		printf("Failed to initialize OpenGL loader!");
-	  throw "FailedOpenGLLoader";
+	glfwSetErrorCallback(glfw_error_callback);
+	if (!glfwInit()) {
+		throw std::runtime_error("Failed to initialize GLFW");
 	}
 
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+	// GL ES 2.0 + GLSL 100
+	const char* glsl_version = "#version 100";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+#elif defined(__APPLE__)
+	// GL 3.2 + GLSL 150
+	const char* glsl_version = "#version 150";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#else
+	// GL 3.0 + GLSL 130
+	const char* glsl_version = "#version 130";
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
+
+// todo add window flags again here
+	GLFWwindow* window = glfwCreateWindow(1024 * 2, 512 * 2, m_windowTitle, nullptr, nullptr);
+	if (window == nullptr) {
+		throw std::runtime_error("Failed to create GLFW window");
+	}
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1); // Enable vsync
+
+	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-	ImGui::StyleColorsDark();
-	ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-
+	// Setup Platform/Renderer backend
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
-	bool done = false;
-	while (!done)
-	{
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			ImGui_ImplSDL2_ProcessEvent(&event);
-			if (event.type == SDL_QUIT)
-				done = true;
-		}
+
+	bool firstUse = true;
+
+	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
+
 		// Start the Dear ImGui frame
 		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplSDL2_NewFrame(window);
+		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		MainDisplayCode();
-		// Rendering
-		ImGui::Render();
-		
-		glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-		glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
-		glClear(GL_COLOR_BUFFER_BIT);
-		//glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context where shaders may be bound
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		SDL_GL_SwapWindow(window);
-	}
+		ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(
+		                        ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
+		// if we are here for the first time, let's setup the workspace
+		if (firstUse) {
+			firstUse = false;
+			SetupWorkspace(dockspaceId);
+			ImGui::DockBuilderFinish(dockspaceId);
+		}
+		MainDisplayCode();
+		ImGui::Render();
+
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		glViewport(0, 0, display_w, display_h);
+
+		glClearColor(
+		  m_clearColor.x * m_clearColor.w,
+		  m_clearColor.y * m_clearColor.w,
+		  m_clearColor.z * m_clearColor.w,
+		  m_clearColor.w);
+
+		glClear(GL_COLOR_BUFFER_BIT);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		// Update and Render additional Platform Windows
+		// (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
+		//  For this specific demo app we could also call glfwMakeContextCurrent(window) directly)
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+
+		glfwSwapBuffers(window);
+	}
 	// Cleanup
 	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplSDL2_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
 
-	SDL_GL_DeleteContext(gl_context);
- 	SDL_DestroyWindow(window);
- 	SDL_Quit();
-	return;
+	glfwDestroyWindow(window);
+	glfwTerminate();
 }
 
 // main loop running the display code
@@ -139,13 +187,12 @@ void gui::MainDisplayCode()
 	SlicerWindow();
 	Console();
 	ExportData();
-	return;
 }
 
 void gui::Console()
 {
 	const vector<logentry> myLog = proc.get_log();
-	ImGui::Begin("Log");
+	ImGui::Begin("Logger");
 	ImGui::Columns(4);
 	if (ImGui::Button("Clear"))
 	{
@@ -167,7 +214,7 @@ void gui::Console()
 	for (uint64_t iElem = 0; iElem < myLog.size(); iElem++)
 	{
 		// make date slightly faded out
-		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(125,125,125,255));
+		ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(125, 125, 125, 255));
 		ImGui::Text(myLog[iElem].tString.c_str());
 		ImGui::PopStyleColor();
 
@@ -210,6 +257,10 @@ void gui::ExportData()
 
 		if (ImGui::Button("Export"))
 		{
+			// if outputPath does not end on backlash, append it
+			if (outputPath.back() != '/')
+				outputPath += '/';
+
 			outputVol->saveToFile(outputPath + outputFile);
 		}
 		ImGui::End();
@@ -222,17 +273,18 @@ void gui::DataLoaderWindow()
 {
 	ImGui::Begin("Data loader");
 	ImGui::Columns(3);
-	if (ImGui::Button("Load data"))
-	{
-		ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", 
-			"Choose File", ".nii\0.h5\0", ".");
-	}
 
-	if (ImGuiFileDialog::Instance()->FileDialog("ChooseFileDlgKey")) 
-	{
-		if (ImGuiFileDialog::Instance()->IsOk == true)
-		{
-			proc.load(ImGuiFileDialog::Instance()->GetFilepathName());
+	if (ImGui::Button("Load data")) {
+    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
+                                            ".nii,.hdf,.raw,.h5", "h5", ".");
+  }
+
+  // display
+  if (ImGuiFileDialog::Instance()->Display(
+          "ChooseFileDlgKey", ImGuiWindowFlags_NoCollapse, {500.0f, 400.0f})) {
+    // action if OK
+    if (ImGuiFileDialog::Instance()->IsOk()) {
+      proc.load(ImGuiFileDialog::Instance()->GetFilePathName());
 
 			// also set all the color bar limits now to the range of the dataset
 			rawMap.set_minVal(inputVol->get_minVal());
@@ -241,18 +293,18 @@ void gui::DataLoaderWindow()
 			procMap.set_maxVal(inputVol->get_maxVal());
 
 			mySlice.set_sizeArray(
-				{inputVol->get_dim(0), inputVol->get_dim(1), inputVol->get_dim(2)});
+			{inputVol->get_dim(0), inputVol->get_dim(1), inputVol->get_dim(2)});
 			mySlice.set_dataMatrix(inputVol->get_pdata());
 
-		}
-		ImGuiFileDialog::Instance()->CloseDialog("ChooseFileDlgKey");
-	}
+    }
+    ImGuiFileDialog::Instance()->Close();
+  }
 
 	// if we loaded data once already we can allow for reloads
 	if (!proc.get_isDataLoaded())
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
 	ImGui::NextColumn();
@@ -263,7 +315,7 @@ void gui::DataLoaderWindow()
 	if (!proc.get_isDataLoaded())
 	{
 		ImGui::PopItemFlag();
-  	ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
 	}
 
 	ImGui::SameLine();
@@ -274,20 +326,20 @@ void gui::DataLoaderWindow()
 	if (!proc.get_isDataLoaded())
 	{
 		ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 	}
 
 	if (ImGui::Button("Reload"))
 	{
 		proc.reload();
 	}
-	
+
 	if (!proc.get_isDataLoaded())
 	{
 		ImGui::PopItemFlag();
-  	ImGui::PopStyleVar();
+		ImGui::PopStyleVar();
 	}
-	
+
 	ImGui::SameLine();
 	HelpMarker("This will reload the file from the disc.");
 
@@ -297,35 +349,37 @@ void gui::DataLoaderWindow()
 		if (ImGui::CollapsingHeader("Dataset information"))
 		{
 			ImGui::Columns(2);
-			ImGui::Text("File path"); ImGui::NextColumn(); 
+			ImGui::Text("File path"); ImGui::NextColumn();
 			ImGui::Text("%s", proc.get_inputPath()); ImGui::NextColumn();
-			ImGui::Text("Dimensions"); ImGui::NextColumn(); 
-			ImGui::Text("%lu x %lu x %lu", 
-				inputVol->get_dim(0), inputVol->get_dim(1), inputVol->get_dim(2)); ImGui::NextColumn(); 
-			ImGui::Text("Resolution"); ImGui::NextColumn(); ImGui::Text("%.2f x %.3f %.3f", 
-				inputVol->get_res(0), inputVol->get_res(1), inputVol->get_res(2)); ImGui::NextColumn(); 
-			ImGui::Text("Data range"); ImGui::NextColumn(); ImGui::Text("%.3f ... %.3f", 
-				inputVol->get_minVal(), inputVol->get_maxVal());
+			ImGui::Text("Dimensions"); ImGui::NextColumn();
+			ImGui::Text("%lu x %lu x %lu",
+			            inputVol->get_dim(0), inputVol->get_dim(1), inputVol->get_dim(2)); ImGui::NextColumn();
+			ImGui::Text("Resolution"); ImGui::NextColumn(); ImGui::Text("%.2f x %.3f %.3f",
+			    inputVol->get_res(0), inputVol->get_res(1), inputVol->get_res(2)); ImGui::NextColumn();
+			ImGui::Text("Data range"); ImGui::NextColumn(); ImGui::Text("%.3f ... %.3f",
+			    inputVol->get_minVal(), inputVol->get_maxVal());
 			ImGui::Columns(1);
 		}
 
 		if (ImGui::CollapsingHeader("Raw data histogram"))
 		{
-			// plot histogram of input data 
-			ImGui::PlotConfig conf;
-			conf.values.xs = inputHist->get_pcontainerVal(); // this line is optional
-			std::vector<float> yVec = inputHist->get_counter();
-			conf.values.ys = &yVec[0]; // this line is optional
-			conf.values.count = inputHist->get_nBins();
-			conf.scale.min = inputHist->get_minHist();
-			conf.scale.max = inputHist->get_maxHist();
-			conf.tooltip.show = true;
-			conf.tooltip.format = "x=%.2f, y=%.2f";
-			conf.grid_x.show = true;
-			conf.grid_y.show = true;
-			conf.frame_size = ImVec2(400, 200);
-			conf.line_thickness = 2.f;
-			ImGui::Plot("Histogram input volume", conf);
+			// plot histogram of input data
+			ImPlot::BeginPlot("Histogram input volume");
+			// ImPlot::SetupAxes
+			// conf.values.xs = inputHist->get_pcontainerVal(); // this line is optional
+			// std::vector<float> yVec = inputHist->get_counter();
+			// conf.values.ys = &yVec[0]; // this line is optional
+			// conf.values.count = inputHist->get_nBins();
+			// conf.scale.min = inputHist->get_minHist();
+			// conf.scale.max = inputHist->get_maxHist();
+			// conf.tooltip.show = true;
+			// conf.tooltip.format = "x=%.2f, y=%.2f";
+			// conf.grid_x.show = true;
+			// conf.grid_y.show = true;
+			// conf.frame_size = ImVec2(400, 200);
+			// conf.line_thickness = 2.f;
+			// ImGui::Plot(, conf);
+			ImPlot::EndPlot();
 		}
 
 	}
@@ -342,7 +396,7 @@ void gui::SettingsWindow()
 
 		if (ImGui::CollapsingHeader("CLAHE3D"))
 		{
-	
+
 			ImGui::InputInt3("Subvol spacing", sett_histeq.spacingSubVols);
 			ImGui::InputInt3("Subvol size", sett_histeq.sizeSubVols);
 			ImGui::InputFloat("Noise level", &sett_histeq.noiseLevel);
@@ -437,27 +491,27 @@ void gui::SlicerWindow()
 	if (proc.get_isDataLoaded())
 	{
 		ImGui::Begin("Slicer");
-	
-		ImGui::Columns(4);	
+
+		ImGui::Columns(4);
 		if (ImGui::Button("Flip x"))
 		{
-		 mySlice.flip(0); 
+			mySlice.flip(0);
 		}
 		ImGui::NextColumn();
 
 		if (ImGui::Button("Flip y"))
 		{
-		 mySlice.flip(1); 
+			mySlice.flip(1);
 		}
 		ImGui::NextColumn();
 
 		if (ImGui::Button("Flip z"))
 		{
-		 mySlice.flip(2);
+			mySlice.flip(2);
 		}
 		ImGui::NextColumn();
-		
-		
+
+
 		bool oldRaw = showRaw;
 		ImGui::Checkbox("Show raw", &showRaw);
 		// if we switched toggle, lets update data pointer
@@ -482,12 +536,10 @@ void gui::SlicerWindow()
 		ImGui::Columns(1);
 		mySlice.set_slicePoint(intedPos.x, intedPos.y, intedPos.z);
 
-		ImGui::Text("Value at current position (raw): %f", 
-			(showRaw) ? 
-			inputVol->get_value(slicePos.x, slicePos.y, slicePos.z) : 
-			outputVol->get_value(slicePos.x, slicePos.y, slicePos.z));
-
-		// ImGui::Text("Value at current position (proc): %f", histoEq.get_outputValue(slicePos));
+		ImGui::Text("Value at current position (raw): %f",
+		            (showRaw) ?
+		            inputVol->get_value(slicePos.x, slicePos.y, slicePos.z) :
+		            outputVol->get_value(slicePos.x, slicePos.y, slicePos.z));
 
 		const float totalHeight = inputVol->get_length(1) + inputVol->get_length(2);
 		const float totalWidth = inputVol->get_length(0) + inputVol->get_length(1);
@@ -503,18 +555,17 @@ void gui::SlicerWindow()
 			ImImagesc(mySlice.get_plane(1), sizeArray.x, sizeArray.z, &sliceY, rawMap);
 			ImImagesc(mySlice.get_plane(2), sizeArray.x, sizeArray.y, &sliceZ, rawMap);
 
-			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine(); 
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine();
 			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(yLength, zLength));
-			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
-			
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength));
 
 			ImGui::Columns(2);
-			ImGui::SliderFloat("Min Val Raw", 
-				rawMap.get_pminVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
+			ImGui::SliderFloat("Min Val Raw",
+			                   rawMap.get_pminVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
 			ImGui::NextColumn();
-			ImGui::SliderFloat("Max Val Raw", 
-				rawMap.get_pmaxVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
-				
+			ImGui::SliderFloat("Max Val Raw",
+			                   rawMap.get_pmaxVal(), inputVol->get_minVal(), inputVol->get_maxVal(), "%.4f");
+
 
 			ImGui::NextColumn();
 			ImGui::ColorEdit4("Min color Raw", rawMap.get_pminCol(), ImGuiColorEditFlags_Float);
@@ -526,11 +577,11 @@ void gui::SlicerWindow()
 			ImImagesc(mySlice.get_plane(0),	sizeArray.y, sizeArray.z, &sliceX, procMap);
 			ImImagesc(mySlice.get_plane(1),	sizeArray.x, sizeArray.z, &sliceY, procMap);
 			ImImagesc(mySlice.get_plane(2),	sizeArray.x, sizeArray.y, &sliceZ, procMap);
-			
-			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine(); 
+
+			ImGui::Image((void*)(intptr_t) sliceY, ImVec2(xLength, zLength)); ImGui::SameLine();
 			ImGui::Image((void*)(intptr_t) sliceX, ImVec2(yLength, zLength));
-			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength)); 
-			
+			ImGui::Image((void*)(intptr_t) sliceZ, ImVec2(xLength, yLength));
+
 			ImGui::Columns(2);
 			ImGui::SliderFloat("Min Val Proc", procMap.get_pminVal(), outputVol->get_minVal(), outputVol->get_maxVal(), "%.4f");
 			ImGui::NextColumn();
@@ -547,10 +598,10 @@ void gui::SlicerWindow()
 
 // helper function to display stuff
 void gui::ImImagesc(
-	const float* data, const uint64_t sizex, const uint64_t sizey, 
-	GLuint* out_texture, const color_mapper myCMap)
+  const float* data, const uint64_t sizex, const uint64_t sizey,
+  GLuint* out_texture, const color_mapper myCMap)
 {
-	
+
 	glDeleteTextures(1, out_texture);
 
 	// Create an OpenGL texture identifier
@@ -561,15 +612,15 @@ void gui::ImImagesc(
 	// setup filtering parameters for display
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			
+
 	// use color transfer function to convert from float to rgba
-	unsigned char* data_conv = new unsigned char[4 * sizex * sizey];
-	myCMap.convert_to_map(data, sizex * sizey, data_conv);
+	std::vector<unsigned char> data_conv (4 * sizex * sizey);
+	myCMap.convert_to_map(data, sizex * sizey, data_conv.data());
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sizex, sizey, 0, GL_RGBA, GL_UNSIGNED_BYTE, data_conv);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+	             sizex, sizey, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+	             data_conv.data());
 
 	// give pointer back to main program
 	*out_texture = image_texture;
-	delete[] data_conv; // free memory for temporary array
-	return;
 }

@@ -18,7 +18,7 @@
 		nifti_in: input file in nii format
 		nifi_out: output path for processed dataset
 
-*/
+*/ 
 
 #include <fstream>
 #include <iostream>
