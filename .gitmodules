@@ -1,7 +1,3 @@
-[submodule "lib/imgui"]
-	path = lib/imgui
-	url = https://github.com/ocornut/imgui.git
-	branch = docking
 [submodule "lib/CVolume"]
 	path = lib/CVolume
 	url = https://github.com/hofmannu/CVolume.git

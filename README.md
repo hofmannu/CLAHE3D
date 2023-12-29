@@ -4,11 +4,11 @@ A three dimensional contrast enhancement code written in `C++` and `CUDA`. Works
 
 Beside the basic functionality of CLAHE3D, I started implementing a few more volume processing functions which can improve the outcome of CLAHE3D such as
 
-*  mean filtering
-*  gaussian filtering
-*  median filtering
-*  thresholding of volumes (similar to clip limit)
-*  normalization to custom range
+-  mean filtering
+-  gaussian filtering
+-  median filtering
+-  thresholding of volumes (similar to clip limit)
+-  normalization to custom range
 
 All operations support multithreading on CPUs. Some are already pushed to the GPU, others not yet. 
 
@@ -29,7 +29,7 @@ To use the GUI or CUDA support, there are a few more dependencies to install
 
 *  Compilation tools and helpers: `git`, `cmake`, `g++`
 *  GPU: `nvidia-cuda-toolkit`
-*  Stuff to display things using the GUI: `libsdl2-dev`, `libglfw3-dev`
+*  Stuff to display things using the GUI: `libglfw3-dev`
 *  Saving and reading from h5 files: `libhdf5-dev`
 
 With those libraries installed it should work. A few libraries might not be matching with your OS path to them (e.g. not finding header files). The code was only tested for ArchLinux to its full extend.
@@ -38,7 +38,7 @@ With those libraries installed it should work. A few libraries might not be matc
 
 *  Compilation tools and helpers: `git`, `cmake`, `g++`
 *  GPU: `cuda`
-*  Stuff to display things using the GUI: `sdl2`, `glfw-x11` or `glfw-wayland`, `glew`
+*  Stuff to display things using the GUI: `glfw-x11` or `glfw-wayland`, `glew`
 *  Saving and reading from h5 files: `hdf5`
 
 # Installation / Compiling
