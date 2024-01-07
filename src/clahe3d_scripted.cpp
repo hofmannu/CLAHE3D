@@ -33,7 +33,9 @@ int main(int argc, char** argv)
 	// lets try to read all the properties passed from the command line
 	if (argc != 7)
 	{
-		printf("This function requires exactly 5 input arguments");
+		printf("This function requires exactly 6 input arguments");
+		printf("Input arguments\n");
+
 		printf("You have entered %d arguments\n", argc);
 	  for (int i = 0; i < argc; ++i)
         cout << argv[i] << "\n";
@@ -48,8 +50,8 @@ int main(int argc, char** argv)
 	const string pathOut = argv[6];
 
 	printf("Input arguments\n");
-	printf("- subvolume spacing: %d\n", sv_spacing);
-	printf("- subvolume size: %d\n", sv_size);
+	printf("- subvolume spacing [voxel]: %d\n", sv_spacing);
+	printf("- subvolume size [voxel]: %d\n", sv_size);
 	printf("- noiseLevel: %f\n", noiseLevel);
 	printf("- nBins: %d\n", nBins);
 	printf("- input file: %s\n", pathIn.c_str());
