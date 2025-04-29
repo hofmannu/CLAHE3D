@@ -24,7 +24,7 @@
 class gui {
 public:
   gui();
-  void InitWindow(int argcp, char** argv);
+  void InitWindow(int argc, char** argv);
 
 private:
   const char* m_windowTitle = "Volume Processing Toolbox";

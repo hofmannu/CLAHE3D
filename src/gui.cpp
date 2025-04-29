@@ -66,7 +66,7 @@ void gui::SetupWorkspace(ImGuiID& dockspace_id) {
   ImGui::DockBuilderDockWindow("Data exporter", m_dockTools);
 }
 
-void gui::InitWindow(int argcp, char** argv) {
+void gui::InitWindow(int argc, char** argv) {
   glfwSetErrorCallback(glfw_error_callback);
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");

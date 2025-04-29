@@ -12,9 +12,9 @@
 
 using namespace std;
 
-int main(int argcp, char** argv) {
+int main(int argc, char** argv) {
   gui GUI;
-  GUI.InitWindow(argcp, argv);
+  GUI.InitWindow(argc, argv);
 
   return 0;
 }
