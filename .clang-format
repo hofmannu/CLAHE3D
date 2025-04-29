@@ -1,0 +1,11 @@
+BasedOnStyle:  LLVM
+Language: Cpp
+ColumnLimit: 100
+ReflowComments: false
+AlwaysBreakTemplateDeclarations: true
+FixNamespaceComments: Yes
+TabWidth: 2
+PointerAlignment: Left
+AllowShortIfStatementsOnASingleLine: Always
+BinPackArguments: false
+BinPackParameters: false

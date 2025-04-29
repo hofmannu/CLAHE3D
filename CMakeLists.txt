@@ -9,6 +9,7 @@ project(clahe3d
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(USE_CUDA FALSE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
