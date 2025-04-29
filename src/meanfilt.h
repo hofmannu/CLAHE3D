@@ -24,7 +24,7 @@ struct meanfiltsett {
 class meanfilt : public genfilt {
 public:
   meanfilt();
-  void run(); // runs the actual procesure
+  void run(); // runs the actual filtering
 #if USE_CUDA
   void run_gpu();
 #endif
