@@ -5,11 +5,11 @@
 	Date: 14.03.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/gaussfilt.h"
 
-int main()
+TEST_CASE("gaussian filter operations", "[gaussfilt]")
 {
-
 	srand(0);
 	constexpr std::size_t nKernel = 11;
 	constexpr float sigma = 1.1f;
@@ -27,25 +27,15 @@ int main()
 
 	myFilt.set_dataInput(inputData.data());
 	myFilt.run();
-	printf("Kernel execution tool %.2f ms\n", myFilt.get_tExec());
+	INFO("Kernel execution took " << myFilt.get_tExec() << " ms");
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
-		if (currVal < 0.0)
-		{
-			printf("in this super simple test case there should be nothing below 0\n");
-			throw "InvalidResult";
-		}
-
-		if (currVal > 1.00001)
-		{
-			printf("in this super simple test case there should be nothing above 1.0: %.2f\n",
-				currVal);
-			throw "InvalidResult";
-		}
+		REQUIRE(currVal >= 0.0);
+		REQUIRE(currVal <= 1.00001);
 	}
 
 	// generate an example kernel
@@ -99,12 +89,5 @@ int main()
 	const int idxOutput = testPos.x + 100 * (testPos.y + 110 * testPos.z);
 	
 	const float relativeError = fabs(testVal - outputMatrix[idxOutput]) / fabs(testVal);
-	if (relativeError >= 1e-4)
-	{
-		printf("The test value (%.4f) seems to differ from the class result (%.4f).\n",
-			testVal, outputMatrix[idxOutput]);
-		throw "InvalidValue";
-	}
-
-	return 0;
+	REQUIRE(relativeError < 1e-4);
 }

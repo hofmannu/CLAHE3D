@@ -5,7 +5,7 @@
 	Date: 13.02.2022
 */
 
-
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -15,8 +15,8 @@
 
 using namespace std;
 
-int main(){
-
+TEST_CASE("CPU and GPU equalization comparison", "[histeq][gpu][equalization]")
+{
 	// define grid dimensions for testing
 	const vector3<std::size_t> volSize = {600, 500, 400};
 	// initialize some parameters
@@ -39,11 +39,7 @@ int main(){
 	histHandler.set_overwrite(0);
 	
 	// quickly check if nElements works
-	if (histHandler.get_nElements() != volSize.elementMult())
-	{
-		printf("Number of elements is incorrect\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(histHandler.get_nElements() == volSize.elementMult());
 
 	// caluclate cummulative distribution function
 	histHandler.calculate_cdf();
@@ -68,26 +64,13 @@ int main(){
 		{
 			isSame = 0;
 			counterNotSame++;
-			printf("Difference found: CPU = %f, GPU = %f, delta = %f\n",
-				outputBk[iElem], histHandler.get_outputValue(iElem), deltaVal * 1e9);
+			INFO("Difference found: CPU = " << outputBk[iElem] << ", GPU = " << histHandler.get_outputValue(iElem) << ", delta = " << deltaVal * 1e9);
 		}
 	}
 
 	// check if results are the same, if not: complain
-	if (!isSame)
-	{
-		const float percOff = ((float) counterNotSame) / ((float) histHandler.get_nElements()) * 100.0;
-		printf("EQ test resulted in a few differences here for %.1f percent!\n", percOff);
-		throw "InvalidValue";
-	}
-	else
-	{
-		printf("Everything went well, congratulations.\n");
-	}
+	REQUIRE(isSame);
 
 	delete[] inputVol;
 	delete[] outputBk;
-		
-	return 0;
-
 }

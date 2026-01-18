@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -15,8 +16,8 @@
 
 using namespace std;
 
-int main(){
-
+TEST_CASE("CPU and GPU CDF comparison", "[histeq][gpu][cdf]")
+{
 	srand(1);
 	// define grid dimensions for testing
 	// initialize some parameters
@@ -68,28 +69,15 @@ int main(){
 		}
 	}
 
-	printf("Displaying example CDF function:\n");
+	INFO("Displaying example CDF function:");
 	for (int iBin = 0; iBin < binSize; iBin++)
 	{
-		printf("iBin: %d, GPU: %.3f, CPU: %.3f\n", 
-			(int) iBin, cdf_bk[iBin + 20], histHandler.get_cdf(iBin + 20));
+		INFO("iBin: " << iBin << ", GPU: " << cdf_bk[iBin + 20] << ", CPU: " << histHandler.get_cdf(iBin + 20));
 	}
 
 	// compare if results are the same
-	if (!isSame)
-	{
-		const float percOff = ((float) countNotSame / ((float) histHandler.get_ncdf())) * 100.0;
-		printf("CPU and GPU results differ for %.1f percent of the elements\n", percOff);
-		throw "InvalidResult";
-	}
-	else
-	{
-		printf("GPU and CPU deliver the same result for CDF!\n");
-	}
+	REQUIRE(isSame);
 	
 	delete[] inputVol;
 	delete[] cdf_bk;
-		
-	return 0;
-
 }

@@ -5,11 +5,12 @@
 	Date: 10.03.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/medianfilt.h"
 #include <vector>
 #include <algorithm>
 
-int main()
+TEST_CASE("median filter operations", "[medianfilt]")
 {
 	srand(time(NULL));
 
@@ -23,19 +24,11 @@ int main()
 	
 	// set the size of the kernel and check if everything went smooth
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
-	if (myFilt.get_nKernel() != (nKernel * nKernel * nKernel))
-	{
-		printf("Something went wrong while setting the kernel size\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(myFilt.get_nKernel() == (nKernel * nKernel * nKernel));
 
 	// set the size of the dataset and check if it was successful
 	myFilt.set_dataSize({nx, ny, nz});
-	if (myFilt.get_nData() != (nx * ny * nz))
-	{
-		printf("Something went wrong while defining the data size\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(myFilt.get_nData() == (nx * ny * nz));
 
 	// generate a volume with random values
 	float* inputData = new float[myFilt.get_nData()];
@@ -48,14 +41,10 @@ int main()
 	const float backupVal = inputData[101];
 
 	myFilt.run();
-	printf("Median filtering took %.2f sec to execute\n", myFilt.get_tExec() * 1e-3f);
+	INFO("Median filtering took " << (myFilt.get_tExec() * 1e-3f) << " sec to execute");
 
 	// check if input matrix remained the same
-	if (backupVal != inputData[101])
-	{
-		printf("Median filtering modified our input matrix, this should not happen.\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(backupVal == inputData[101]);
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 	
@@ -63,18 +52,8 @@ int main()
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
-		if (currVal < 0.0f)
-		{
-			printf("in this super simple test case there should be nothing below 0\n");
-			throw "InvalidResult";
-		}
-
-		if (currVal > 1.0f)
-		{
-			printf("in this super simple test case there should be nothing above 1.0: %.2f\n",
-				currVal);
-			throw "InvalidResult";
-		}
+		REQUIRE(currVal >= 0.0f);
+		REQUIRE(currVal <= 1.0f);
 	}
 
 	// validate median at a single position
@@ -98,13 +77,7 @@ int main()
 	const float valueProc = outputMatrix[testPos.x + nx * (testPos.y + ny * testPos.z)];
 	const float testVal = tempArray[medianIdx];
 
-	if (valueProc != testVal)
-	{
-		printf("Comparison results differ: %.4f, %.4f\n", testVal, valueProc);
-		throw "InvalidValue";
-	}
+	REQUIRE(valueProc == testVal);
 
 	delete[] inputData;
-
-	return 0;
 }

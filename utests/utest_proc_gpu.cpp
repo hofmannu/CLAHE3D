@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -14,9 +15,8 @@
 
 using namespace std;
 
-int main()
+TEST_CASE("GPU histogram equalization processing", "[histeq][gpu]")
 {
-
 	// define grid dimensions for testing
 	const vector3<std::size_t> volSize(600, 500, 400);
 	const float clipLimit = 0.1;
@@ -45,7 +45,4 @@ int main()
 	histHandler.equalize_gpu();
 
 	delete[] inputVol;
-		
-	return 0;
-
 }

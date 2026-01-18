@@ -1,10 +1,8 @@
+#include <catch2/catch.hpp>
 #include "../src/lexer.h"
 
-int main()
+TEST_CASE("lexer basic parsing", "[lexer]")
 {
-
 	lexer l;
 	l.parse("c = a * b;\nc = meanfilt(c);\n");
-
-	return 0;
 }

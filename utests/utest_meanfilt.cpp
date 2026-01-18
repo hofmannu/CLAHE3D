@@ -6,9 +6,10 @@
 	Date: 10.03.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/meanfilt.h"
 
-int main()
+TEST_CASE("mean filter operations", "[meanfilt]")
 {
 	const int nKernel = 11;
 	const int range = (nKernel - 1) / 2;
@@ -25,25 +26,14 @@ int main()
 	myFilt.set_dataInput(inputData);
 	myFilt.run();
 
-
 	float* outputMatrix = myFilt.get_pdataOutput();
 	
 	// check that no value here exceeds the boundaries
 	for (int iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
-		if (currVal < 0.0)
-		{
-			printf("in this super simple test case there should be nothing below 0\n");
-			throw "InvalidResult";
-		}
-
-		if (currVal > 1.00001)
-		{
-			printf("in this super simple test case there should be nothing above 1.0: %.2f\n",
-				currVal);
-			throw "InvalidResult";
-		}
+		REQUIRE(currVal >= 0.0);
+		REQUIRE(currVal <= 1.00001);
 	}
 
 	// validate mean at a single position
@@ -65,11 +55,5 @@ int main()
 	const float valueProc = outputMatrix[testPos.x + 100 * (testPos.y + 110 * testPos.z)];
 	const float errorVal = fabsf(testMean - valueProc);
 
-	if (errorVal > 1e-6)
-	{
-		printf("Comparison results differ: %.4f, %.4f\n", testMean, valueProc);
-		throw "InvalidValue";
-	}
-	
-	return 0;
+	REQUIRE(errorVal < 1e-6);
 }

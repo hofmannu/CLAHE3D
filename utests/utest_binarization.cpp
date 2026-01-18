@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -14,7 +15,7 @@
 
 using namespace std;
 
-int main()
+TEST_CASE("binarization handling", "[histeq][binarization]")
 {
 
 	// define grid dimensions for testing
@@ -47,18 +48,10 @@ int main()
 	histHandler.calculate_cdf();
 
 	// check the min value in a single example bin
-	if (!(histHandler.get_minValBin(0, 0, 0) == 1.0))
-	{
-		printf("Minimum in each and every bin should be 1.0\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(histHandler.get_minValBin(0, 0, 0) == 1.0);
 
 	// check maximum value in an example bin
-	if (!(histHandler.get_maxValBin(0, 0, 0) == 100.0))
-	{
-		printf("Minimum in each and every bin should be 100.0\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(histHandler.get_maxValBin(0, 0, 0) == 100.0);
 
 	// check if CDF is valid
 	// all bins until last one should have value 0.5 in CDF
@@ -66,17 +59,11 @@ int main()
 	{
 		if (iBin < (binSize - 1))
 		{
-			if (histHandler.get_cdf(iBin, 0, 0, 0) != 0.0f)
-			{
-				throw "InvalidValue";
-			}
+			REQUIRE(histHandler.get_cdf(iBin, 0, 0, 0) == 0.0f);
 		}
 		else
 		{
-			if (histHandler.get_cdf(iBin, 0, 0, 0) != 1.0f)
-			{
-				throw "InvalidValue";
-			}
+			REQUIRE(histHandler.get_cdf(iBin, 0, 0, 0) == 1.0f);
 		}
 	}
 
@@ -102,24 +89,13 @@ int main()
 		}
 		else
 		{
-			printf("All elements 0 or 1, most recent: input = %.1f, output = %.1f\n",
-				inputVol[iElem], outputVolCpu[iElem]);
-			throw "InvalidValue";
+			INFO("All elements 0 or 1, most recent: input = " << inputVol[iElem] << ", output = " << outputVolCpu[iElem]);
+			REQUIRE(false);
 		}
 	}
 
-	if (counterZero != counterOne)
-	{
-		printf("Does not look like an even distibution to me.");
-		throw "InvalidValue";
-	}
-	else
-	{
-		printf("All seems to work, nZeros: %d, nOnes: %d\n", (int)counterZero, (int)counterOne);
-	}
+	REQUIRE(counterZero == counterOne);
+	INFO("nZeros: " << counterZero << ", nOnes: " << counterOne);
 
 	delete[] inputVol;
-		
-	return 0;
-
 }

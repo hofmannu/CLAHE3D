@@ -7,12 +7,10 @@
 	Description: checks if the padding of a volume through genfilt class works
 */
 
-
-#include <iostream>
+#include <catch2/catch.hpp>
 #include "../src/genfilt.h"
 
-
-int main()
+TEST_CASE("volume padding through genfilt", "[genfilt][padding]")
 {
 	const std::size_t nKernel = 5;
 	const std::size_t nx = 100;
@@ -46,24 +44,10 @@ int main()
 		{
 			for (std::size_t ix = 0; ix < nx; ix++)
 			{
-				// get linear idnex for input volume 
 				const std::size_t idxIn = ix + nx * (iy + ny * iz);
 				const std::size_t idxOut = (ix + nkoff) + nxPadded * (iy + nkoff + nyPadded * (iz + nkoff));
-				// check for required identity
-				if (inputData[idxIn] != dataPadded[idxOut])
-				{
-					printf("It is disturbing how the padding destroys our dataset");
-					throw "InvalidValue";
-				}
-				// else
-				// {
-				// 	printf("works\n");
-				// }
+				REQUIRE(inputData[idxIn] == dataPadded[idxOut]);
 			}
 		}
 	}
-
-	// printf("Padding seems to work perfectly fine\n");
-
-	return 0;
 }

@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -13,7 +14,8 @@
 
 using namespace std;
 
-int main(){
+TEST_CASE("overwrite flag functionality", "[histeq][overwrite]")
+{
 
 	const vector3<std::size_t> volSize(600, 500, 300);
 	const float clipLimit = 0.1;
@@ -48,11 +50,7 @@ int main(){
 	// check if input volume remained the same
 	for (std::size_t iElem = 0; iElem < (volSize.x * volSize.y * volSize.z); iElem++)
 	{
-		if (inputVol[iElem] != inputVolBk[iElem])
-		{
-			printf("The input volume changed! Not acceptable.\n");
-			throw "InvalidBehaviour";
-		}
+		REQUIRE(inputVol[iElem] == inputVolBk[iElem]);
 	}
 
 	const float testVal1 = histHandler.get_cdf(120, 15, 2, 5);
@@ -61,19 +59,8 @@ int main(){
 
 	const float testVal2 = histHandler.get_cdf(120, 15, 2, 5);
 
-	if (testVal1 != testVal2)
-	{
-		printf("Test values are not identical!\n");
-		throw "InvalidResult";
-	}
-	else
-	{
-		printf("Overwrite flag seems to work as expected!\n");
-	}
+	REQUIRE(testVal1 == testVal2);
 
 	delete[] inputVol;
 	delete[] inputVolBk;
-		
-	return 0;
-
 }

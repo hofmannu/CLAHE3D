@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -15,7 +16,7 @@
 
 using namespace std;
 
-int main()
+TEST_CASE("behavior when all values below noise level", "[histeq][noiselevel]")
 {
 
 	// define grid dimensions for testing
@@ -50,40 +51,26 @@ int main()
 	float* outputVolCpu = histHandler.get_ptrOutput();
 	for (std::size_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
-		if (!(outputVolCpu[iElem] == 0))
-		{
-			printf("CPU: All elements need to be zero now! I saw a %.1f\n", outputVolCpu[iElem]);
-			throw "InvalidValue";
-		}
+		REQUIRE(outputVolCpu[iElem] == 0);
 	}
 
-	printf("Looking good on CPU here\n");
+	INFO("CPU test passed");
 
 	#if USE_CUDA
 	histHandler.calculate_cdf_gpu();
 	const float testValGpu = histHandler.get_cdf(iBin, 10, 10, 10);
-	if (testValGpu != testValCpu)
-	{	
-		printf("CPU value: %.1f, GPU value: %.1f\n", testValCpu, testValGpu);
-		throw "InvalidValue";
-	}
+	REQUIRE(testValGpu == testValCpu);
+	
 	histHandler.equalize_gpu();
 
 	float* outputVolGpu = histHandler.get_ptrOutput();
 	for (int iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
-		if (!(outputVolGpu[iElem] == 0))
-		{
-			printf("GPU: All elements need to be zero now! I saw a %.1f\n", outputVolGpu[iElem]);
-			throw "InvalidValue";
-		}
+		REQUIRE(outputVolGpu[iElem] == 0);
 	}
 
-	printf("Looking good on GPU here\n");
+	INFO("GPU test passed");
 	#endif
 
 	delete[] inputVol;
-		
-	return 0;
-
 }

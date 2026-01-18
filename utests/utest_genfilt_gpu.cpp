@@ -7,12 +7,12 @@
 	Description: runs the general filtering algorithm on the GPU and checks for correctness
 */
 
-
+#include <catch2/catch.hpp>
 #include "../src/genfilt.h"
 #include <random>
 #include <iostream>
 
-int main()
+TEST_CASE("GPU general filter operations", "[genfilt][gpu]")
 {
 	srand(time(NULL));
 
@@ -30,18 +30,10 @@ int main()
 
 	genfilt myFilt;
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
-	if (myFilt.get_nKernel() != (5 * 5 * 5))
-	{
-		printf("Something went wrong while defining the kernel size\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(myFilt.get_nKernel() == (5 * 5 * 5));
 
 	myFilt.set_dataSize({nx, ny, nz});
-	if (myFilt.get_nData() != (nx * ny * nz))
-	{
-		printf("Something went wrong while setting the dataset size\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(myFilt.get_nData() == (nx * ny * nz));
 
 	// generate a volume with random values
 	float* inputData = new float[myFilt.get_nData()];
@@ -62,20 +54,12 @@ int main()
 	const float backup_inputData = inputData[testPos.x + nx * (testPos.y + ny * testPos.z)];
 
 	myFilt.conv_gpu();
-	printf("General filtering took %.2f ms to execute (GPU)\n", myFilt.get_tExec());
+	INFO("General filtering took " << myFilt.get_tExec() << " ms to execute (GPU)");
 
-	if (backup_inputData != inputData[testPos.x + nx * (testPos.y + ny * testPos.z)])
-	{
-		printf("gen filtering somehow altered the input data, should not happen!\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(backup_inputData == inputData[testPos.x + nx * (testPos.y + ny * testPos.z)]);
 
 	float* outputMatrix = myFilt.get_pdataOutput();
-	if (outputMatrix == nullptr)
-	{
-		printf("Filtering the dataset resulted in a null pointer matrix\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(outputMatrix != nullptr);
 
 	bool allZero = 1;
 	
@@ -83,44 +67,15 @@ int main()
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
-		if (currVal < 0.0f)
-		{
-			printf("in this super simple test case there should be nothing below 0\n");
-			throw "InvalidResult";
-		}
-
+		REQUIRE(currVal >= 0.0f);
 
 		if (currVal != 0.0f)
 			allZero = 0;
 	}
 
-	if (allZero)
-	{
-		printf("Looks like the calculation returend an only zeros array\n");
-		throw "InvalidValue";
-	}
+	REQUIRE_FALSE(allZero);
 
-	// validate output from padded array
-	// float * paddedData = myFilt.get_pdataPadded();
-	// for (std::size_t iz = 0; iz < nKernel; iz++) 
-	// {
-	// 	const std::size_t zAbs = iz + testPos.z;
-	// 	for (std::size_t iy = 0; iy < nKernel; iy++) 
-	// 	{
-	// 		const std::size_t yAbs = iy + testPos.y;
-	// 		for (std::size_t ix = 0; ix < nKernel; ix++) 
-	// 		{
-	// 			const std::size_t xAbs = ix + testPos.x;
-	// 			const std::size_t idxVol = xAbs + nxPadded * (yAbs + nyPadded * zAbs); // index of volume
-	// 			printf("(%lu, %lu, %lu): %.2f, ", xAbs - range, yAbs - range, zAbs - range, paddedData[idxVol]);
-	// 		}
-	// 		printf("\n");
-
-	// 	}
-	// }
-	// printf("\n");
-
-	// validate median at a single position
+	// validate output at a single position
 	float testVal = 0;
 	std::size_t idxKernel = 0;
 	for (std::size_t iz = (testPos.z - range); iz <= (testPos.z + range); iz++) 
@@ -139,23 +94,13 @@ int main()
 	const float valueProc = outputMatrix[testPos.x + nx * (testPos.y + ny * testPos.z)];
 	const float errorAmount = fabsf(valueProc - testVal);
 
-	if (errorAmount > 1e-5)
-	{
-		printf("Comparison results differ: CPU = %.4f, GPU = %.4f\n", testVal, valueProc);
-		throw "InvalidValue";
-	}
+	REQUIRE(errorAmount < 1e-5);
 
-	printf("Everything passed just fine\n");
+	INFO("GPU test passed");
 
 	myFilt.conv();
-	printf("General filtering took %.2f ms to execute (CPU)\n", myFilt.get_tExec());
-
+	INFO("General filtering took " << myFilt.get_tExec() << " ms to execute (CPU)");
 
 	delete[] inputData;
 	delete[] kernelData;
-
-
-
-
-	return 0;
 }
