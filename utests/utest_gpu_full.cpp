@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -14,8 +15,8 @@
 
 using namespace std;
 
-int main(){
-
+TEST_CASE("Full GPU pipeline comparison", "[histeq][gpu][full]")
+{
 	srand(1);
 
 	// define grid dimensions for testing
@@ -57,8 +58,7 @@ int main(){
 	const auto durationEq = std::chrono::duration_cast<std::chrono::milliseconds>
 		(stopTimeEq - startTimeEq);
 
-	printf("Time required for CDF: %lu ms, EQ: %lu ms\n", 
-		duractionCdf.count(), durationEq.count());
+	INFO("Time required for CDF: " << duractionCdf.count() << " ms, EQ: " << durationEq.count() << " ms");
 	
 	// backup the version of the CDF calculated with
 	float* output_bk = new float[histHandler.get_nElements()];
@@ -84,20 +84,8 @@ int main(){
 	}
 
 	// compare if results are the same
-	if (!isSame)
-	{
-		const float percOff = ((float) countNotSame / ((float) histHandler.get_nElements())) * 100.0;
-		printf("CPU and GPU results differ for %.1f percent of the elements\n", percOff);
-		throw "InvalidResult";
-	}
-	else
-	{
-		printf("GPU and CPU deliver the same result for CDF!\n");
-	}
+	REQUIRE(isSame);
 	
 	delete[] inputVol;
 	delete[] output_bk;
-		
-	return 0;
-
 }
