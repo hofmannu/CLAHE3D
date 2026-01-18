@@ -1,11 +1,78 @@
-BasedOnStyle:  LLVM
-Language: Cpp
-ColumnLimit: 100
-ReflowComments: false
-AlwaysBreakTemplateDeclarations: true
-FixNamespaceComments: Yes
-TabWidth: 2
+# .clang-format
+# Modern clang-format for a C++ library (basedOnStyle: LLVM, tuned)
+---
+Language:        Cpp
+Standard:        Cpp20
+DerivePointerAlignment: false
 PointerAlignment: Left
-AllowShortIfStatementsOnASingleLine: Always
+
+BasedOnStyle:    LLVM
+IndentWidth:     4
+TabWidth:        4
+UseTab:          Never
+
+ColumnLimit:     100
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass:      false
+  AfterControlStatement: true
+  AfterEnum:       false
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  BeforeCatch:     true
+  BeforeElse:      true
+
+IndentCaseLabels: true
 BinPackArguments: false
 BinPackParameters: false
+
+SpaceBeforeParens: ControlStatements  # e.g., if (cond)
+SpacesInParens: false
+SpaceBeforeAssignmentOperators: true
+
+AlignOperands:    true
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: true
+
+AllowAllParametersOfDeclarationOnNextLine: false
+AlwaysBreakAfterReturnType: None
+
+ReflowComments:   true
+SortIncludes:     true
+IncludeBlocks:    Regroup
+
+# Put `#include "project/..."` before system includes or group as needed:
+IncludeCategories:
+  - Regex:           '^"(project|myproj|mylib)/'
+    Priority:        1
+  - Regex:           '^"<'
+    Priority:        2
+  - Regex:           '^<'
+    Priority:        3
+  - Regex:           '.*'
+    Priority:        4
+
+# Control how template/function parameters break
+AllowShortTemplateDeclarationsOnASingleLine: false
+BreakTemplateDeclarations: true
+
+# Pointer/reference/ampersand spacing
+SpaceAroundPointer: false
+
+# Misc
+ForEachMacros:
+  - foreach
+  - QT_FOR
+DeriveLineEnding: true
+
+# Keep clang-format behavior stable across versions
+ExperimentalAutoDetectBinPacking: false
+
+# End
+

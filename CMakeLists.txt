@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(clahe3d 
-	VERSION 0.1
+	VERSION 0.2
 	DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
 	LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(USE_CUDA FALSE) # flag to enable and disable GPU support
+set(USE_CUDA TRUE) # flag to enable and disable GPU support
 set(USE_GUI TRUE) # flag to enable GUI building
 
 if(${USE_CUDA})
@@ -25,7 +25,6 @@ if(${USE_CUDA})
 	set(BUILD_SHARED_LIBS OFF)
 
 	set(CMAKE_EXPORT_COMPILE_COMMANDS ON )
-	# set(CMAKE_CUDA_FLAGS "${CUDA_CUDA_FLAGS} -rdc=true -ftz=false -prec-div=true -prec-sqrt=true")
 	set(CMAKE_CUDA_FLAGS "${CUDA_CUDA_FLAGS} -rdc=true -Xptxas -v -O2")
 
 	set(
@@ -35,7 +34,7 @@ if(${USE_CUDA})
 	)
 
 	# please adapt this to the correct architecture for your device
-	SET(CMAKE_CUDA_ARCHITECTURES 75)
+  SET(CMAKE_CUDA_ARCHITECTURES 75 86)
 else()
 	message("Compiling without GPU support")
 endif()
