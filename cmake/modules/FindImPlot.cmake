@@ -5,11 +5,11 @@ find_package(ImGUI)
 FetchContent_Declare(
   ImPlot
   GIT_REPOSITORY https://github.com/epezent/implot
-  GIT_TAG v0.16
+  GIT_TAG v0.17
 )
 FetchContent_GetProperties(ImPlot)
 if (NOT ImPlot_POPULATED)
-  FetchContent_Populate(ImPlot)
+  FetchContent_MakeAvailable(ImPlot)
   add_library(ImPlot_target
     ${implot_SOURCE_DIR}/implot.cpp
     ${implot_SOURCE_DIR}/implot_items.cpp

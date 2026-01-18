@@ -1,5 +1,6 @@
 #include "gui.h"
 
+#include "ImGuiFileDialog.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_internal.h"
@@ -122,8 +123,8 @@ void gui::InitWindow(int argc, char** argv) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(),
-                                                       ImGuiDockNodeFlags_PassthruCentralNode);
+    ImGuiID dockspaceId = ImGui::DockSpaceOverViewport(
+        0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
     // if we are here for the first time, let's setup the workspace
     if (firstUse) {
@@ -253,8 +254,10 @@ void gui::DataLoaderWindow() {
   ImGui::Columns(3);
 
   if (ImGui::Button("Load data")) {
-    ImGuiFileDialog::Instance()->OpenDialog(
-        "ChooseFileDlgKey", "Choose File", ".nii,.hdf,.raw,.h5", "h5", ".");
+    IGFD::FileDialogConfig config;
+    config.path = ".";
+    ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File",
+                                            ".nii,.hdf,.raw,.h5", config);
   }
 
   // display

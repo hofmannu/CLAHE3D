@@ -8,7 +8,7 @@ include(FetchContent)
 FetchContent_Declare(
 	imgui
 	GIT_REPOSITORY https://github.com/ocornut/imgui.git
-	GIT_TAG dc3e531 # note: this git tag is pointing to the docking branch
+	GIT_TAG 3912b3d9a9c1b3f17431aebafd86d2f40ee6e59c # note: this git tag is pointing to the docking branch
 	GIT_PROGRESS true
 )
 
@@ -18,8 +18,9 @@ if (NOT imgui_POPULATED)
 	# we use the imgui implementation here depends on GLFW and OpenFL
 	find_package(GLFW REQUIRED)
 	find_package(OpenGL REQUIRED)
+  find_package(X11 REQUIRED)
 	
-	FetchContent_Populate(imgui)
+  FetchContent_MakeAvailable(imgui)
 
 	add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
 	
@@ -47,6 +48,7 @@ if (NOT imgui_POPULATED)
 	PRIVATE
 		${GLFW_LIBRARIES}
 		${OPENGL_LIBRARIES}
+    ${X11_LIBRARIES}
 	)
 
 	set(ImGUI_INCLUDE_DIR

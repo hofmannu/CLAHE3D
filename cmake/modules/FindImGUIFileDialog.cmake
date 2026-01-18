@@ -1,17 +1,17 @@
 include(FetchContent)
 
-find_package(ImGUI)
+find_package(ImGUI REQUIRED)
 
 FetchContent_Declare(
   ImGuiFileDialog
   GIT_REPOSITORY https://github.com/aiekick/ImGuiFileDialog
-  GIT_TAG 72ff16ef1806da070f2d28f9e34b130d49f01143
+  GIT_TAG ee77f190861193a995435c388682f1512f6fd29a
 )
 FetchContent_GetProperties(ImGuiFileDialog)
 if (NOT ImGuiFileDialog_POPULATED)
-  FetchContent_Populate(ImGuiFileDialog)
+  FetchContent_MakeAvailable(ImGuiFileDialog)
   add_library(ImGuiFileDialog_target
-    ${imguifiledialog_SOURCE_DIR}/ImGuiFileDialog/ImGuiFileDialog.cpp
+    ${imguifiledialog_SOURCE_DIR}/ImGuiFileDialog.cpp
     )
 
   target_link_libraries(ImGuiFileDialog_target PUBLIC 
@@ -23,5 +23,5 @@ if (NOT ImGuiFileDialog_POPULATED)
   )
 endif()
 
-SET(ImGUIFileDialog_INCLUDE_DIR "${imguifiledialog_SOURCE_DIR}/ImGuiFileDialog")
+SET(ImGUIFileDialog_INCLUDE_DIR "${imguifiledialog_SOURCE_DIR}")
 SET(ImGUIFileDialog_LIBRARIES ImGuiFileDialog_target)
