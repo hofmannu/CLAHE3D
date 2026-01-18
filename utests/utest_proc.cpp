@@ -5,6 +5,7 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch.hpp>
 #include "../src/histeq.h"
 #include <iostream>
 #include <cstdint>
@@ -12,10 +13,9 @@
 #include <chrono>
 #include "../src/vector3.h"
 
-
 using namespace std;
 
-int main()
+TEST_CASE("histogram equalization processing", "[histeq][proc]")
 {
 	// define testing parameters
 	const vector3<std::size_t> volSize(400, 200, 300);
@@ -43,39 +43,28 @@ int main()
 	// histogram calculation on GPU
 	histHandler.calculate_cdf();
 
-	printf("Printing example bins\n");
+	INFO("Printing example bins");
 	float oldBinVal = 0;
 	for (std::size_t iBin = 1; iBin < binSize; iBin++)
 	{
 		const float delta = histHandler.get_cdf(iBin) - oldBinVal;
-		printf("iBin = %d, Value = %.1f, Delta = %.4f\n", (int) iBin, histHandler.get_cdf(iBin), delta);
+		INFO("iBin = " << iBin << ", Value = " << histHandler.get_cdf(iBin) << ", Delta = " << delta);
 		oldBinVal = histHandler.get_cdf(iBin);
 	}
 
 	// first bin must be zero and last bin must be one
 	for (std::size_t iSub = 0; iSub < histHandler.get_nSubVols(); iSub++)
 	{
-		if (histHandler.get_cdf(0, iSub) != 0.0)
-		{
-			printf("All initial bins must have zero value\n");
-			throw "Invalid result";
-		}
+		REQUIRE(histHandler.get_cdf(0, iSub) == 0.0);
 
 		const float deltaEnd = abs(1.0 - histHandler.get_cdf(binSize - 1, iSub));
-		if (deltaEnd > 1e-6)
-		{
-			printf("All end bins must have one value: deviation: %.6f\n", deltaEnd);
-			throw "Invalid result";
-		}
+		REQUIRE(deltaEnd < 1e-6);
 	}
 
 	histHandler.equalize();
 
-	printf("CDF calculation took %.2f ms\n", histHandler.get_tCdf());
-	printf("EQ calculation took %.2f ms\n", histHandler.get_tEq());
+	INFO("CDF calculation took " << histHandler.get_tCdf() << " ms");
+	INFO("EQ calculation took " << histHandler.get_tEq() << " ms");
 	
 	delete[] inputVol;
-		
-	return 0;
-
 }

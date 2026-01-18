@@ -43,7 +43,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ImGUI REQUIRED)
 find_package(ImGUIFileDialog REQUIRED)
 find_package(ImPlot REQUIRED)
-# find_package(Catch2 REQUIRED)
+find_package(Catch2 REQUIRED)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
@@ -73,27 +73,11 @@ if(${USE_GUI})
 endif()
 
 
-add_test(NAME test_proc COMMAND UtestProc)
-add_test(NAME test_overwrite COMMAND UtestOverwrite)
-add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
-add_test(NAME test_binarization COMMAND UtestBinarization)
-add_test(NAME test_vector3 COMMAND UtestVector3)
-add_test(NAME test_genfilt COMMAND UtestGenfilt)
-add_test(NAME test_padding COMMAND UtestPadding)
-add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
-add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
-add_test(NAME test_medianfilt COMMAND UtestMedianfilt)
-add_test(NAME test_normalizer COMMAND UtestNormalizer)
-add_test(NAME test_lexer COMMAND UtestLexer)
+enable_testing() # this cannot be in subdirectory!
 
+# Register tests with CTest
+add_test(NAME all_tests COMMAND AllTests)
 
 if(${USE_CUDA})
-	add_test(NAME test_proc_gpu COMMAND UtestProcGpu)
-	add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)
-	add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
-	add_test(NAME test_gpu_full COMMAND UtestGpuFull)
-	add_test(NAME test_medianfilt_gpu COMMAND UtestMedianfiltGpu)
-	add_test(NAME test_genfilt_gpu COMMAND UtestGenfiltGpu)
+	add_test(NAME all_tests_gpu COMMAND AllTestsGpu)
 endif()
-
-enable_testing() # this cannot be in subdirectory!

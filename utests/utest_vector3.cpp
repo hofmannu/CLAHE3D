@@ -1,121 +1,105 @@
-#include <iostream>
+#include <catch2/catch.hpp>
 #include "../src/vector3.h"
 
-int main()
+TEST_CASE("vector3 operations", "[vector3]")
 {
-	printf("Starting vector3 test.\n");
-
 	srand(1);
 
 	vector3<int> myVec;
 
-	// test initialization with curly brackets
-	const vector3<int> curlyVector = {12, 13, 14};
-	if ((curlyVector.x != 12) || (curlyVector.y != 13) || (curlyVector.z != 14))
+	SECTION("initialization with curly brackets")
 	{
-		printf("Curly seems to be unstable\n");
-		throw "InvalidResult";
+		const vector3<int> curlyVector = {12, 13, 14};
+		REQUIRE(curlyVector.x == 12);
+		REQUIRE(curlyVector.y == 13);
+		REQUIRE(curlyVector.z == 14);
 	}
 	
-	// set all elements in vector to a single value
-	const int randVal = rand();
-	myVec = randVal;
-	if ((myVec.x != randVal) || (myVec.y != randVal) || (myVec.z != randVal))
+	SECTION("setting vector to single value")
 	{
-		printf("Setting the vector did not work\n");
-		throw "InvalidResult";
+		const int randVal = rand();
+		myVec = randVal;
+		REQUIRE(myVec.x == randVal);
+		REQUIRE(myVec.y == randVal);
+		REQUIRE(myVec.z == randVal);
 	} 
 
-	// try constructor by passing three elements
-	vector3<int> otherVec(3, 3, 3);
-	if ((otherVec.x != 3) || (otherVec.y != 3) || (otherVec.z != 3))
+	SECTION("constructor with three elements")
 	{
-		printf("Setting the vector did not work\n");
-		throw "InvalidResult";
+		vector3<int> otherVec(3, 3, 3);
+		REQUIRE(otherVec.x == 3);
+		REQUIRE(otherVec.y == 3);
+		REQUIRE(otherVec.z == 3);
 	}
 
-	// check equal operator
-	myVec = 3;
-	if (!(myVec == otherVec))
+	SECTION("equal operator")
 	{
-		printf("The two vecotrs should be the same, somethign is wring here\n");
-		throw "InvalidValue";
+		vector3<int> otherVec(3, 3, 3);
+		myVec = 3;
+		REQUIRE(myVec == otherVec);
 	}
 
-	// check substraction
-	myVec = {3, 4, 5};
-	myVec = myVec - 1;
-	if ((myVec.x != 2) || (myVec.y != 3) || (myVec.z != 4))
+	SECTION("subtraction")
 	{
-		printf("Error while testing substration operation\n");
+		myVec = {3, 4, 5};
+		myVec = myVec - 1;
+		REQUIRE(myVec.x == 2);
+		REQUIRE(myVec.y == 3);
+		REQUIRE(myVec.z == 4);
 	}
 
-	// check vector addition
-	otherVec = {1, 2, 3};
-	myVec = {1, 0, 4};
-	vector3<int> resultVec(2, 2, 7);
-	myVec = myVec + otherVec;
-	if (myVec != resultVec)
+	SECTION("vector addition")
 	{
-		printf("Something went wrong during vector addition.\n");
-		throw "InvalidValue";
-	}
-	if ((otherVec.x != 1) || (otherVec.y != 2) || (otherVec.z !=3))
-	{
-		printf("Substraction somehow changed our sub vector\n");
-		throw "InvalidValue";
+		vector3<int> otherVec = {1, 2, 3};
+		myVec = {1, 0, 4};
+		vector3<int> resultVec(2, 2, 7);
+		myVec = myVec + otherVec;
+		REQUIRE(myVec == resultVec);
+		REQUIRE(otherVec.x == 1);
+		REQUIRE(otherVec.y == 2);
+		REQUIRE(otherVec.z == 3);
 	} 
 
-	// check vector multiplication
-	otherVec = {1, 2, 3};
-	myVec = {1, 0, 4};
-	vector3<int> resultVecMult(1, 0, 12);
-	myVec = myVec * otherVec;
-	if (myVec != resultVecMult)
+	SECTION("vector multiplication")
 	{
-		printf("Something went wrong during vector multiplication.\n");
-		throw "InvalidValue";
-	}
-	if ((otherVec.x != 1) || (otherVec.y != 2) || (otherVec.z !=3))
-	{
-		printf("Substraction somehow changed our sub vector\n");
-		throw "InvalidValue";
+		vector3<int> otherVec = {1, 2, 3};
+		myVec = {1, 0, 4};
+		vector3<int> resultVecMult(1, 0, 12);
+		myVec = myVec * otherVec;
+		REQUIRE(myVec == resultVecMult);
+		REQUIRE(otherVec.x == 1);
+		REQUIRE(otherVec.y == 2);
+		REQUIRE(otherVec.z == 3);
 	} 
 	
-	// check assignemnt using curly brackets
-	myVec = {10, 3, 5};
-	if ((myVec.x != 10) || (myVec.y != 3) || (myVec.z != 5))
+	SECTION("assignment using curly brackets")
 	{
-		printf("Setting the vector using curly brackets did not work\n");
-		throw "InvalidResult";
+		myVec = {10, 3, 5};
+		REQUIRE(myVec.x == 10);
+		REQUIRE(myVec.y == 3);
+		REQUIRE(myVec.z == 5);
 	}
 
-	// check vector through indexing
-	if ((myVec[0] != myVec.x) || (myVec[1] != myVec.y) || (myVec[2] != myVec.z))
+	SECTION("vector access through indexing")
 	{
-		printf("Access through indexing seems to be not working\n");
-		throw "InvalidResult";
+		myVec = {10, 3, 5};
+		REQUIRE(myVec[0] == myVec.x);
+		REQUIRE(myVec[1] == myVec.y);
+		REQUIRE(myVec[2] == myVec.z);
 	}
 
-	// check vector assignment
-	otherVec = 3;
-	myVec = otherVec;
-	if (myVec != otherVec)
+	SECTION("vector assignment")
 	{
-		printf("Something is wrong with vector assignment\n");
-		throw "InvalidResult";
+		vector3<int> otherVec = 3;
+		myVec = otherVec;
+		REQUIRE(myVec == otherVec);
 	}
 
-	vector3<int> startVal = {5, 6, 7};
-	vector3<int> outVal = startVal % 3;
-	vector3<int> expectedRes = {2, 0, 1};
-	if (outVal != expectedRes)
+	SECTION("modulo operator")
 	{
-		printf("Modulo operator seems invalid\n");
-		throw "InvalidResult";
+		vector3<int> startVal = {5, 6, 7};
+		vector3<int> outVal = startVal % 3;
+		vector3<int> expectedRes = {2, 0, 1};
+		REQUIRE(outVal == expectedRes);
 	}
-
-	printf("vector3 test executed successfully\n");
-
-	return 0;
-};
+}
