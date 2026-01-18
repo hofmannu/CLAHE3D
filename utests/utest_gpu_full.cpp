@@ -53,12 +53,12 @@ TEST_CASE("Full GPU pipeline comparison", "[histeq][gpu][full]")
 	histHandler.equalize_gpu();
 	const auto stopTimeEq = std::chrono::high_resolution_clock::now();
 
-	const auto duractionCdf = std::chrono::duration_cast<std::chrono::milliseconds>
+	const auto durationCdf = std::chrono::duration_cast<std::chrono::milliseconds>
 		(stopTimeCdf - startTimeCdf);
 	const auto durationEq = std::chrono::duration_cast<std::chrono::milliseconds>
 		(stopTimeEq - startTimeEq);
 
-	INFO("Time required for CDF: " << duractionCdf.count() << " ms, EQ: " << durationEq.count() << " ms");
+	INFO("Time required for CDF: " << durationCdf.count() << " ms, EQ: " << durationEq.count() << " ms");
 	
 	// backup the version of the CDF calculated with
 	float* output_bk = new float[histHandler.get_nElements()];
