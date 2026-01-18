@@ -1,14 +1,15 @@
 # .clang-format
 # Modern clang-format for a C++ library (basedOnStyle: LLVM, tuned)
 ---
+BasedOnStyle:    LLVM
+
 Language:        Cpp
 Standard:        Cpp20
 DerivePointerAlignment: false
 PointerAlignment: Left
 
-BasedOnStyle:    LLVM
-IndentWidth:     4
-TabWidth:        4
+IndentWidth:     2
+TabWidth:        2
 UseTab:          Never
 
 ColumnLimit:     100

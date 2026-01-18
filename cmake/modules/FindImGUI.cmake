@@ -18,6 +18,7 @@ if (NOT imgui_POPULATED)
 	# we use the imgui implementation here depends on GLFW and OpenFL
 	find_package(GLFW REQUIRED)
 	find_package(OpenGL REQUIRED)
+  find_package(X11 REQUIRED)
 	
   FetchContent_MakeAvailable(imgui)
 
@@ -47,6 +48,7 @@ if (NOT imgui_POPULATED)
 	PRIVATE
 		${GLFW_LIBRARIES}
 		${OPENGL_LIBRARIES}
+    ${X11_LIBRARIES}
 	)
 
 	set(ImGUI_INCLUDE_DIR

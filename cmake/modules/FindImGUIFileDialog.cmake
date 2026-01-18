@@ -1,6 +1,6 @@
 include(FetchContent)
 
-find_package(ImGUI)
+find_package(ImGUI REQUIRED)
 
 FetchContent_Declare(
   ImGuiFileDialog
