@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 project(clahe3d 
 	VERSION 0.2
 	DESCRIPTION "Contrast limited adaptive histogram equilization in 3D"
-	LANGUAGES CXX
+  LANGUAGES CXX C
 )
 
 set(CMAKE_CXX_STANDARD 20)
@@ -36,13 +36,14 @@ if(${USE_CUDA})
 	# please adapt this to the correct architecture for your device
   SET(CMAKE_CUDA_ARCHITECTURES 75 86)
 else()
-	message("Compiling without GPU support")
+  message(STATUS "Compiling without GPU support")
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ImGUI REQUIRED)
 find_package(ImGUIFileDialog REQUIRED)
 find_package(ImPlot REQUIRED)
+find_package(Catch2 REQUIRED)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
