@@ -10,9 +10,10 @@ FetchContent_Declare(
 
 FetchContent_GetProperties(catch2)
 if(NOT catch2_POPULATED)
-  FetchContent_MakeAvailable(catch2)
-  add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
+  FetchContent_Populate(catch2)
 endif()
+
+add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR} EXCLUDE_FROM_ALL)
 
 set(catch2_INCLUDE_DIR "${catch2_SOURCE_DIR}/;${catch2_SOURCE_DIR}/src/;" CACHE PATH "Path to include folder for Catch2")
 set(catch2_LIBRARIES "Catch2::Catch2" CACHE STRING "Library for Catch2")

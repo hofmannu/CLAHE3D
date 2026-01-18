@@ -11,8 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED true)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(USE_CUDA TRUE) # flag to enable and disable GPU support
-set(USE_GUI TRUE) # flag to enable GUI building
+set(USE_CUDA FALSE) # flag to enable and disable GPU support
+set(USE_GUI FALSE) # flag to enable GUI building
 
 if(${USE_CUDA})
   message(STATUS "Compiling with CUDA support")
@@ -40,9 +40,13 @@ else()
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
-find_package(ImGUI REQUIRED)
-find_package(ImGUIFileDialog REQUIRED)
-find_package(ImPlot REQUIRED)
+
+if(${USE_GUI})
+	find_package(ImGUI REQUIRED)
+	find_package(ImGUIFileDialog REQUIRED)
+	find_package(ImPlot REQUIRED)
+endif()
+
 find_package(Catch2 REQUIRED)
 
 add_subdirectory(lib/)
