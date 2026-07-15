@@ -21,7 +21,7 @@ if(${USE_CUDA})
 	add_compile_definitions(USE_CUDA)
 	enable_language(CUDA)
 	find_package(CUDA REQUIRED)
-	INCLUDE_DIRECTORIES(/opt/cuda/include include)
+	INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS} include)
 
 	set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
 	set(BUILD_SHARED_LIBS OFF)

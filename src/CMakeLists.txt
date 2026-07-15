@@ -1,7 +1,7 @@
 # prepare for cuda compilation
 if (${USE_CUDA})
 	find_package(CUDA REQUIRED)
-	INCLUDE_DIRECTORIES(/opt/cuda/include include)
+	INCLUDE_DIRECTORIES(${CUDA_INCLUDE_DIRS} include)
 
 	set(CUDA_SEPARABLE_COMPILATION ON)
 	set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
