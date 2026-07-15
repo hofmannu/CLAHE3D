@@ -4,49 +4,77 @@
 	Mail: mail@hofmannu.org
 	Date: 06.02.2022
 
-	A rather simple script which will allow using histogram from the command line
-
-	Usage:
-
-	histogram $nbins $nifti_in $nifti_out
-	
-	Where 
-		nbins - number of bins to use for calculation e.g. 256
-		nifit_in - dataset to analyse
-		outfile - here we print result
+	Command line frontend for the histogram analysis. Run with --help to see all
+	available options and their defaults.
 */
 
-#include <fstream>
+#include <cstdlib>
 #include <iostream>
+#include <string>
+
+#include <cxxopts.hpp>
+
 #include "histogram.h"
 #include "../lib/CVolume/src/volume.h"
 
-using namespace std;
-
 int main(int argc, char** argv)
 {
-	// lets try to read all the properties passed from the command line
-	if (argc != 4)
+	cxxopts::Options options(
+		"histogram_scripted",
+		"Compute the intensity histogram of a 3D volume and write it to a file.");
+
+	options.add_options()
+		("b,bins", "Number of histogram bins",
+			cxxopts::value<std::size_t>()->default_value("256"))
+		("i,input", "Input volume file (.nii / .h5) to analyse",
+			cxxopts::value<std::string>())
+		("o,output", "Output file for the histogram",
+			cxxopts::value<std::string>())
+		("h,help", "Print usage");
+
+	// Allow `histogram_scripted <input> <output>` in addition to -i/-o.
+	options.parse_positional({"input", "output"});
+	options.positional_help("<input> <output>");
+
+	std::size_t nbins;
+	std::string pathIn, pathOut;
+
+	try
 	{
-		printf("This function requires exactly 3 input arguments");
-		printf("You have entered %d arguments\n", argc);
-	  for (int i = 0; i < argc; ++i)
-        cout << argv[i] << "\n";
+		const auto result = options.parse(argc, argv);
+
+		if (result.count("help"))
+		{
+			std::cout << options.help() << std::endl;
+			return 0;
+		}
+
+		if (!result.count("input") || !result.count("output"))
+		{
+			std::cerr << "Error: both an input and an output file are required.\n\n"
+			          << options.help() << std::endl;
+			return 1;
+		}
+
+		nbins = result["bins"].as<std::size_t>();
+		pathIn = result["input"].as<std::string>();
+		pathOut = result["output"].as<std::string>();
+	}
+	catch (const cxxopts::exceptions::exception& e)
+	{
+		std::cerr << "Error parsing options: " << e.what() << "\n\n"
+		          << options.help() << std::endl;
 		return 1;
 	}
 
-	const std::size_t nbins = atoi(argv[1]);
-	const string pathIn = argv[2];
-	const string pathOut = argv[3];
-
 	printf("Input arguments\n");
-	printf("- number of bins: %d\n", nbins);
+	printf("- number of bins: %zu\n", nbins);
 	printf("- input file: %s\n", pathIn.c_str());
 	printf("- output file: %s\n", pathOut.c_str());
 
 	volume niiInput;
 	niiInput.readFromFile(pathIn); // reads the entire input file
-	
+
 	histogram hist(nbins);
 	hist.calculate(niiInput.get_pdata(), niiInput.get_nElements());
 

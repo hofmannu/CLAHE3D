@@ -29,17 +29,39 @@ As a last step, this procedure can not only be applied to 2D image but to 3D vol
 
 ## Scripted version of tool
 
-There is an executable provided with the toolbox that allows running the algorithm from the command line. The tool thereby takes 6 input parameters
+There is an executable provided with the toolbox that allows running the algorithm from the command line. It uses named options (parsed with [cxxopts](https://github.com/jarro2783/cxxopts)) with sensible defaults, so you only need to specify what you want to change. Run `./clahe3d_scripted --help` to print the full list:
 
-- spacing between the sub-volumes used for calculation of the local histograms in voxel
-- size of the sub-volumes along all three dimensions in voxel
-- noise level defining the lower clip limit of the histogram to avoid e.g. contrast enhancement in air
-- number of bins of the histogram
-- path to the input file
-= path to the output file
+```
+Usage:
+  clahe3d_scripted [OPTION...] <input> <output>
+
+  -s, --spacing arg  Distance between subvolume centers [voxel] (default: 5)
+  -z, --size arg     Edge length of each cubic subvolume [voxel] (default: 11)
+  -n, --noise arg    Lower clip intensity of the histogram (noise level) (default: 0.1)
+  -b, --bins arg     Number of histogram bins (default: 255)
+  -g, --gpu          Run the equalization on the GPU (CUDA)   [only if built with CUDA]
+  -h, --help         Print usage
+```
+
+The input and output files are given as the two positional arguments (`<input> <output>`); equivalently they can be passed with `-i/--input` and `-o/--output`. The `--gpu` flag is only present when the tool is compiled with CUDA support.
 
 For a CT dataset, a useful set of starting values would be:
 
 ```bash
-./clahe3d_scripted 9 21 -950.0 255 CT.nii CT_clahe.nii
+# named options
+./clahe3d_scripted --spacing 9 --size 21 --noise -950.0 --bins 255 \
+    --input CT.nii --output CT_clahe.nii
+
+# short flags with positional input/output
+./clahe3d_scripted -s 9 -z 21 -n -950.0 -b 255 CT.nii CT_clahe.nii
+```
+
+## Histogram analysis tool
+
+A companion executable computes the intensity histogram of a volume:
+
+```bash
+./histogram_scripted --bins 256 --input CT.nii --output histogram.txt
+# or positionally
+./histogram_scripted -b 256 CT.nii histogram.txt
 ```

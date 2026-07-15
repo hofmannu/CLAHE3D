@@ -4,64 +4,102 @@
 	Mail: mail@hofmannu.org
 	Date: 18.02.2022
 
-	A rather simple script which will allow using clahe3d from the command line
+	Command line frontend for the CLAHE3D algorithm. Run with --help to see all
+	available options and their defaults.
+*/
 
-	Usage:
-
-	clahe3d_scripted $sv_spacing_in $sv_size $clip_value $nBins $nifti_in $nifti_out
-	
-	Where 
-		sv_spacing: distance between subvolumes (uniform)
-		sv_size: size of subvolumes
-		clip_value: noise level which will be applied
-		nBins: number of bins during histogram making
-		nifti_in: input file in nii format
-		nifi_out: output path for processed dataset
-
-*/ 
-
-#include <fstream>
+#include <cstdlib>
 #include <iostream>
+#include <string>
+
+#include <cxxopts.hpp>
+
 #include "histeq.h"
 #include "vector3.h"
 #include "../lib/CVolume/src/volume.h"
 
-using namespace std;
-
 int main(int argc, char** argv)
 {
-	// lets try to read all the properties passed from the command line
-	if (argc != 7)
-	{
-		printf("This function requires exactly 6 input arguments");
-		printf("Input arguments\n");
+	cxxopts::Options options(
+		"clahe3d_scripted",
+		"Contrast limited adaptive histogram equalization (CLAHE) for 3D volumes.");
 
-		printf("You have entered %d arguments\n", argc);
-	  for (int i = 0; i < argc; ++i)
-        cout << argv[i] << "\n";
+	// Defaults mirror the histeqsett struct in histeq.h.
+	options.add_options()
+		("s,spacing", "Distance between subvolume centers [voxel]",
+			cxxopts::value<std::size_t>()->default_value("5"))
+		("z,size", "Edge length of each cubic subvolume [voxel]",
+			cxxopts::value<std::size_t>()->default_value("11"))
+		("n,noise", "Lower clip intensity of the histogram (noise level)",
+			cxxopts::value<float>()->default_value("0.1"))
+		("b,bins", "Number of histogram bins",
+			cxxopts::value<std::size_t>()->default_value("255"))
+		("i,input", "Input volume file (.nii / .h5)",
+			cxxopts::value<std::string>())
+		("o,output", "Output volume file",
+			cxxopts::value<std::string>())
+#if USE_CUDA
+		("g,gpu", "Run the equalization on the GPU (CUDA)",
+			cxxopts::value<bool>()->default_value("false"))
+#endif
+		("h,help", "Print usage");
+
+	// Allow `clahe3d_scripted <input> <output>` in addition to -i/-o.
+	options.parse_positional({"input", "output"});
+	options.positional_help("<input> <output>");
+
+	std::size_t sv_spacing, sv_size, nBins;
+	float noiseLevel;
+	std::string pathIn, pathOut;
+	bool useGpu = false;
+
+	try
+	{
+		const auto result = options.parse(argc, argv);
+
+		if (result.count("help"))
+		{
+			std::cout << options.help() << std::endl;
+			return 0;
+		}
+
+		if (!result.count("input") || !result.count("output"))
+		{
+			std::cerr << "Error: both an input and an output file are required.\n\n"
+			          << options.help() << std::endl;
+			return 1;
+		}
+
+		sv_spacing = result["spacing"].as<std::size_t>();
+		sv_size = result["size"].as<std::size_t>();
+		noiseLevel = result["noise"].as<float>();
+		nBins = result["bins"].as<std::size_t>();
+		pathIn = result["input"].as<std::string>();
+		pathOut = result["output"].as<std::string>();
+#if USE_CUDA
+		useGpu = result["gpu"].as<bool>();
+#endif
+	}
+	catch (const cxxopts::exceptions::exception& e)
+	{
+		std::cerr << "Error parsing options: " << e.what() << "\n\n"
+		          << options.help() << std::endl;
 		return 1;
 	}
 
-	const std::size_t sv_spacing = atoi(argv[1]);
-	const std::size_t sv_size = atoi(argv[2]);
-	const float noiseLevel = atof(argv[3]);
-	const std::size_t nBins = atoi(argv[4]);
-	const string pathIn = argv[5];
-	const string pathOut = argv[6];
-
 	printf("Input arguments\n");
-	printf("- subvolume spacing [voxel]: %d\n", sv_spacing);
-	printf("- subvolume size [voxel]: %d\n", sv_size);
+	printf("- subvolume spacing [voxel]: %zu\n", sv_spacing);
+	printf("- subvolume size [voxel]: %zu\n", sv_size);
 	printf("- noiseLevel: %f\n", noiseLevel);
-	printf("- nBins: %d\n", nBins);
+	printf("- nBins: %zu\n", nBins);
 	printf("- input file: %s\n", pathIn.c_str());
 	printf("- output file: %s\n", pathOut.c_str());
+	printf("- backend: %s\n", useGpu ? "GPU" : "CPU");
 
 	// load input file
 	printf("Loading data...\n");
 	volume niiInput;
 	niiInput.readFromFile(pathIn); // reads the entire input file
-	// niiHandler.print_header();
 
 	// prepare histogram handler
 	histeq histHandler;
@@ -74,8 +112,18 @@ int main(int argc, char** argv)
 	histHandler.set_overwrite(1);
 
 	printf("Running CLAHE3D...\n");
-	histHandler.calculate_cdf();
-	histHandler.equalize();
+	if (useGpu)
+	{
+#if USE_CUDA
+		histHandler.calculate_cdf_gpu();
+		histHandler.equalize_gpu();
+#endif
+	}
+	else
+	{
+		histHandler.calculate_cdf();
+		histHandler.equalize();
+	}
 
 	printf("Saving data...\n");
 	niiInput.saveToFile(pathOut);

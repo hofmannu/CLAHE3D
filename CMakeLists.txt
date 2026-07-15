@@ -46,6 +46,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
 find_package(ImGUI REQUIRED MODULE)
 find_package(ImGUIFileDialog REQUIRED MODULE)
 find_package(ImPlot REQUIRED MODULE)
+find_package(cxxopts REQUIRED)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
@@ -58,12 +59,12 @@ SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
 
 # small exec to run clahe3d from command line
 add_executable(clahe3d_scripted src/clahe3d_scripted.cpp)
-target_link_libraries(clahe3d_scripted PUBLIC Histeq Volume) 
+target_link_libraries(clahe3d_scripted PUBLIC Histeq Volume cxxopts::cxxopts)
 install(TARGETS clahe3d_scripted DESTINATION bin)
 
 # small exec to run histogram analysis from command line
 add_executable(histogram_scripted src/histogram_scripted.cpp)
-target_link_libraries(histogram_scripted PUBLIC Histogram Volume) 
+target_link_libraries(histogram_scripted PUBLIC Histogram Volume cxxopts::cxxopts)
 install(TARGETS histogram_scripted DESTINATION bin)
 
 # gui specific stuff
