@@ -38,19 +38,21 @@ TEST_CASE("gaussfilt stays in bounds and matches a hand-computed convolution", "
 		REQUIRE(currVal <= 1.00001f);
 	}
 
-	// generate an example kernel
+	// generate an example kernel, mirroring gaussfilt::run() exactly (note the
+	// relative offsets must be signed here: the class centres the kernel with
+	// dz = iz - range, so a std::size_t loop would underflow and never run)
 	const std::size_t range = (nKernel - 1) / 2;
 	std::vector<float> testKernel(nKernel * nKernel * nKernel);
-	for (std::size_t zrel = -range; zrel <= range; zrel++)
+	for (std::size_t zAbs = 0; zAbs < nKernel; zAbs++)
 	{
-		const std::size_t zAbs = range + zrel;
-		for (std::size_t yrel = -range; yrel <= range; yrel++)
+		const float dz = (float) zAbs - (float) range;
+		for (std::size_t yAbs = 0; yAbs < nKernel; yAbs++)
 		{
-			const std::size_t yAbs = range + yrel;
-			for (std::size_t xrel = -range; xrel <= range; xrel++)
+			const float dy = (float) yAbs - (float) range;
+			for (std::size_t xAbs = 0; xAbs < nKernel; xAbs++)
 			{
-				const std::size_t xAbs = range + xrel;
-				const float dr = powf(xrel * xrel + yrel * yrel + zrel * zrel, 0.5f);
+				const float dx = (float) xAbs - (float) range;
+				const float dr = powf(dx * dx + dy * dy + dz * dz, 0.5f);
 				const float gaussval = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
 					/ (sigma * powf(2.0f * M_PI, 0.5f));
 				const std::size_t dataIdx = xAbs + nKernel * (yAbs + nKernel * zAbs);
