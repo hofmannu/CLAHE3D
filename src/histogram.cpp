@@ -51,9 +51,14 @@ void histogram::calculate(const float* vector, const std::size_t nElems)
 		containerVal[iBin] = minVal + (0.5f + static_cast<float>(iBin)) * binSize; 
 	}
 	
-	for (std::size_t iElem = 0; iElem < nElems; iElem++) 
+	for (std::size_t iElem = 0; iElem < nElems; iElem++)
 	{
-		std::size_t currBin = (vector[iElem] - minVal) / binSize;
+		// a constant dataset has binSize == 0: (value - min) / 0 would be NaN,
+		// and casting NaN to std::size_t is undefined behaviour (the currBin >=
+		// nBins guard does not catch NaN). Everything lands in bin 0 in that case.
+		std::size_t currBin = 0;
+		if (binSize > 0)
+			currBin = (vector[iElem] - minVal) / binSize;
 		if (currBin >= nBins)
 			currBin = nBins - 1;
 
