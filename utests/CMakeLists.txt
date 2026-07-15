@@ -35,19 +35,9 @@ if(${USE_CUDA})
 endif()
 
 add_executable(Utests ${UTEST_SOURCES})
-target_link_libraries(Utests PUBLIC
-	Histeq
-	Genfilt
-	Meanfilt
-	Gaussfilt
-	Medianfilt
-	Normalizer
-	Lexer
-	Catch2::Catch2WithMain
-)
+target_link_libraries(Utests PUBLIC clahe3d Catch2::Catch2WithMain)
 
 if(${USE_CUDA})
-	target_link_libraries(Utests PUBLIC CudaTools)
 	set_property(TARGET Utests PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 endif()
 
