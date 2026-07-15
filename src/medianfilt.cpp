@@ -142,14 +142,17 @@ void medianfilt::run()
 
 	const auto tStart = std::chrono::high_resolution_clock::now();
 	
-	// define the range our threads need to calculate
-	const std::size_t zRange = dataSize.z / nThreads;
-	zStart.clear(); 
+	// define the range our threads need to calculate. Use at most one worker per
+	// z-slice: with nThreads > dataSize.z the per-worker range would be 0 and
+	// zStop = (iThread+1)*0 - 1 underflows to SIZE_MAX -> massive out-of-bounds writes.
+	const std::size_t nActive = (nThreads < dataSize.z) ? nThreads : dataSize.z;
+	const std::size_t zRange = dataSize.z / nActive;
+	zStart.clear();
 	zStop.clear();
-	for(std::size_t iThread = 0; iThread < nThreads; iThread++)
+	for(std::size_t iThread = 0; iThread < nActive; iThread++)
 	{
 		zStart.push_back(iThread * zRange);
-		if (iThread < (nThreads - 1))
+		if (iThread < (nActive - 1))
 		{
 			zStop.push_back((iThread + 1) * zRange - 1);
 		}
@@ -157,21 +160,20 @@ void medianfilt::run()
 		{
 			zStop.push_back(dataSize.z - 1);
 		}
-		printf("Starting z: %lu, stopping z: %lu\n", zStart[iThread], zStop[iThread]);
 	}
 
 	// create a container for our multithread processing units
 	std::vector<thread> runners;
-	
+
 	// launch all threads
-	for (std::size_t iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nActive; iThread++)
 	{
-		std::thread currThread(&medianfilt::run_range, this, iThread); 
+		std::thread currThread(&medianfilt::run_range, this, iThread);
 		runners.push_back(std::move(currThread));
 	}
 
 	// collect all threads
-	for (std::size_t iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nActive; iThread++)
 	{
 		runners[iThread].join();
 	}

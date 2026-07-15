@@ -210,12 +210,17 @@ void genfilt::conv()
 	alloc_output();
 	const auto tStart = std::chrono::high_resolution_clock::now();
 
-	const int zRange = dataSize.z / nThreads;
+	// use at most one worker per z-slice: if nThreads exceeds dataSize.z the range
+	// per worker (dataSize.z / nActive) would be 0 and zStop = (iThread+1)*0 - 1
+	// underflows the unsigned zStop vector to SIZE_MAX, making conv_range write far
+	// out of bounds.
+	const std::size_t nActive = (nThreads < dataSize.z) ? nThreads : dataSize.z;
+	const std::size_t zRange = dataSize.z / nActive;
 	zStart.clear(); zStop.clear();
-	for(int iThread = 0; iThread < nThreads; iThread++)
+	for(std::size_t iThread = 0; iThread < nActive; iThread++)
 	{
 		zStart.push_back(iThread * zRange);
-		if (iThread < (nThreads - 1))
+		if (iThread < (nActive - 1))
 		{
 			zStop.push_back((iThread + 1) * zRange - 1);
 		}
@@ -227,16 +232,16 @@ void genfilt::conv()
 
 	// create a container for our multithread processing units
 	std::vector<thread> runners;
-	
+
 	// launch all threads
-	for (uint8_t iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nActive; iThread++)
 	{
-		std::thread currThread(&genfilt::conv_range, this, iThread); 
+		std::thread currThread(&genfilt::conv_range, this, iThread);
 		runners.push_back(std::move(currThread));
 	}
 
 	// collect all threads
-	for (uint8_t iThread = 0; iThread < nThreads; iThread++)
+	for (std::size_t iThread = 0; iThread < nActive; iThread++)
 		runners[iThread].join();
 
 	const auto tStop = std::chrono::high_resolution_clock::now();
@@ -247,6 +252,17 @@ void genfilt::conv()
 
 
 // set functions
+void genfilt::set_nThreads(const std::size_t _nThreads)
+{
+	if (_nThreads < 1)
+	{
+		printf("Number of threads must be at least 1");
+		throw "InvalidConfig";
+	}
+	nThreads = _nThreads;
+	return;
+}
+
 void genfilt::set_dataInput(float* _dataInput)
 {
 	dataInput = _dataInput;

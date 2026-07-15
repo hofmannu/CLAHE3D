@@ -72,6 +72,9 @@ public:
   void set_kernel(float* _kernel);
   void set_dataSize(const vector3<std::size_t> _dataSize);
   void set_kernelSize(const vector3<std::size_t> _kernelSize);
+  void set_nThreads(const std::size_t _nThreads);
+
+  std::size_t get_nThreads() const { return nThreads; };
 
   std::size_t* get_pkernelSize() { return &kernelSize.x; };
   vector3<std::size_t> get_kernelSize() const { return kernelSize; };

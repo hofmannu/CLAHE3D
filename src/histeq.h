@@ -136,6 +136,9 @@ public:
 	void set_noiseLevel(const float _noiseLevel);
 	void set_data(float* _dataMatrix);
 	void set_overwrite(const bool _flagOverwrite);
+	void set_nThreads(const std::size_t _nThreads);
+
+	std::size_t get_nThreads() const { return nThreads; };
 
 };
 

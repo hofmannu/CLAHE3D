@@ -20,6 +20,7 @@ set(UTEST_SOURCES
 	utest_normalizer.cpp
 	utest_lexer.cpp
 	utest_histogram.cpp
+	utest_threading.cpp
 )
 
 # GPU unit tests (only built with CUDA support)

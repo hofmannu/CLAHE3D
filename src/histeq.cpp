@@ -584,20 +584,24 @@ void histeq::equalize()
 	// if overwrite is disabled we need to allocate memory for new output here
 	const auto tStart = std::chrono::high_resolution_clock::now();
 
-	// calculate range for workers and launch 1 by 1
-	const std::size_t zRange = volSize.z / nThreads;
+	// calculate range for workers and launch 1 by 1. Use at most one worker per
+	// z-slice: with nThreads > volSize.z the range per worker (volSize.z / nActive)
+	// would be 0 and zStop = zRange*(iWorker+1) - 1 underflows std::size_t to
+	// SIZE_MAX, making equalize_range write far out of bounds.
+	const std::size_t nActive = (nThreads < volSize.z) ? nThreads : volSize.z;
+	const std::size_t zRange = volSize.z / nActive;
 	workers.clear();
 	std::size_t zStart, zStop;
-	for (std::size_t iWorker = 0; iWorker < nThreads; iWorker++)
+	for (std::size_t iWorker = 0; iWorker < nActive; iWorker++)
 	{
 		zStart = zRange * iWorker;
-		zStop = (iWorker == (nThreads - 1)) ? (volSize.z - 1) : (zRange * (iWorker + 1) - 1);
+		zStop = (iWorker == (nActive - 1)) ? (volSize.z - 1) : (zRange * (iWorker + 1) - 1);
 		std::thread currThread(&histeq::equalize_range, this, ptrOutput, zStart, zStop);
 		workers.push_back(std::move(currThread));
 	}
 
 	// make sure all of our threads are ready to join back to main
-	for (std::size_t iWorker = 0; iWorker < nThreads; iWorker++)
+	for (std::size_t iWorker = 0; iWorker < nActive; iWorker++)
 		workers[iWorker].join();
 
 	const auto tStop = std::chrono::high_resolution_clock::now();
@@ -692,6 +696,18 @@ void histeq::set_nBins(const std::size_t _nBins)
 		throw "InvalidValue";
 	}
 	nBins = _nBins;
+	return;
+}
+
+// number of worker threads used for the CPU cdf/equalization passes
+void histeq::set_nThreads(const std::size_t _nThreads)
+{
+	if (_nThreads < 1)
+	{
+		printf("The number of threads must be at least 1");
+		throw "InvalidValue";
+	}
+	nThreads = _nThreads;
 	return;
 }
 

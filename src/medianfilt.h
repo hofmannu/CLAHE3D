@@ -37,9 +37,9 @@ struct medianfiltsett
 class medianfilt : public genfilt
 {
 private:
-	// int nThreads = 1;
-	vector<int> zStart; // start line for each thread
-	vector<int> zStop; // stop line for each thread
+	// note: zStart / zStop are inherited (as vector<std::size_t>) from genfilt;
+	// re-declaring them here as vector<int> previously shadowed the base members
+	// and turned an underflowed SIZE_MAX range bound into int(-1).
 	int nKernel; // number of elements in kernel
 	int centerIdx; // center index of linearized kernel
 	int sizeKernel; // size of kernel in bytes
