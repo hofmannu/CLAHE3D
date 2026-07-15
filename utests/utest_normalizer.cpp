@@ -8,6 +8,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "../src/normalizer.h"
+#include <cmath>
 
 TEST_CASE("normalizer scales an array into [minVal, maxVal]", "[normalizer]")
 {
@@ -45,4 +46,37 @@ TEST_CASE("normalizer scales an array into [minVal, maxVal]", "[normalizer]")
 	REQUIRE(maxValTest == norm.get_maxVal());
 
 	delete[] testArray;
+}
+
+TEST_CASE("normalizer handles a constant array without producing NaN", "[normalizer]")
+{
+	// regression: a constant array has zero span, so 1/rangeArray was inf and
+	// (value - min) * inf produced NaN for every element.
+	normalizer<float> norm;
+	norm.set_minVal(0.2f);
+	norm.set_maxVal(1.2f);
+
+	float data[4] = {3.0f, 3.0f, 3.0f, 3.0f};
+	norm.normalize(data, 4);
+
+	for (float v : data)
+	{
+		REQUIRE_FALSE(std::isnan(v));
+		REQUIRE(v == norm.get_minVal()); // degenerate range maps everything to minVal
+	}
+}
+
+TEST_CASE("normalizer handles a single-element array", "[normalizer]")
+{
+	// regression: max was seeded from array[1], an out-of-bounds read for a
+	// single-element array.
+	normalizer<float> norm;
+	norm.set_minVal(0.0f);
+	norm.set_maxVal(1.0f);
+
+	float data[1] = {5.0f};
+	norm.normalize(data, 1);
+
+	REQUIRE_FALSE(std::isnan(data[0]));
+	REQUIRE(data[0] == norm.get_minVal());
 }

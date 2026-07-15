@@ -61,8 +61,10 @@ public:
 			const F range = maxVal - minVal;
 
 			// first we need to find current maximum and minimum in array
+			// (both seeded from element 0 - seeding max from array[1] would read
+			// out of bounds for a single-element array)
 			F minValArray = array[0];
-			F maxValArray = array[1];
+			F maxValArray = array[0];
 			for (T iElement = 0; iElement < nElements; iElement++)
 			{
 				if (array[iElement] > maxValArray)
@@ -72,6 +74,16 @@ public:
 					minValArray = array[iElement];
 			}
 			const F rangeArray = maxValArray - minValArray;
+
+			// a constant array has zero span: 1 / rangeArray would be inf and
+			// (value - min) * inf would be NaN. Map every element to minVal instead.
+			if (rangeArray == 0)
+			{
+				for (T iElement = 0; iElement < nElements; iElement++)
+					array[iElement] = minVal;
+				return;
+			}
+
 			const F irangeArray = 1.0f / rangeArray;
 
 			for (T iElement = 0; iElement < nElements; iElement++)
