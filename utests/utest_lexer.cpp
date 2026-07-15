@@ -1,10 +1,9 @@
+#include <catch2/catch_test_macros.hpp>
+
 #include "../src/lexer.h"
 
-int main()
+TEST_CASE("lexer parses a short script without throwing", "[lexer]")
 {
-
 	lexer l;
-	l.parse("c = a * b;\nc = meanfilt(c);\n");
-
-	return 0;
+	REQUIRE_NOTHROW(l.parse("c = a * b;\nc = meanfilt(c);\n"));
 }

@@ -5,26 +5,19 @@
 	Description: unit test for array normalization
 */
 
-#include "../src/normalizer.h"
-#include <iostream>
+#include <catch2/catch_test_macros.hpp>
 
-int main()
+#include "../src/normalizer.h"
+
+TEST_CASE("normalizer scales an array into [minVal, maxVal]", "[normalizer]")
 {
 	normalizer<float> norm;
 
 	norm.set_maxVal(1.2f);
-	if (norm.get_maxVal() != 1.2f)
-	{
-		printf("Could not define maximum value for normalizer\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(norm.get_maxVal() == 1.2f);
 
 	norm.set_minVal(0.2f);
-	if (norm.get_minVal() != 0.2f)
-	{
-		printf("Could not define minimum value for normalizer\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(norm.get_minVal() == 0.2f);
 
 	// generate array with random values
 	uint64_t nElements = 110;
@@ -47,20 +40,9 @@ int main()
 			minValTest = testArray[iElement];
 	}
 
-	// check lower boundary first
-	if (minValTest != norm.get_minVal())
-	{
-		printf("Min value in normalized array is wrong\n");
-		throw "InvalidValue";
-	}
-
-
-	if (maxValTest != norm.get_maxVal())
-	{
-		printf("Max value in normalized array is wrong\n");
-		throw "InvalidValue";
-	}
+	// the resulting array must hit both boundaries exactly
+	REQUIRE(minValTest == norm.get_minVal());
+	REQUIRE(maxValTest == norm.get_maxVal());
 
 	delete[] testArray;
-	return 0;
 }

@@ -5,19 +5,14 @@
 	Date: 13.02.2022
 */
 
-#include "../src/histeq.h"
-#include <iostream>
-#include <cstdint>
-#include <fstream>
-#include <chrono>
+#include <catch2/catch_test_macros.hpp>
 
+#include "../src/histeq.h"
+#include <cstdint>
 #include "../src/vector3.h"
 
-using namespace std;
-
-int main()
+TEST_CASE("histeq zeroes the volume when everything is below noise level", "[histeq]")
 {
-
 	// define grid dimensions for testing
 	const vector3<std::size_t> volSize(600, 500, 400);
 	const vector3<std::size_t> subVolSize(31, 31, 31);
@@ -41,8 +36,8 @@ int main()
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
 	histHandler.set_overwrite(0);
-	
-	// histogram calculation on GPU
+
+	// histogram calculation on CPU
 	histHandler.calculate_cdf();
 	const float testValCpu = histHandler.get_cdf(iBin, 10, 10, 10);
 	histHandler.equalize();
@@ -50,40 +45,21 @@ int main()
 	float* outputVolCpu = histHandler.get_ptrOutput();
 	for (std::size_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
-		if (!(outputVolCpu[iElem] == 0))
-		{
-			printf("CPU: All elements need to be zero now! I saw a %.1f\n", outputVolCpu[iElem]);
-			throw "InvalidValue";
-		}
+		REQUIRE(outputVolCpu[iElem] == 0);
 	}
-
-	printf("Looking good on CPU here\n");
 
 	#if USE_CUDA
 	histHandler.calculate_cdf_gpu();
 	const float testValGpu = histHandler.get_cdf(iBin, 10, 10, 10);
-	if (testValGpu != testValCpu)
-	{	
-		printf("CPU value: %.1f, GPU value: %.1f\n", testValCpu, testValGpu);
-		throw "InvalidValue";
-	}
+	REQUIRE(testValGpu == testValCpu);
 	histHandler.equalize_gpu();
 
 	float* outputVolGpu = histHandler.get_ptrOutput();
-	for (int iElem = 0; iElem < (volSize.elementMult()); iElem++)
+	for (std::size_t iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
-		if (!(outputVolGpu[iElem] == 0))
-		{
-			printf("GPU: All elements need to be zero now! I saw a %.1f\n", outputVolGpu[iElem]);
-			throw "InvalidValue";
-		}
+		REQUIRE(outputVolGpu[iElem] == 0);
 	}
-
-	printf("Looking good on GPU here\n");
 	#endif
 
 	delete[] inputVol;
-		
-	return 0;
-
 }

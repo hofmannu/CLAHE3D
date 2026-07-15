@@ -47,6 +47,10 @@ find_package(ImGUI REQUIRED MODULE)
 find_package(ImGUIFileDialog REQUIRED MODULE)
 find_package(ImPlot REQUIRED MODULE)
 find_package(cxxopts REQUIRED)
+find_package(Catch2 3 REQUIRED)
+
+enable_testing()
+include(Catch)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)
@@ -76,27 +80,7 @@ if(${USE_GUI})
 endif()
 
 
-add_test(NAME test_proc COMMAND UtestProc)
-add_test(NAME test_overwrite COMMAND UtestOverwrite)
-add_test(NAME test_noiseLevel COMMAND UtestNoiseLevel)
-add_test(NAME test_binarization COMMAND UtestBinarization)
-add_test(NAME test_vector3 COMMAND UtestVector3)
-add_test(NAME test_genfilt COMMAND UtestGenfilt)
-add_test(NAME test_padding COMMAND UtestPadding)
-add_test(NAME test_meanfilt COMMAND UtestMeanfilt)
-add_test(NAME test_gaussfilt COMMAND UtestGaussfilt)
-add_test(NAME test_medianfilt COMMAND UtestMedianfilt)
-add_test(NAME test_normalizer COMMAND UtestNormalizer)
-add_test(NAME test_lexer COMMAND UtestLexer)
-
-
-if(${USE_CUDA})
-	add_test(NAME test_proc_gpu COMMAND UtestProcGpu)
-	add_test(NAME test_cdf_gpu COMMAND UtestCdfGpu)
-	add_test(NAME test_eq_gpu COMMAND UtestEqGpu)
-	add_test(NAME test_gpu_full COMMAND UtestGpuFull)
-	add_test(NAME test_medianfilt_gpu COMMAND UtestMedianfiltGpu)
-	add_test(NAME test_genfilt_gpu COMMAND UtestGenfiltGpu)
-endif()
+# Test cases are registered automatically via Catch2's catch_discover_tests()
+# in utests/CMakeLists.txt.
 
 enable_testing() # this cannot be in subdirectory!

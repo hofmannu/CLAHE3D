@@ -1,22 +1,18 @@
-/* 
+/*
 	test how our class handles a binarization task
 	Author: Urs Hofmann
 	Mail: mail@hofmannu.org
 	Date: 13.02.2022
 */
 
+#include <catch2/catch_test_macros.hpp>
+
 #include "../src/histeq.h"
-#include <iostream>
 #include <cstdint>
-#include <fstream>
-#include <chrono>
 #include "../src/vector3.h"
 
-using namespace std;
-
-int main()
+TEST_CASE("histeq binarizes a two-valued volume into an even 0/1 split", "[histeq]")
 {
-
 	// define grid dimensions for testing
 	const vector3<std::size_t> volSize(600, 500, 400);
 	const float clipLimit = 0.1;
@@ -30,10 +26,7 @@ int main()
 	{
 		inputVol[iIdx] = ((float) (iIdx % 2)) * 99.0 + 1.0;
 	}
-		
-	// now our whole matrix is either 100 or 1
-
-	// initialize some parameters
+		// now our whole matrix is either 100 or 1
 
 	histeq histHandler;
 	histHandler.set_nBins(binSize);
@@ -43,46 +36,28 @@ int main()
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
 	histHandler.set_overwrite(0);
-	
+
 	histHandler.calculate_cdf();
 
 	// check the min value in a single example bin
-	if (!(histHandler.get_minValBin(0, 0, 0) == 1.0))
-	{
-		printf("Minimum in each and every bin should be 1.0\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(histHandler.get_minValBin(0, 0, 0) == 1.0f);
 
 	// check maximum value in an example bin
-	if (!(histHandler.get_maxValBin(0, 0, 0) == 100.0))
-	{
-		printf("Minimum in each and every bin should be 100.0\n");
-		throw "InvalidValue";
-	}
+	REQUIRE(histHandler.get_maxValBin(0, 0, 0) == 100.0f);
 
 	// check if CDF is valid
-	// all bins until last one should have value 0.5 in CDF
+	// all bins until last one should have value 0 in CDF, the last one 1
 	for (int iBin = 0; iBin < binSize; iBin++)
 	{
 		if (iBin < (binSize - 1))
 		{
-			if (histHandler.get_cdf(iBin, 0, 0, 0) != 0.0f)
-			{
-				throw "InvalidValue";
-			}
+			REQUIRE(histHandler.get_cdf(iBin, 0, 0, 0) == 0.0f);
 		}
 		else
 		{
-			if (histHandler.get_cdf(iBin, 0, 0, 0) != 1.0f)
-			{
-				throw "InvalidValue";
-			}
+			REQUIRE(histHandler.get_cdf(iBin, 0, 0, 0) == 1.0f);
 		}
 	}
-
-	// check example ICDFs
-	// value 1.0 should return bin 0
-	// value 
 
 	histHandler.equalize();
 
@@ -92,34 +67,16 @@ int main()
 	int counterOne = 0;
 	for (int iElem = 0; iElem < (volSize.elementMult()); iElem++)
 	{
-		if (outputVolCpu[iElem] == 0.0)
-		{
-			counterZero ++;
-		}
-		else if (outputVolCpu[iElem] == 1.0)
-		{
-			counterOne ++;
-		}
+		const float outVal = outputVolCpu[iElem];
+		INFO("input = " << inputVol[iElem] << ", output = " << outVal);
+		REQUIRE((outVal == 0.0f || outVal == 1.0f));
+		if (outVal == 0.0f)
+			counterZero++;
 		else
-		{
-			printf("All elements 0 or 1, most recent: input = %.1f, output = %.1f\n",
-				inputVol[iElem], outputVolCpu[iElem]);
-			throw "InvalidValue";
-		}
+			counterOne++;
 	}
 
-	if (counterZero != counterOne)
-	{
-		printf("Does not look like an even distibution to me.");
-		throw "InvalidValue";
-	}
-	else
-	{
-		printf("All seems to work, nZeros: %d, nOnes: %d\n", (int)counterZero, (int)counterOne);
-	}
+	REQUIRE(counterZero == counterOne);
 
 	delete[] inputVol;
-		
-	return 0;
-
 }

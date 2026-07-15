@@ -3,6 +3,7 @@ imgui/1.91.8-docking
 glfw/3.4
 hdf5/1.14.3
 cxxopts/3.3.1
+catch2/3.7.1
 
 [options]
 hdf5/*:enable_cxx=True

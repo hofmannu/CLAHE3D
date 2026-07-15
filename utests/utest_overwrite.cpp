@@ -5,22 +5,18 @@
 	Date: 13.02.2022
 */
 
+#include <catch2/catch_test_macros.hpp>
+
 #include "../src/histeq.h"
-#include <iostream>
 #include <cstdint>
-#include <fstream>
-#include <chrono>
 
-using namespace std;
-
-int main(){
-
+TEST_CASE("histeq overwrite flag keeps input intact and CDF stable", "[histeq][cpu]")
+{
 	const vector3<std::size_t> volSize(600, 500, 300);
 	const float clipLimit = 0.1;
 	const std::size_t binSize = 250;
 	const vector3<std::size_t> subVolSize(31, 31, 31);
 	const vector3<std::size_t> subVolSpacing(20, 20, 20);
-	
 
 	// generate input volume matrix and assign random values to it
 	float* inputVol = new float[volSize.x * volSize.y * volSize.z];
@@ -40,19 +36,14 @@ int main(){
 	histHandler.set_spacingSubVols(subVolSpacing);
 	histHandler.set_data(inputVol);
 	histHandler.set_overwrite(0);
-	
-	// histogram calculation on GPU
+
 	histHandler.calculate_cdf();
 	histHandler.equalize();
 
 	// check if input volume remained the same
 	for (std::size_t iElem = 0; iElem < (volSize.x * volSize.y * volSize.z); iElem++)
 	{
-		if (inputVol[iElem] != inputVolBk[iElem])
-		{
-			printf("The input volume changed! Not acceptable.\n");
-			throw "InvalidBehaviour";
-		}
+		REQUIRE(inputVol[iElem] == inputVolBk[iElem]);
 	}
 
 	const float testVal1 = histHandler.get_cdf(120, 15, 2, 5);
@@ -61,19 +52,9 @@ int main(){
 
 	const float testVal2 = histHandler.get_cdf(120, 15, 2, 5);
 
-	if (testVal1 != testVal2)
-	{
-		printf("Test values are not identical!\n");
-		throw "InvalidResult";
-	}
-	else
-	{
-		printf("Overwrite flag seems to work as expected!\n");
-	}
+	// repeated equalization must not change the CDF
+	REQUIRE(testVal1 == testVal2);
 
 	delete[] inputVol;
 	delete[] inputVolBk;
-		
-	return 0;
-
 }

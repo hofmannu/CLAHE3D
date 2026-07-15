@@ -1,10 +1,9 @@
+#include <catch2/catch_test_macros.hpp>
+
 #include "../src/cudaTools.cuh"
 
-int main()
+TEST_CASE("cudaTools can query device properties", "[cuda]")
 {
 	cudaTools myTools;
-
-	myTools.print_devProps();
-
-	return 0;
+	REQUIRE_NOTHROW(myTools.print_devProps());
 }

@@ -5,11 +5,12 @@
 	Date: 14.03.2022
 */
 
+#include <catch2/catch_test_macros.hpp>
+
 #include "../src/gaussfilt.h"
 
-int main()
+TEST_CASE("gaussfilt stays in bounds and matches a hand-computed convolution", "[gaussfilt]")
 {
-
 	srand(0);
 	constexpr std::size_t nKernel = 11;
 	constexpr float sigma = 1.1f;
@@ -18,7 +19,7 @@ int main()
 	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
 	myFilt.set_dataSize({100, 110, 120});
 	myFilt.set_sigma(sigma);
-	
+
 	std::vector<float> inputData(myFilt.get_nData());
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
@@ -27,25 +28,14 @@ int main()
 
 	myFilt.set_dataInput(inputData.data());
 	myFilt.run();
-	printf("Kernel execution tool %.2f ms\n", myFilt.get_tExec());
 
 	float* outputMatrix = myFilt.get_pdataOutput();
 
 	for (std::size_t iElem = 0; iElem < myFilt.get_nData(); iElem++)
 	{
 		const float currVal = outputMatrix[iElem];
-		if (currVal < 0.0)
-		{
-			printf("in this super simple test case there should be nothing below 0\n");
-			throw "InvalidResult";
-		}
-
-		if (currVal > 1.00001)
-		{
-			printf("in this super simple test case there should be nothing above 1.0: %.2f\n",
-				currVal);
-			throw "InvalidResult";
-		}
+		REQUIRE(currVal >= 0.0f);
+		REQUIRE(currVal <= 1.00001f);
 	}
 
 	// generate an example kernel
@@ -73,7 +63,7 @@ int main()
 	float kernelSum = 0;
 	for (std::size_t iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
 		kernelSum += testKernel[iElem];
-	
+
 	for (std::size_t iElem = 0 ; iElem < (nKernel * nKernel * nKernel); iElem++)
 		testKernel[iElem] = testKernel[iElem] / kernelSum;
 
@@ -90,21 +80,15 @@ int main()
 			{
 				const std::size_t xAbs = testPos.x + xrel - range;
 				const std::size_t dataIdx = xAbs + 100 * (yAbs + 110 * zAbs);
-				const std::size_t kernelIdx = xrel + nKernel * (yrel + nKernel * zrel); 
+				const std::size_t kernelIdx = xrel + nKernel * (yrel + nKernel * zrel);
 				testVal = fma(testKernel[kernelIdx], inputData[dataIdx], testVal);
 			}
 		}
 	}
 
 	const int idxOutput = testPos.x + 100 * (testPos.y + 110 * testPos.z);
-	
-	const float relativeError = fabs(testVal - outputMatrix[idxOutput]) / fabs(testVal);
-	if (relativeError >= 1e-4)
-	{
-		printf("The test value (%.4f) seems to differ from the class result (%.4f).\n",
-			testVal, outputMatrix[idxOutput]);
-		throw "InvalidValue";
-	}
 
-	return 0;
+	const float relativeError = fabs(testVal - outputMatrix[idxOutput]) / fabs(testVal);
+	INFO("reference value = " << testVal << ", filter result = " << outputMatrix[idxOutput]);
+	REQUIRE(relativeError < 1e-4f);
 }

@@ -1,72 +1,54 @@
 # subfolder containing all the important unit tests
+#
+# All unit tests are compiled into a single Catch2 executable (Utests). Catch2
+# provides main() via Catch2::Catch2WithMain, and every TEST_CASE is registered
+# with CTest automatically through catch_discover_tests(), so there is no need to
+# list the individual cases by hand in the top-level CMakeLists.txt.
 
-# declaration of unit test executables
-add_executable(UtestProc utest_proc.cpp)
-target_link_libraries(UtestProc PUBLIC Histeq)
+# CPU unit tests (always built)
+set(UTEST_SOURCES
+	utest_proc.cpp
+	utest_overwrite.cpp
+	utest_noiseLevel.cpp
+	utest_binarization.cpp
+	utest_vector3.cpp
+	utest_genfilt.cpp
+	utest_padding.cpp
+	utest_meanfilt.cpp
+	utest_gaussfilt.cpp
+	utest_medianfilt.cpp
+	utest_normalizer.cpp
+	utest_lexer.cpp
+)
 
-add_executable(UtestOverwrite utest_overwrite.cpp)
-target_link_libraries(UtestOverwrite PUBLIC Histeq)
-
-add_executable(UtestNoiseLevel utest_noiseLevel.cpp)
-target_link_libraries(UtestNoiseLevel PUBLIC Histeq)
-
-add_executable(UtestBinarization utest_binarization.cpp)
-target_link_libraries(UtestBinarization PUBLIC Histeq)
-
-add_executable(UtestVector3 utest_vector3.cpp)
-
-add_executable(UtestGenfilt utest_genfilt.cpp)
-target_link_libraries(UtestGenfilt PUBLIC Genfilt)
-
-
-add_executable(UtestPadding utest_padding.cpp)
-target_link_libraries(UtestPadding PUBLIC Genfilt)
-
-add_executable(UtestMeanfilt utest_meanfilt.cpp)
-target_link_libraries(UtestMeanfilt PUBLIC Meanfilt)
-
-add_executable(UtestGaussfilt utest_gaussfilt.cpp)
-target_link_libraries(UtestGaussfilt PUBLIC Gaussfilt)
-
-add_executable(UtestMedianfilt utest_medianfilt.cpp)
-target_link_libraries(UtestMedianfilt PUBLIC Medianfilt)
-
-add_executable(UtestNormalizer utest_normalizer.cpp)
-target_link_libraries(UtestNormalizer PUBLIC Normalizer)
-
-add_executable(UtestLexer utest_lexer.cpp)
-target_link_libraries(UtestLexer PUBLIC Lexer)
-
-# cuda specific test functions
+# GPU unit tests (only built with CUDA support)
 if(${USE_CUDA})
-
-	add_executable(UtestProcGpu utest_proc_gpu.cpp)
-	target_link_libraries(UtestProcGpu PUBLIC Histeq)
-	set_property(TARGET UtestProcGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-	add_executable(UtestCdfGpu utest_cdf_gpu.cpp)
-	target_link_libraries(UtestCdfGpu PUBLIC Histeq)
-	set_property(TARGET UtestCdfGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-	add_executable(UtestEqGpu utest_eq_gpu.cpp)
-	target_link_libraries(UtestEqGpu PUBLIC Histeq)
-	set_property(TARGET UtestEqGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-	add_executable(UtestMedianfiltGpu utest_medianfilt_gpu.cpp)
-	target_link_libraries(UtestMedianfiltGpu PUBLIC Medianfilt)
-	set_property(TARGET UtestMedianfiltGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-	add_executable(UtestGenfiltGpu utest_genfilt_gpu.cpp)
-	target_link_libraries(UtestGenfiltGpu PUBLIC Genfilt)
-	set_property(TARGET UtestGenfiltGpu PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-		
-	add_executable(UtestGpuFull utest_gpu_full.cpp)
-	target_link_libraries(UtestGpuFull PUBLIC Histeq)
-	set_property(TARGET UtestGpuFull PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
-	add_executable(UtestCudaTools utest_cuda_tools.cpp)
-	target_link_libraries(UtestCudaTools PUBLIC CudaTools)
-	set_property(TARGET UtestCudaTools PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-
+	list(APPEND UTEST_SOURCES
+		utest_proc_gpu.cpp
+		utest_cdf_gpu.cpp
+		utest_eq_gpu.cpp
+		utest_medianfilt_gpu.cpp
+		utest_genfilt_gpu.cpp
+		utest_gpu_full.cpp
+		utest_cuda_tools.cpp
+	)
 endif()
 
+add_executable(Utests ${UTEST_SOURCES})
+target_link_libraries(Utests PUBLIC
+	Histeq
+	Genfilt
+	Meanfilt
+	Gaussfilt
+	Medianfilt
+	Normalizer
+	Lexer
+	Catch2::Catch2WithMain
+)
+
+if(${USE_CUDA})
+	target_link_libraries(Utests PUBLIC CudaTools)
+	set_property(TARGET Utests PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+endif()
+
+catch_discover_tests(Utests)
