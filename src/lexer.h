@@ -22,6 +22,9 @@ private:
 public:
 	void parse(const std::string inputString);
 	void print_result() const;
+
+	// number of ';'-separated statements found by the last parse() call
+	std::size_t get_nStatements() const { return splitString.size(); };
 };
 
 #endif

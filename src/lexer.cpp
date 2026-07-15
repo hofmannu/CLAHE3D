@@ -3,7 +3,10 @@
 // removes all unnecessary whitespace from vector
 void lexer::remove_whitespace()
 {
-	inputString.erase(std::remove_if(inputString.begin(), inputString.end(), ::isspace), inputString.end());
+	// pass each byte as unsigned char: feeding a negative char to ::isspace is
+	// undefined behaviour for inputs containing bytes >= 0x80.
+	inputString.erase(std::remove_if(inputString.begin(), inputString.end(),
+		[](unsigned char c) { return std::isspace(c); }), inputString.end());
 	return;
 }
 
@@ -46,7 +49,10 @@ void lexer::parse(const std::string _inputString)
 	remove_whitespace();
 	std::cout << "after whitespace removal: " << inputString << std::endl;
 
-	// divide into substrings (for each semicolon one line)
+	// divide into substrings (for each semicolon one line), then tokenize them.
+	// split_lines() populates splitString; calling split_tokens() alone (as was
+	// done before) iterated an always-empty splitString and did nothing.
+	split_lines();
 	split_tokens();
 
 	return;
