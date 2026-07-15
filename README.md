@@ -24,8 +24,7 @@ Some are already pushed to the GPU, others not yet.
 ```bash
 git clone https://github.com/hofmannu/CLAHE3D.git
 cd CLAHE3D
-git submodule init
-git submodule update
+git submodule update --init --recursive
 ```
 
 To use the GUI or CUDA support, there are a few more dependencies to install
