@@ -82,3 +82,19 @@ TEST_CASE("vector3 arithmetic and accessors", "[vector3]")
 	vector3<int> expectedRes = {2, 0, 1};
 	REQUIRE(outVal == expectedRes);
 }
+
+TEST_CASE("vector3 equality compares the z component correctly", "[vector3]")
+{
+	// regression: operator== used `z * B.z` instead of `z == B.z`, so
+	//  - vectors that only differ in z compared equal when the product was nonzero
+	//  - a vector with z == 0 did not even compare equal to itself
+	REQUIRE(vector3<int>(1, 2, 3) != vector3<int>(1, 2, 5)); // was reported equal (3*5 != 0)
+	REQUIRE_FALSE(vector3<int>(1, 2, 3) == vector3<int>(1, 2, 5));
+
+	REQUIRE(vector3<int>(0, 0, 0) == vector3<int>(0, 0, 0)); // was reported unequal (0*0 == 0)
+	REQUIRE(vector3<int>(4, 5, 0) == vector3<int>(4, 5, 0));
+
+	// differences in x or y must still register
+	REQUIRE_FALSE(vector3<int>(1, 2, 3) == vector3<int>(9, 2, 3));
+	REQUIRE_FALSE(vector3<int>(1, 2, 3) == vector3<int>(1, 9, 3));
+}

@@ -44,7 +44,7 @@ public:
 	// check if two vectors are the same
 	bool operator == (const vector3& B) const
 	{
-		return ((x == B.x) && (y == B.y) && (z * B.z));
+		return ((x == B.x) && (y == B.y) && (z == B.z));
 	}
 
 	// check if two vectors are different
