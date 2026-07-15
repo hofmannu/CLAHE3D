@@ -1,4 +1,6 @@
 Debug/*
+Release/*
+CMakeUserPresets.json
 *.sublime-project
 *.log
 build/*

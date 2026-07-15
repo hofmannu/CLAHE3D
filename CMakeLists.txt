@@ -8,7 +8,9 @@ project(clahe3d
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Debug)
+endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(USE_CUDA TRUE) # flag to enable and disable GPU support
@@ -40,10 +42,10 @@ else()
 endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules")
-find_package(ImGUI REQUIRED)
-find_package(ImGUIFileDialog REQUIRED)
-find_package(ImPlot REQUIRED)
-# find_package(Catch2 REQUIRED)
+
+find_package(ImGUI REQUIRED MODULE)
+find_package(ImGUIFileDialog REQUIRED MODULE)
+find_package(ImPlot REQUIRED MODULE)
 
 add_subdirectory(lib/)
 add_subdirectory(src/)

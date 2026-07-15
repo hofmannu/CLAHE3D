@@ -84,7 +84,10 @@ target_link_libraries(Volproc PUBLIC
 	Histeq
 	Histogram
 	Normalizer
-	Log)
+	Log
+	# volproc.h includes volume.h; link Volume so the HDF5 include path (now coming
+	# from Conan's hdf5::hdf5_cpp instead of a global /usr/include) propagates here.
+	Volume)
 
 add_library(Lexer lexer.cpp)
 
