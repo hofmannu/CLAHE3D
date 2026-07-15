@@ -511,10 +511,10 @@ void gui::SlicerWindow() {
       ImImagesc(mySlice.get_plane(1), sizeArray.x, sizeArray.z, &sliceY, rawMap);
       ImImagesc(mySlice.get_plane(2), sizeArray.x, sizeArray.y, &sliceZ, rawMap);
 
-      ImGui::Image((void*)(intptr_t)sliceY, ImVec2(xLength, zLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceY, ImVec2(xLength, zLength));
       ImGui::SameLine();
-      ImGui::Image((void*)(intptr_t)sliceX, ImVec2(yLength, zLength));
-      ImGui::Image((void*)(intptr_t)sliceZ, ImVec2(xLength, yLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceX, ImVec2(yLength, zLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceZ, ImVec2(xLength, yLength));
 
       ImGui::Columns(2);
       ImGui::SliderFloat("Min Val Raw",
@@ -538,10 +538,10 @@ void gui::SlicerWindow() {
       ImImagesc(mySlice.get_plane(1), sizeArray.x, sizeArray.z, &sliceY, procMap);
       ImImagesc(mySlice.get_plane(2), sizeArray.x, sizeArray.y, &sliceZ, procMap);
 
-      ImGui::Image((void*)(intptr_t)sliceY, ImVec2(xLength, zLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceY, ImVec2(xLength, zLength));
       ImGui::SameLine();
-      ImGui::Image((void*)(intptr_t)sliceX, ImVec2(yLength, zLength));
-      ImGui::Image((void*)(intptr_t)sliceZ, ImVec2(xLength, yLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceX, ImVec2(yLength, zLength));
+      ImGui::Image((ImTextureID)(intptr_t)sliceZ, ImVec2(xLength, yLength));
 
       ImGui::Columns(2);
       ImGui::SliderFloat("Min Val Proc",

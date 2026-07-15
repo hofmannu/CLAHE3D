@@ -27,23 +27,20 @@ cd CLAHE3D
 git submodule update --init --recursive
 ```
 
-To use the GUI or CUDA support, there are a few more dependencies to install
+The third-party C/C++ libraries (`imgui` on the docking branch, `glfw` and the
+`hdf5` C++ API) are pulled and built by [Conan](https://conan.io/).
+Two dependencies that are not on ConanCenter, `ImPlot` and `ImGuiFileDialog`, are
+fetched from git and compiled against the Conan `imgui` so their
+`ImGuiContext` layout matches the docking build.
 
-## Ubuntu
+What still has to come from your system:
 
-- Compilation tools and helpers: `git`, `cmake`, `g++`
-- GPU: `nvidia-cuda-toolkit`
-- Stuff to display things using the GUI: `libglfw3-dev`
-- Saving and reading from h5 files: `libhdf5-dev`
+- Build tooling: `git`, `cmake` (>= 3.23 for presets), `g++`, and `conan` (v2)
+- GPU support: CUDA toolkit
+- GUI support: system OpenGL and X11 runtime/dev libraries
 
-With those libraries installed it should work. A few libraries might not be matching with your OS path to them (e.g. not finding header files). The code was only tested for ArchLinux to its full extend.
-
-## ArchLinux
-
-- Compilation tools and helpers: `git`, `cmake`, `g++`
-- GPU: `cuda`
-- Stuff to display things using the GUI: `glfw-x11` or `glfw-wayland`, `glew`
-- Saving and reading from h5 files: `hdf5`
+Install Conan (once) with `pipx install conan` and, on a fresh machine, create a
+default profile with `conan profile detect`.
 
 # Installation / Compiling
 
@@ -52,12 +49,22 @@ To compile with GPU support, change the flag `USE_CUDA` in the main `CMakeLists.
 Don't forget to add the architecture required for your GPU in the `CMakeLists.txt` according to your target hardware. 
 If you want to use the [ImGui](https://github.com/ocornut/imgui) based graphical user interface (basically a simple slicing and execution interface), there is also an option for that. 
 
-Execute the following commands from the project directory to build the software:
+For a quick build, use the helper script (defaults to `Debug`):
 
 ```bash
-mkdir Debug
-cd Debug 
-cmake ..
+./build.sh            # Debug build into Debug/
+./build.sh Release    # optimised build into Release/
+```
+
+Or run the steps manually. The first lets Conan resolve/build the dependencies
+and emit a CMake toolchain into `Debug/`; the second configures and builds
+against it:
+
+```bash
+conan install . --output-folder=Debug --build=missing \
+  -s build_type=Debug -s compiler.cppstd=20
+cd Debug
+cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug
 make all
 ```
 

@@ -1,62 +1,51 @@
-# a helper script to easily get imgui and make it available for the current
-# project
+# Provides the ImGUI_target library.
+#
+# imgui itself (docking branch) now comes from Conan (see conanfile.txt) instead
+# of FetchContent. Conan ships only the compiled core in libimgui.a; the GLFW +
+# OpenGL3 backends and the std::string helper are shipped as *source* under the
+# package's res/ folder and must be compiled into our own target here.
 
-# imgui does not have a CMakeLists.txt file
+find_package(imgui REQUIRED) # Conan CMakeDeps -> imgui::imgui (headers + libimgui.a)
+find_package(glfw3 REQUIRED) # Conan CMakeDeps -> glfw
+find_package(OpenGL REQUIRED)
 
-include(FetchContent)
+if (NOT TARGET ImGUI_target)
 
-FetchContent_Declare(
-	imgui
-	GIT_REPOSITORY https://github.com/ocornut/imgui.git
-	GIT_TAG 3912b3d9a9c1b3f17431aebafd86d2f40ee6e59c # note: this git tag is pointing to the docking branch
-	GIT_PROGRESS true
-)
-
-FetchContent_GetProperties(imgui)
-if (NOT imgui_POPULATED)
-
-	# we use the imgui implementation here depends on GLFW and OpenFL
-	find_package(GLFW REQUIRED)
-	find_package(OpenGL REQUIRED)
-  find_package(X11 REQUIRED)
-	
-  FetchContent_MakeAvailable(imgui)
+	# Locate the bindings that Conan drops under <pkg>/res. The imgui include dir
+	# is <pkg>/include, so res/ sits one level up. imgui_RES_DIRS is empty in the
+	# generated files, so we derive it from imgui_INCLUDE_DIRS (a plain path set by
+	# CMakeDeps; the target's INTERFACE_INCLUDE_DIRECTORIES is a genex and unusable
+	# for path math).
+	list(GET imgui_INCLUDE_DIRS 0 _imgui_inc)
+	get_filename_component(_imgui_root "${_imgui_inc}" DIRECTORY)
+	set(_imgui_bindings "${_imgui_root}/res/bindings")
+	set(_imgui_stdlib   "${_imgui_root}/res/misc/cpp")
 
 	add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
-	
+
 	add_library(ImGUI_target
-		${imgui_SOURCE_DIR}/imgui.cpp
-		${imgui_SOURCE_DIR}/imgui_draw.cpp
-		${imgui_SOURCE_DIR}/imgui_tables.cpp
-		${imgui_SOURCE_DIR}/imgui_widgets.cpp
-		${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
-		${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-		${imgui_SOURCE_DIR}/misc/cpp/imgui_stdlib.cpp
+		${_imgui_bindings}/imgui_impl_glfw.cpp
+		${_imgui_bindings}/imgui_impl_opengl3.cpp
+		${_imgui_stdlib}/imgui_stdlib.cpp
 	)
-	
+
+	# imgui::imgui already propagates the imgui headers publicly, so consumers of
+	# ImGUI_target get imgui.h / imgui_internal.h transitively.
+	target_link_libraries(ImGUI_target
+	PUBLIC
+		imgui::imgui
+		glfw
+		OpenGL::GL
+	)
+
 	target_include_directories(ImGUI_target
 	PUBLIC
-		
-	PRIVATE
-		${imgui_SOURCE_DIR}
-		${imgui_SOURCE_DIR}/backends
-		${glfw_SOURCE_DIR}/include
+		${_imgui_bindings}
+		${_imgui_stdlib}
 	)
-
-	# glfw3_LIBRARIES is empty
-	target_link_libraries(ImGUI_target 
-	PRIVATE
-		${GLFW_LIBRARIES}
-		${OPENGL_LIBRARIES}
-    ${X11_LIBRARIES}
-	)
-
-	set(ImGUI_INCLUDE_DIR
-		${imgui_SOURCE_DIR}
-		${imgui_SOURCE_DIR}/backends
-		${imgui_SOURCE_DIR}/misc/cpp
-	)
-	set(ImGUI_FOUND TRUE)
-	set(ImGUI_LIBRARIES "ImGUI_target")
 
 endif()
+
+set(ImGUI_INCLUDE_DIR ${_imgui_bindings} ${_imgui_stdlib})
+set(ImGUI_FOUND TRUE)
+set(ImGUI_LIBRARIES "ImGUI_target")

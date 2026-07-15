@@ -1,0 +1,11 @@
+[requires]
+imgui/1.91.8-docking
+glfw/3.4
+hdf5/1.14.3
+
+[options]
+hdf5/*:enable_cxx=True
+
+[generators]
+CMakeDeps
+CMakeToolchain
