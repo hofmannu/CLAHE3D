@@ -28,6 +28,16 @@ TEST_CASE("histogram counts every element for a normal dataset", "[histogram]")
 	REQUIRE(hist.get_maxVal() == 7.0f);
 }
 
+TEST_CASE("default-constructed histogram has its buffers allocated", "[histogram]")
+{
+	// regression: the default constructor did not allocate, so counter/containerVal
+	// were empty and get_pcounter()/get_pcontainerVal() (&vec[0]) were UB if read
+	// before calculate().
+	histogram hist;
+	REQUIRE(hist.get_counter().size() == hist.get_nBins());
+	REQUIRE(hist.get_nBins() > 0);
+}
+
 TEST_CASE("histogram handles a constant dataset without NaN/out-of-bounds", "[histogram]")
 {
 	// regression: for a constant dataset maxVal == minVal, so binSize == 0 and

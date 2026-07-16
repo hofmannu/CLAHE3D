@@ -36,7 +36,7 @@ public:
 	[[nodiscard]] const float* get_pcontainerVal() const {return &containerVal[0];};
 	[[nodiscard]] const std::size_t* get_pcounter() const {return &counter[0];};
 	[[nodiscard]] std::vector<float> get_counter() const {std::vector<float> floatVec(counter.begin(), counter.end());return std::move(floatVec);};
-	[[nodiscard]] int get_nBins() const {return nBins;};
+	[[nodiscard]] std::size_t get_nBins() const {return nBins;};
 
 	/// \brief prints the histogram result to a simple text file
 	/// \param fileName name of file to be written

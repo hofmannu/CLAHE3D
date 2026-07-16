@@ -22,6 +22,8 @@ public:
 	void threshold(float* array, uint64_t nElements);
 	void set_minVal(float _minVal) noexcept;
 	void set_maxVal(float _maxVal) noexcept;
+	[[nodiscard]] float get_minVal() const noexcept { return minVal; };
+	[[nodiscard]] float get_maxVal() const noexcept { return maxVal; };
 private:
 	float minVal = 0.0f;
 	float maxVal = 1.0f;

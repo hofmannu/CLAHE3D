@@ -22,6 +22,7 @@ set(UTEST_SOURCES
 	utest_histogram.cpp
 	utest_threading.cpp
 	utest_histeq_degenerate.cpp
+	utest_thresholder.cpp
 )
 
 # GPU unit tests (only built with CUDA support)

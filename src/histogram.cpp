@@ -4,7 +4,9 @@
 // constructors and descrructors
 histogram::histogram()
 {
-
+	// allocate for the default bin count so the get_pcounter()/get_pcontainerVal()
+	// accessors never dereference an empty vector before calculate() is called.
+	alloc_mem();
 }
 
 histogram::histogram(const std::size_t _nBins)

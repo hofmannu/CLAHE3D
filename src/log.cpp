@@ -53,7 +53,7 @@ void log::clear_log()
 std::string log::get_log_string() const 
 {
 	std::string outputMessage = "";
-	for (int iLog = 0; iLog < collection.size(); iLog++)
+	for (std::size_t iLog = 0; iLog < collection.size(); iLog++)
 	{
 		outputMessage += collection[iLog].tString;
 		outputMessage += " -> " + collection[iLog].message + "\n";
