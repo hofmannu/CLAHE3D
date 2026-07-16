@@ -679,24 +679,24 @@ float histeq::get_outputValue(const vector3<std::size_t>& idx) const
 	return get_outputValue(linIdx);
 } 
 
-// returns output value for 3d index
-float histeq::get_outputValue(const std::size_t iZ, const std::size_t iX, const std::size_t iY) const
+// returns output value for 3d index (x fastest, matching the storage layout)
+float histeq::get_outputValue(const std::size_t iX, const std::size_t iY, const std::size_t iZ) const
 {
-	const std::size_t linIdx = iZ + volSize[0] * (iX + volSize[1] * iY);
+	const std::size_t linIdx = iX + volSize[0] * (iY + volSize[1] * iZ);
 	return get_outputValue(linIdx);
-} 
+}
 
-// returns the minimum value of a bin
-float histeq::get_minValBin(const std::size_t zBin, const std::size_t xBin, const std::size_t yBin)
+// returns the minimum value of a bin (x fastest, matching the cdf storage layout)
+float histeq::get_minValBin(const std::size_t xBin, const std::size_t yBin, const std::size_t zBin)
 {
-	const std::size_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
+	const std::size_t idxBin = xBin + nSubVols[0] * (yBin + nSubVols[1] * zBin);
 	return minValBin[idxBin];
 }
 
-// returns the maximum value of a bin
-float histeq::get_maxValBin(const std::size_t zBin, const std::size_t xBin, const std::size_t yBin)
+// returns the maximum value of a bin (x fastest, matching the cdf storage layout)
+float histeq::get_maxValBin(const std::size_t xBin, const std::size_t yBin, const std::size_t zBin)
 {
-	const std::size_t idxBin = zBin + nSubVols[0] * (xBin + nSubVols[1] * yBin);
+	const std::size_t idxBin = xBin + nSubVols[0] * (yBin + nSubVols[1] * zBin);
 	return maxValBin[idxBin];
 }
 

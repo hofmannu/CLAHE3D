@@ -127,9 +127,9 @@ public:
 
 	float get_outputValue(const std::size_t iElem) const;
 	float get_outputValue(const vector3<std::size_t>& idx) const;
-	float get_outputValue(const std::size_t iZ, const std::size_t iX, const std::size_t iY) const;
-	float get_minValBin(const std::size_t zBin, const std::size_t xBin, const std::size_t yBin);
-	float get_maxValBin(const std::size_t zBin, const std::size_t xBin, const std::size_t yBin);
+	float get_outputValue(const std::size_t iX, const std::size_t iY, const std::size_t iZ) const;
+	float get_minValBin(const std::size_t xBin, const std::size_t yBin, const std::size_t zBin);
+	float get_maxValBin(const std::size_t xBin, const std::size_t yBin, const std::size_t zBin);
 
 	// set functions
 	void set_nBins(const std::size_t _nBins);

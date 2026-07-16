@@ -75,3 +75,31 @@ TEST_CASE("histeq CDF fills the last bin for an all-below-noise sub-volume", "[h
 		REQUIRE(hist.get_cdf(nBins - 1, iSub) == 1.0f);
 	}
 }
+
+TEST_CASE("histeq index accessors follow the x-fastest storage layout", "[histeq]")
+{
+	// locks the convention: get_outputValue(iX, iY, iZ) must address
+	// iX + nX*(iY + nY*iZ), matching the linear and vector3 overloads. A non-cubic
+	// volume makes a wrong axis order land on a different element.
+	const vector3<std::size_t> volSize(5, 7, 3);
+	std::vector<float> data(volSize.elementMult());
+	for (std::size_t i = 0; i < data.size(); i++)
+		data[i] = static_cast<float>((i * 17) % 100) / 100.0f;
+
+	histeq hist;
+	hist.set_nBins(16);
+	hist.set_noiseLevel(0.01f);
+	hist.set_volSize(volSize);
+	hist.set_sizeSubVols({3, 3, 3});
+	hist.set_spacingSubVols({2, 2, 2});
+	hist.set_overwrite(0);
+	hist.set_data(data.data());
+	hist.calculate_cdf();
+	hist.equalize();
+
+	const std::size_t x = 1, y = 4, z = 2;
+	const std::size_t lin = x + volSize.x * (y + volSize.y * z);
+	REQUIRE(hist.get_outputValue(x, y, z) == hist.get_outputValue(lin));
+	REQUIRE(hist.get_outputValue(x, y, z) == hist.get_outputValue(vector3<std::size_t>(x, y, z)));
+}
+
