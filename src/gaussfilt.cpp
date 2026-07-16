@@ -20,8 +20,11 @@ void gaussfilt::run()
 			{
 				const float dx = (float) ix - (float) kernelRange.x;
 				const float dr = pow(dx * dx + dy * dy + dz * dz, 0.5f);
-				const float currVal = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
-					/ (sigma * powf(2.0f * M_PI, 0.5f));
+				// true Gaussian weight exp(-r^2 / (2 sigma^2)); the constant 1/(sigma*sqrt(2pi))
+			// prefactor is omitted because the kernel is normalised to sum 1 below. The
+			// previous form exp(-1/(2 r^2 sigma^2)) was not a Gaussian and made the centre
+			// tap (r == 0) zero instead of the peak.
+			const float currVal = expf(-(dr * dr) / (2.0f * sigma * sigma));
 				const std::size_t idxLin = ix + kernelSize.x * (iy + kernelSize.y * iz);
 				gaussKernel[idxLin] = currVal;
 			}
@@ -57,8 +60,11 @@ void gaussfilt::run_gpu()
 			{
 				const float dx = (float) ix - (float) kernelRange.x;
 				const float dr = pow(dx * dx + dy * dy + dz * dz, 0.5f);
-				const float currVal = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
-					/ (sigma * powf(2.0f * M_PI, 0.5f));
+				// true Gaussian weight exp(-r^2 / (2 sigma^2)); the constant 1/(sigma*sqrt(2pi))
+			// prefactor is omitted because the kernel is normalised to sum 1 below. The
+			// previous form exp(-1/(2 r^2 sigma^2)) was not a Gaussian and made the centre
+			// tap (r == 0) zero instead of the peak.
+			const float currVal = expf(-(dr * dr) / (2.0f * sigma * sigma));
 				const std::size_t idxLin = ix + kernelSize.x * (iy + kernelSize.y * iz);
 				gaussKernel[idxLin] = currVal;
 			}

@@ -53,8 +53,7 @@ TEST_CASE("gaussfilt stays in bounds and matches a hand-computed convolution", "
 			{
 				const float dx = (float) xAbs - (float) range;
 				const float dr = powf(dx * dx + dy * dy + dz * dz, 0.5f);
-				const float gaussval = expf(-1.0f / 2.0f / (dr * dr) / (sigma * sigma))
-					/ (sigma * powf(2.0f * M_PI, 0.5f));
+				const float gaussval = expf(-(dr * dr) / (2.0f * sigma * sigma));
 				const std::size_t dataIdx = xAbs + nKernel * (yAbs + nKernel * zAbs);
 				testKernel[dataIdx] = gaussval;
 			}
@@ -93,4 +92,33 @@ TEST_CASE("gaussfilt stays in bounds and matches a hand-computed convolution", "
 	const float relativeError = fabs(testVal - outputMatrix[idxOutput]) / fabs(testVal);
 	INFO("reference value = " << testVal << ", filter result = " << outputMatrix[idxOutput]);
 	REQUIRE(relativeError < 1e-4f);
+}
+
+TEST_CASE("gaussfilt impulse response peaks at the centre", "[gaussfilt]")
+{
+	// regression: the old kernel formula exp(-1/(2 r^2 sigma^2)) evaluated to 0 at the
+	// centre tap (r == 0 -> exp(-inf)), so an impulse smoothed to 0 exactly where it
+	// should peak. A real Gaussian has its maximum weight at the centre.
+	constexpr std::size_t nKernel = 9;
+	const vector3<std::size_t> dataSize = {21, 21, 21};
+
+	gaussfilt myFilt;
+	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
+	myFilt.set_dataSize(dataSize);
+	myFilt.set_sigma(1.5f);
+
+	std::vector<float> inputData(myFilt.get_nData(), 0.0f);
+	const vector3<std::size_t> centre = {10, 10, 10};
+	const std::size_t idxCentre = centre.x + dataSize.x * (centre.y + dataSize.y * centre.z);
+	inputData[idxCentre] = 1.0f; // single bright voxel
+
+	myFilt.set_dataInput(inputData.data());
+	myFilt.run();
+
+	float* out = myFilt.get_pdataOutput();
+
+	// the smoothed impulse must be positive at the centre and be the global maximum
+	REQUIRE(out[idxCentre] > 0.0f);
+	for (std::size_t i = 0; i < myFilt.get_nData(); i++)
+		REQUIRE(out[i] <= out[idxCentre]);
 }
