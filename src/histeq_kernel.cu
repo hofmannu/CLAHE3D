@@ -339,11 +339,14 @@ __global__ void cdf_kernel(
 
 		// now we scale cdf to max == 1 (first value is 0 anyway)
 		const float zeroElem = localCdf[0];
-		const float valRange = localCdf[inArgsCdf->nBins - 1] - zeroElem;;
-		const float rvalRange = 1.0f / valRange;
+		const float valRange = localCdf[inArgsCdf->nBins - 1] - zeroElem;
 
-		if (localCdf[inArgsCdf->nBins - 1] > 0.0f)
+		// guard on valRange (not just the total count): a flat cdf where every
+		// above-noise voxel landed in a single bin would give 1 / valRange == inf
+		// and produce NaN. Fall back to a linear ramp, matching the CPU path.
+		if (valRange > 0.0f)
 		{
+			const float rvalRange = 1.0f / valRange;
 			for (unsigned int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 			{
 				localCdf[iBin] = (localCdf[iBin] - zeroElem) * rvalRange;
@@ -351,10 +354,11 @@ __global__ void cdf_kernel(
 		}
 		else
 		{
-			const float revMaxBin = 1.0f / ((float) (inArgsCdf->nBins - 1));
-			for (unsigned int iBin = 1; iBin < inArgsCdf->nBins; iBin++)
+			// use the same division (not a reciprocal-multiply) as the CPU path so the
+			// two produce bit-identical ramps.
+			for (unsigned int iBin = 0; iBin < inArgsCdf->nBins; iBin++)
 			{
-				localCdf[iBin] = ((float) iBin) * revMaxBin;
+				localCdf[iBin] = ((float) iBin) / ((float) (inArgsCdf->nBins - 1));
 			}
 		}
 	}

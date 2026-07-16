@@ -330,20 +330,33 @@ void histeq::calculate_sub_cdf(
 		// now we scale cdf to max == 1 (first value is 0 anyway)
 		const float zeroElem = localCdf[0];
 		const float valRange = localCdf[nBins - 1] - zeroElem;
-		const float rvalRange = 1.0f / valRange;
-		for (std::size_t iBin = 0; iBin < nBins; iBin++)
+		if (valRange > 0.0f)
 		{
-			localCdf[iBin] = (localCdf[iBin] - zeroElem) * rvalRange;
+			const float rvalRange = 1.0f / valRange;
+			for (std::size_t iBin = 0; iBin < nBins; iBin++)
+			{
+				localCdf[iBin] = (localCdf[iBin] - zeroElem) * rvalRange;
+			}
 		}
-		
+		else
+		{
+			// all above-noise voxels fell into a single bin: a flat cdf would make
+			// 1 / valRange == inf and (x - zeroElem) * inf == NaN. Fall back to a
+			// linear ramp (matches the GPU path and the no-signal branch below).
+			for (std::size_t iBin = 0; iBin < nBins; iBin++)
+				localCdf[iBin] = ((float) iBin) / ((float) (nBins - 1));
+		}
+
 	}
 	else // if no value was above noise level --> linear cdf
 	{
 		maxValBin[idxSubVol] = noiseLevel;
 		minValBin[idxSubVol] = noiseLevel;
-		for (std::size_t iBin = 0; iBin < (nBins - 1); iBin++)
+		// write every bin including the last one: the loop used to stop at nBins-1,
+		// leaving localCdf[nBins-1] uninitialised (garbage read later).
+		for (std::size_t iBin = 0; iBin < nBins; iBin++)
 		{
-			localCdf[iBin] = ((float) iBin) / ((float) nBins - 1);
+			localCdf[iBin] = ((float) iBin) / ((float) (nBins - 1));
 		}
 	}
 
