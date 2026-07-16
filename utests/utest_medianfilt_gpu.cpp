@@ -88,3 +88,28 @@ TEST_CASE("medianfilt GPU preserves input, stays in bounds and matches a hand-co
 
 	delete[] inputData;
 }
+
+TEST_CASE("medianfilt GPU handles duplicate values (constant volume)", "[medianfilt][gpu]")
+{
+	// regression guard: kth_smallest carried an "all elements distinct" assumption and
+	// an INT_MAX fallback. Median-filter input routinely has duplicates (a constant
+	// volume is all duplicates); the interior median must equal the constant, never a
+	// ~2.1e9 sentinel.
+	const std::size_t nKernel = 3;
+	const std::size_t nx = 8, ny = 8, nz = 8;
+	const float constVal = 0.7f;
+
+	medianfilt myFilt;
+	myFilt.set_kernelSize({nKernel, nKernel, nKernel});
+	myFilt.set_dataSize({nx, ny, nz});
+
+	std::vector<float> inputData(myFilt.get_nData(), constVal);
+	myFilt.set_dataInput(inputData.data());
+
+	myFilt.run_gpu();
+	float* out = myFilt.get_pdataOutput();
+
+	// an interior voxel has an all-constant neighbourhood -> median == constVal
+	const std::size_t idxInterior = 4 + nx * (4 + ny * 4);
+	REQUIRE(out[idxInterior] == constVal);
+}

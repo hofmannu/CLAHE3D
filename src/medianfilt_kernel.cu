@@ -41,14 +41,15 @@ __device__ unsigned int partition(dataType* arr, indexType left, indexType right
   return i;
 }
  
-// This function returns k'th smallest element in arr[l..r] using QuickSort
-// based method.  ASSUMPTION: ALL ELEMENTS IN ARR[] ARE DISTINCT
-// k is the position of the element we want
+// This function returns the k'th smallest element in arr[left..right] using a
+// QuickSelect (Lomuto partition) method. Duplicate values are fine - the k index
+// is adjusted per partition, so equal elements do not break the selection.
+// k is the (1-based) position of the element we want.
 template<typename dataType, typename indexType>
 __device__ const dataType kth_smallest(dataType* arr, indexType left, indexType right, indexType k)
 {
   // If k is smaller than number of elements in array
-  if ((k > 0) && (k <= (right - left + 1))) 
+  if ((k > 0) && (k <= (right - left + 1)))
   {
     // Partition the array around last element and get position of pivot element in sorted array
     const indexType index = partition(arr, left, right);
@@ -64,8 +65,9 @@ __device__ const dataType kth_smallest(dataType* arr, indexType left, indexType 
     	return kth_smallest(arr, index + 1, right, k - index + left - 1);
   }
 
-  // If k is more than number of elements in array
-  return INT_MAX;
+  // Unreachable for a valid k: return a real array element rather than a sentinel
+  // like INT_MAX, so a mis-call degrades gracefully instead of writing a ~2.1e9 spike.
+  return arr[right];
 }
 
 __global__ void medianfilt_cuda(float* outputData, const medianfilt_args args)
